@@ -33,33 +33,31 @@ const MovieDetails = () => {
   if (!movie) return null;
 
   return (
-    <div className="relative p-6 bg-gray-900 text-white min-h-screen">
+    <div className="relative p-6 bg-neutral-950 text-white min-h-screen">
       <img
         src={`https://image.tmdb.org/t/p/w1280${movie.backdrop_path}`}
         alt={movie.title}
         className="absolute inset-0 w-full h-full object-cover opacity-50"
       />
-      <div className="relative z-10 p-4 bg-gray-800 bg-opacity-75 rounded-md shadow-lg max-w-3xl mx-auto">
+      <div className="relative z-10 p-4 bg-neutral-800 bg-opacity-75 rounded-md shadow-lg max-w-3xl mx-auto">
         <h1 className="text-4xl font-bold mb-4">{movie.title}</h1>
         {trailer ? (
-  <div className="mt-4">
-    <iframe
-      className="w-full h-96 sm:h-80 lg:h-96 rounded-lg shadow-md"
-      src={`https://www.youtube.com/embed/${trailer.key}`}
-      title="Trailer"
-      allowFullScreen
-    />
-  </div>
-) : (
-  <p className="mt-4">Trailer não disponível.</p>
-)}
-
-
+          <div className="mt-4">
+            <iframe
+              className="w-full h-96 sm:h-80 lg:h-96 rounded-lg shadow-md"
+              src={`https://www.youtube.com/embed/${trailer.key}`}
+              title="Trailer"
+              allowFullScreen
+            />
+          </div>
+        ) : (
+          <p className="mt-4">Trailer não disponível.</p>
+        )}
         <h1>ㅤ</h1>
         <p className="mb-4">{movie.overview}</p>
         <p>Lançamento: {movie.release_date}</p>
         <p className="mb-4">Avaliação: {movie.vote_average}</p>
-        <div className="text-yellow-500 text-xl">
+        <div className="text-[#bd0003] text-xl">
           {Array(5).fill(0).map((_, index) => (
             index < Math.round(movie.vote_average / 2) ? '★' : '☆'
           ))}
@@ -70,7 +68,7 @@ const MovieDetails = () => {
             <li key={actor.id}>{actor.name} como {actor.character}</li>
           ))}
         </ul>
-        <Link to="/" className="mt-4 inline-block bg-red-600 text-white py-2 px-4 rounded hover:bg-red-700 transition-colors" aria-label="Voltar para a lista de filmes">
+        <Link to="/" className="mt-4 inline-block bg-[#bd0003] text-white py-2 px-4 rounded hover:bg-red-700 transition-colors" aria-label="Voltar para a lista de filmes">
           Voltar
         </Link>
       </div>

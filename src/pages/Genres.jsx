@@ -20,12 +20,12 @@ const Genres = () => {
 
   if (loading) return (
     <div className="flex items-center justify-center min-h-screen bg-gray-900">
-      <l-waveform size="35" stroke="3.5" speed="1" color="black"></l-waveform>
+      <l-waveform size="35" stroke="3.5" speed="1" color="red"></l-waveform>
     </div>
   );
 
   return (
-    <div className="p-6 bg-gray-900 min-h-screen text-white">
+    <div className="p-6 bg-neutral-950 min-h-screen text-white">
       <h1 className="text-4xl font-bold mb-4">Gêneros</h1>
       <ul>
         {genres.map((genre) => (
