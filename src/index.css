@@ -1,6 +1,8 @@
 @import 'tailwindcss/base';
 @import 'tailwindcss/components';
 @import 'tailwindcss/utilities';
+@import '~slick-carousel/slick/slick.css';
+@import '~slick-carousel/slick/slick-theme.css';
 
 .line-clamp-2 {
   display: -webkit-box;
@@ -10,7 +12,26 @@
 }
 
 body {
-  background-color: black;
-  margin: 0;
+  background-color: rgb(10 10 10);
+  margin: 0px;
   color: white;
+
 }
+
+
+*::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+*::-webkit-scrollbar-thumb {
+  background-color: #bd0003;
+  border-radius: 10px;
+  border: 2px solid #1a1a1a;
+}
+
+*::-webkit-scrollbar-track {
+  background: #1a1a1a;
+}
+
+

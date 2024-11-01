@@ -33,7 +33,7 @@ const MovieDetails = () => {
   if (!movie) return null;
 
   return (
-    <div className="relative p-6 bg-neutral-950 text-white min-h-screen">
+    <div className="relative p-0 movie-details bg-neutral-950 text-white min-h-screen">
       <img
         src={`https://image.tmdb.org/t/p/w1280${movie.backdrop_path}`}
         alt={movie.title}

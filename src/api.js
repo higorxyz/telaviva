@@ -7,6 +7,24 @@ export const fetchPopularMovies = async () => {
   return data.results;
 };
 
+export const fetchTopRatedMovies = async () => {
+  const response = await fetch(`${API_BASE_URL}/movie/top_rated?api_key=${API_KEY}&language=pt-BR`);
+  const data = await response.json();
+  return data.results;
+};
+
+export const fetchNowPlayingMovies = async () => {
+  const response = await fetch(`${API_BASE_URL}/movie/now_playing?api_key=${API_KEY}&language=pt-BR`);
+  const data = await response.json();
+  return data.results;
+};
+
+export const fetchUpcomingMovies = async () => {
+  const response = await fetch(`${API_BASE_URL}/movie/upcoming?api_key=${API_KEY}&language=pt-BR`);
+  const data = await response.json();
+  return data.results;
+};
+
 export const fetchMovieDetails = async (movieId) => {
   const response = await fetch(`${API_BASE_URL}/movie/${movieId}?api_key=${API_KEY}&language=pt-BR`);
   if (!response.ok) {
