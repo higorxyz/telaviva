@@ -9,6 +9,8 @@ import PopularMovies from './pages/PopularMovies';
 import TopRatedMovies from './pages/TopRatedMovies';
 import NowPlayingMovies from './pages/NowPlayingMovies';
 import UpcomingMovies from './pages/UpcomingMovies';
+import WatchedMovies from './pages/WatchedMovies';
+import ToWatchMovies from './pages/ToWatchMovies';
 
 const App = () => {
   return (
@@ -23,6 +25,8 @@ const App = () => {
         <Route path="/top-rated-movies" element={<div className="px-28"><TopRatedMovies /></div>} />
         <Route path="/now-playing-movies" element={<div className="px-28"><NowPlayingMovies /></div>} />
         <Route path="/upcoming-movies" element={<div className="px-28"><UpcomingMovies /></div>} />
+        <Route path="/watched-movies" element={<div className="px-28"><WatchedMovies /></div>} />
+        <Route path="/to-watch-movies" element={<div className="px-28"><ToWatchMovies /></div>} />
       </Routes>
     </Router>
   );

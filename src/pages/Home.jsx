@@ -85,7 +85,7 @@ const Home = () => {
   return (
     <div className="p-6 bg-neutral-950 text-white">
 
-      <h1 className="text-4xl font-bold mb-4 flex justify-between items-center">
+      <h1 className="text-4xl font-bold my-8 flex justify-between items-center">
         Agora em Cartaz
         <Link to="/now-playing-movies" className="bg-[#bd0003] text-white py-1 px-3 rounded-full text-sm">
           Ver Todos
@@ -115,7 +115,7 @@ const Home = () => {
         </button>
       </div>
 
-      <h1 className="text-4xl font-bold mb-4 mt-8 flex justify-between items-center">
+      <h1 className="text-4xl font-bold mt-12 mb-8 flex justify-between items-center">
         Melhores Avaliados
         <Link to="/top-rated-movies" className="bg-[#bd0003] text-white py-1 px-3 rounded-full text-sm">
           Ver Todos
@@ -145,7 +145,7 @@ const Home = () => {
         </button>
       </div>
 
-      <h1 className="text-4xl font-bold mb-4 mt-8 flex justify-between items-center">
+      <h1 className="text-4xl font-bold mt-12 mb-8 flex justify-between items-center">
         Filmes Populares
         <Link to="/popular-movies" className="bg-[#bd0003] text-white py-1 px-3 rounded-full text-sm">
           Ver Todos
@@ -175,7 +175,7 @@ const Home = () => {
         </button>
       </div>
 
-      <h1 className="text-4xl font-bold mb-4 mt-8 flex justify-between items-center">
+      <h1 className="text-4xl font-bold mt-12 mb-8 flex justify-between items-center">
         Próximos Lançamentos
         <Link to="/upcoming-movies" className="bg-[#bd0003] text-white py-1 px-3 rounded-full text-sm">
           Ver Todos
