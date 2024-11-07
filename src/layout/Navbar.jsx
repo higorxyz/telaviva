@@ -32,14 +32,6 @@ const Navbar = () => {
           <ul className="flex space-x-4 items-center">
             <li>
               <Link
-                to="/"
-                className={`text-[#bd0003] hover:text-gray-300 ${isActiveLink('/') ? 'border-2 border-[#bd0003] text-white' : ''} px-2 py-1 rounded-full`}
-              >
-                Início
-              </Link>
-            </li>
-            <li>
-              <Link
                 to="/genres"
                 className={`text-[#bd0003] hover:text-gray-300 ${isActiveLink('/genres') ? 'border-2 border-[#bd0003] text-white' : ''} px-2 py-1 rounded-full`}
               >
@@ -145,12 +137,6 @@ const Navbar = () => {
           </button>
         </div>
         <div className="flex flex-col items-center space-y-4 text-white">
-          <Link
-            to="/"
-            className="text-[#bd0003] hover:text-gray-300 px-2 py-1 rounded-full"
-          >
-            Início
-          </Link>
           <Link
             to="/genres"
             className="text-[#bd0003] hover:text-gray-300 px-2 py-1 rounded-full"
