@@ -6,8 +6,15 @@ module.exports = {
   theme: {
     extend: {
       colors: {
-        primary: "#101010", 
-        secondary: "#bd0003", 
+        primary: "#101010",
+        secondary: "#bd0003",
+      },
+      screens: {
+        'sm': '640px',
+        'md': '768px',
+        'lg': '1024px',
+        'xl': '1280px',
+        '2xl': '1536px',
       },
     },
   },
