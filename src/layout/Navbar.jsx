@@ -44,26 +44,10 @@ const Navbar = () => {
           <ul className="flex space-x-4 items-center">
             <li>
               <Link
-                to="/genres"
-                className={`text-[#bd0003] hover:text-gray-300 ${isActiveLink('/genres') ? 'border-2 border-[#bd0003] text-white' : ''} px-2 py-1 rounded-full`}
+                to="/now-playing-movies"
+                className={`text-[#bd0003] hover:text-gray-300 ${isActiveLink('/now-playing-movies') ? 'border-2 border-[#bd0003] text-white' : ''} px-2 py-1 rounded-full`}
               >
-                Gêneros
-              </Link>
-            </li>
-            <li>
-              <Link
-                to="/watched-movies"
-                className={`text-[#bd0003] hover:text-gray-300 ${isActiveLink('/watched-movies') ? 'border-2 border-[#bd0003] text-white' : ''} px-2 py-1 rounded-full`}
-              >
-                Assistidos
-              </Link>
-            </li>
-            <li>
-              <Link
-                to="/to-watch-movies"
-                className={`text-[#bd0003] hover:text-gray-300 ${isActiveLink('/to-watch-movies') ? 'border-2 border-[#bd0003] text-white' : ''} px-2 py-1 rounded-full`}
-              >
-                Ver Depois
+                Agora Em Cartaz
               </Link>
             </li>
             <li>
@@ -84,18 +68,34 @@ const Navbar = () => {
             </li>
             <li>
               <Link
-                to="/now-playing-movies"
-                className={`text-[#bd0003] hover:text-gray-300 ${isActiveLink('/now-playing-movies') ? 'border-2 border-[#bd0003] text-white' : ''} px-2 py-1 rounded-full`}
-              >
-                Agora Em Cartaz
-              </Link>
-            </li>
-            <li>
-              <Link
                 to="/upcoming-movies"
                 className={`text-[#bd0003] hover:text-gray-300 ${isActiveLink('/upcoming-movies') ? 'border-2 border-[#bd0003] text-white' : ''} px-2 py-1 rounded-full`}
               >
                 Em Breve
+              </Link>
+            </li>
+            <li>
+              <Link
+                to="/watched-movies"
+                className={`text-[#bd0003] hover:text-gray-300 ${isActiveLink('/watched-movies') ? 'border-2 border-[#bd0003] text-white' : ''} px-2 py-1 rounded-full`}
+              >
+                Assistidos
+              </Link>
+            </li>
+            <li>
+              <Link
+                to="/to-watch-movies"
+                className={`text-[#bd0003] hover:text-gray-300 ${isActiveLink('/to-watch-movies') ? 'border-2 border-[#bd0003] text-white' : ''} px-2 py-1 rounded-full`}
+              >
+                Ver Depois
+              </Link>
+            </li>
+            <li>
+              <Link
+                to="/genres"
+                className={`text-[#bd0003] hover:text-gray-300 ${isActiveLink('/genres') ? 'border-2 border-[#bd0003] text-white' : ''} px-2 py-1 rounded-full`}
+              >
+                Gêneros
               </Link>
             </li>
           </ul>
@@ -151,22 +151,10 @@ const Navbar = () => {
         </div>
         <div className="flex flex-col items-center space-y-4 text-white">
           <Link
-            to="/genres"
+            to="/now-playing-movies"
             className="text-[#bd0003] hover:text-gray-300 px-2 py-1 rounded-full"
           >
-            Gêneros
-          </Link>
-          <Link
-            to="/watched-movies"
-            className="text-[#bd0003] hover:text-gray-300 px-2 py-1 rounded-full"
-          >
-            Assistidos
-          </Link>
-          <Link
-            to="/to-watch-movies"
-            className="text-[#bd0003] hover:text-gray-300 px-2 py-1 rounded-full"
-          >
-            Ver Depois
+            Agora Em Cartaz
           </Link>
           <Link
             to="/popular-movies"
@@ -181,16 +169,28 @@ const Navbar = () => {
             Alta Avaliação
           </Link>
           <Link
-            to="/now-playing-movies"
-            className="text-[#bd0003] hover:text-gray-300 px-2 py-1 rounded-full"
-          >
-            Agora Em Cartaz
-          </Link>
-          <Link
             to="/upcoming-movies"
             className="text-[#bd0003] hover:text-gray-300 px-2 py-1 rounded-full"
           >
             Em Breve
+          </Link>
+          <Link
+            to="/watched-movies"
+            className="text-[#bd0003] hover:text-gray-300 px-2 py-1 rounded-full"
+          >
+            Assistidos
+          </Link>
+          <Link
+            to="/to-watch-movies"
+            className="text-[#bd0003] hover:text-gray-300 px-2 py-1 rounded-full"
+          >
+            Ver Depois
+          </Link>
+          <Link
+            to="/genres"
+            className="text-[#bd0003] hover:text-gray-300 px-2 py-1 rounded-full"
+          >
+            Gêneros
           </Link>
         </div>
       </div>
