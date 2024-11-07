@@ -119,7 +119,7 @@ const Navbar = () => {
               <FaSearch size={20} />
             </button>
           ) : (
-            <div className="flex items-center w-48">
+            <div className="flex items-center w-full">
               <input
                 type="text"
                 value={searchQuery}
@@ -141,7 +141,7 @@ const Navbar = () => {
       </div>
 
       <div
-        className={`fixed top-0 right-0 w-64 h-full bg-black bg-opacity-75 md:hidden ${menuOpen ? 'block' : 'hidden'}`}
+        className={`fixed top-0 right-0 w-64 h-full bg-black bg-opacity-75 md:hidden ${menuOpen ? 'block' : 'hidden'} z-50`}
         onClick={toggleMenu}
       >
         <div className="flex justify-end p-6">
