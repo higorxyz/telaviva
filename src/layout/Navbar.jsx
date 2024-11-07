@@ -28,109 +28,92 @@ const Navbar = () => {
         <Link to="/" className="text-3xl font-bold text-[#bd0003]" style={{ fontFamily: 'Verdana, sans-serif', fontWeight: 'bold' }}>
           Tela<span className="text-white">Viva</span>
         </Link>
-        <div className="md:hidden flex items-center">
-          {!searchOpen ? (
-            <button onClick={toggleSearch} className="text-white mr-3">
+        <div className="md:flex items-center space-x-4">
+          <ul className="md:flex space-x-4 items-center md:flex-row">
+            <li>
+              <Link
+                to="/"
+                className={`text-[#bd0003] hover:text-gray-300 ${isActiveLink('/') ? 'border-2 border-[#bd0003] text-white' : ''} px-2 py-1 rounded-full`}
+              >
+                Início
+              </Link>
+            </li>
+            <li>
+              <Link
+                to="/genres"
+                className={`text-[#bd0003] hover:text-gray-300 ${isActiveLink('/genres') ? 'border-2 border-[#bd0003] text-white' : ''} px-2 py-1 rounded-full`}
+              >
+                Gêneros
+              </Link>
+            </li>
+            <li>
+              <Link
+                to="/watched-movies"
+                className={`text-[#bd0003] hover:text-gray-300 ${isActiveLink('/watched-movies') ? 'border-2 border-[#bd0003] text-white' : ''} px-2 py-1 rounded-full`}
+              >
+                Assistidos
+              </Link>
+            </li>
+            <li>
+              <Link
+                to="/to-watch-movies"
+                className={`text-[#bd0003] hover:text-gray-300 ${isActiveLink('/to-watch-movies') ? 'border-2 border-[#bd0003] text-white' : ''} px-2 py-1 rounded-full`}
+              >
+                Ver Depois
+              </Link>
+            </li>
+            <li>
+              <Link
+                to="/popular-movies"
+                className={`text-[#bd0003] hover:text-gray-300 ${isActiveLink('/popular-movies') ? 'border-2 border-[#bd0003] text-white' : ''} px-2 py-1 rounded-full`}
+              >
+                Populares
+              </Link>
+            </li>
+            <li>
+              <Link
+                to="/top-rated-movies"
+                className={`text-[#bd0003] hover:text-gray-300 ${isActiveLink('/top-rated-movies') ? 'border-2 border-[#bd0003] text-white' : ''} px-2 py-1 rounded-full`}
+              >
+                Alta Avaliação
+              </Link>
+            </li>
+            <li>
+              <Link
+                to="/now-playing-movies"
+                className={`text-[#bd0003] hover:text-gray-300 ${isActiveLink('/now-playing-movies') ? 'border-2 border-[#bd0003] text-white' : ''} px-2 py-1 rounded-full`}
+              >
+                Agora Em Cartaz
+              </Link>
+            </li>
+            <li>
+              <Link
+                to="/upcoming-movies"
+                className={`text-[#bd0003] hover:text-gray-300 ${isActiveLink('/upcoming-movies') ? 'border-2 border-[#bd0003] text-white' : ''} px-2 py-1 rounded-full`}
+              >
+                Em Breve
+              </Link>
+            </li>
+          </ul>
+          <div className="relative">
+            <input
+              type="text"
+              value={searchQuery}
+              onChange={handleSearchChange}
+              onKeyPress={(e) => e.key === 'Enter' && handleSearch()}
+              className="w-40 px-4 py-2 rounded-full bg-neutral-800 text-white placeholder-white focus:outline-none focus:ring-2 focus:ring-[#bd0003]"
+              placeholder="Pesquisar filmes"
+            />
+            <button onClick={handleSearch} className="absolute right-2 top-1/2 transform -translate-y-1/2 text-[#bd0003]">
               <FaSearch size={20} />
             </button>
-          ) : (
-            <div className="flex items-center">
-              <input
-                type="text"
-                value={searchQuery}
-                onChange={handleSearchChange}
-                onKeyPress={(e) => e.key === 'Enter' && handleSearch()}
-                className="w-40 px-4 py-2 rounded-full bg-neutral-800 text-white placeholder-white focus:outline-none focus:ring-2 focus:ring-[#bd0003]"
-                placeholder="Pesquisar filmes"
-              />
-              <button onClick={handleSearch} className="text-[#bd0003] ml-2">
-                <FaSearch size={20} />
-              </button>
-            </div>
-          )}
+          </div>
+        </div>
+        <div className="md:hidden flex items-center">
           <button onClick={toggleMenu} className="text-white">
             {menuOpen ? <FaTimes size={30} /> : <FaBars size={30} />}
           </button>
         </div>
-        <div className={`hidden md:flex items-center ${searchOpen ? 'block' : 'hidden'} w-48`}>
-          <input
-            type="text"
-            value={searchQuery}
-            onChange={handleSearchChange}
-            onKeyPress={(e) => e.key === 'Enter' && handleSearch()}
-            className="w-full px-4 py-2 rounded-full bg-neutral-800 text-white placeholder-white focus:outline-none focus:ring-2 focus:ring-[#bd0003]"
-            placeholder="Pesquisar filmes"
-          />
-          <button onClick={handleSearch} className="text-[#bd0003] ml-2">
-            <FaSearch size={20} />
-          </button>
-        </div>
-        <ul className={`md:flex space-x-4 items-center md:flex-row ${menuOpen ? 'block' : 'hidden'} md:block`}>
-          <li>
-            <Link
-              to="/"
-              className={`text-[#bd0003] hover:text-gray-300 ${isActiveLink('/') ? 'border-2 border-[#bd0003] text-white' : ''} px-2 py-1 rounded-full`}
-            >
-              Início
-            </Link>
-          </li>
-          <li>
-            <Link
-              to="/genres"
-              className={`text-[#bd0003] hover:text-gray-300 ${isActiveLink('/genres') ? 'border-2 border-[#bd0003] text-white' : ''} px-2 py-1 rounded-full`}
-            >
-              Gêneros
-            </Link>
-          </li>
-          <li>
-            <Link
-              to="/watched-movies"
-              className={`text-[#bd0003] hover:text-gray-300 ${isActiveLink('/watched-movies') ? 'border-2 border-[#bd0003] text-white' : ''} px-2 py-1 rounded-full`}
-            >
-              Assistidos
-            </Link>
-          </li>
-          <li>
-            <Link
-              to="/to-watch-movies"
-              className={`text-[#bd0003] hover:text-gray-300 ${isActiveLink('/to-watch-movies') ? 'border-2 border-[#bd0003] text-white' : ''} px-2 py-1 rounded-full`}
-            >
-              Ver Depois
-            </Link>
-          </li>
-          <li>
-            <Link
-              to="/popular-movies"
-              className={`text-[#bd0003] hover:text-gray-300 ${isActiveLink('/popular-movies') ? 'border-2 border-[#bd0003] text-white' : ''} px-2 py-1 rounded-full`}
-            >
-              Populares
-            </Link>
-          </li>
-          <li>
-            <Link
-              to="/top-rated-movies"
-              className={`text-[#bd0003] hover:text-gray-300 ${isActiveLink('/top-rated-movies') ? 'border-2 border-[#bd0003] text-white' : ''} px-2 py-1 rounded-full`}
-            >
-              Alta Avaliação
-            </Link>
-          </li>
-          <li>
-            <Link
-              to="/now-playing-movies"
-              className={`text-[#bd0003] hover:text-gray-300 ${isActiveLink('/now-playing-movies') ? 'border-2 border-[#bd0003] text-white' : ''} px-2 py-1 rounded-full`}
-            >
-              Agora Em Cartaz
-            </Link>
-          </li>
-          <li>
-            <Link
-              to="/upcoming-movies"
-              className={`text-[#bd0003] hover:text-gray-300 ${isActiveLink('/upcoming-movies') ? 'border-2 border-[#bd0003] text-white' : ''} px-2 py-1 rounded-full`}
-            >
-              Em Breve
-            </Link>
-          </li>
-        </ul>
         <div className={`absolute top-16 right-0 mt-2 bg-black text-white w-56 ${menuOpen ? 'block' : 'hidden'} md:hidden`}>
           <ul>
             <li>
