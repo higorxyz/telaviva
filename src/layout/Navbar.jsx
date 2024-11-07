@@ -47,7 +47,7 @@ const Navbar = () => {
                 to="/now-playing-movies"
                 className={`text-[#bd0003] hover:text-gray-300 ${isActiveLink('/now-playing-movies') ? 'border-2 border-[#bd0003] text-white' : ''} px-2 py-1 rounded-full`}
               >
-                Agora Em Cartaz
+                Em Cartaz
               </Link>
             </li>
             <li>
@@ -141,7 +141,7 @@ const Navbar = () => {
       </div>
 
       <div
-        className={`fixed top-0 right-0 w-64 h-full bg-black bg-opacity-75 md:hidden ${menuOpen ? 'block' : 'hidden'}`}
+        className={`fixed top-0 left-0 w-full h-full bg-black bg-opacity-75 md:hidden ${menuOpen ? 'block' : 'hidden'}`}
         onClick={toggleMenu}
       >
         <div className="flex justify-end p-6">
@@ -154,7 +154,7 @@ const Navbar = () => {
             to="/now-playing-movies"
             className="text-[#bd0003] hover:text-gray-300 px-2 py-1 rounded-full"
           >
-            Agora Em Cartaz
+            Em Cartaz
           </Link>
           <Link
             to="/popular-movies"
