@@ -85,6 +85,24 @@ const Navbar = () => {
             )}
           </li>
         </ul>
+        <div className={`md:flex space-x-4 items-center ${searchOpen ? 'block' : 'hidden'} md:block`}>
+          <div className="relative">
+            <input
+              type="text"
+              value={searchQuery}
+              onChange={handleSearchChange}
+              onKeyPress={(e) => e.key === 'Enter' && handleSearch()}
+              className="w-full px-4 py-2 rounded-full bg-neutral-800 text-white placeholder-white focus:outline-none focus:ring-2 focus:ring-red-500"
+              placeholder="Pesquisar filmes"
+            />
+            <button
+              onClick={handleSearch}
+              className="absolute right-2 top-2 text-red-500"
+            >
+              <FaSearch size={20} />
+            </button>
+          </div>
+        </div>
       </div>
     </nav>
   );
