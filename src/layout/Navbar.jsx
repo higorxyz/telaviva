@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { FaBars, FaTimes } from 'react-icons/fa';
+import { FaBars, FaTimes, FaSearch } from 'react-icons/fa';
 
 const Navbar = () => {
   const [menuOpen, setMenuOpen] = useState(false);
@@ -12,6 +12,7 @@ const Navbar = () => {
 
   const handleLinkClick = (link) => {
     setActiveLink(link);
+    setSearchOpen(false);
   };
 
   return (
@@ -26,7 +27,7 @@ const Navbar = () => {
         </Link>
         <div className="md:hidden flex items-center ml-4">
           <button onClick={toggleSearch} className="text-white mr-4 transition-transform duration-300 hover:scale-110">
-            {searchOpen ? <FaTimes size={25} /> : <FaBars size={30} />}
+            {searchOpen ? <FaTimes size={25} /> : <FaSearch size={25} />}
           </button>
           {searchOpen && (
             <input
@@ -36,8 +37,8 @@ const Navbar = () => {
             />
           )}
         </div>
-        <div className="md:flex hidden items-center space-x-8 ml-6">
-          <ul className="flex space-x-8 items-center transition-all ease-in-out duration-300">
+        <div className="md:flex hidden items-center space-x-6 ml-6">
+          <ul className="flex space-x-6 items-center transition-all ease-in-out duration-300">
             {['Em Cartaz', 'Populares', 'Alta Avaliação', 'Em Breve', 'Ver Depois', 'Assistidos', 'Gêneros'].map((text, index) => (
               <li
                 key={index}
