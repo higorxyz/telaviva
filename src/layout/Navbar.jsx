@@ -1,83 +1,95 @@
 import React, { useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { FaBars, FaTimes, FaSearch } from 'react-icons/fa';
 
 const Navbar = () => {
   const [menuOpen, setMenuOpen] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
   const [searchOpen, setSearchOpen] = useState(false);
-  const [activeLink, setActiveLink] = useState('');
+  const navigate = useNavigate();
+  const location = useLocation();
 
   const toggleMenu = () => setMenuOpen(!menuOpen);
-  const toggleSearch = () => setSearchOpen(!searchOpen);
 
-  const handleLinkClick = (link) => {
-    setActiveLink(link);
-    setSearchOpen(false);
+  const handleSearchChange = (e) => setSearchQuery(e.target.value);
+
+  const handleSearch = () => {
+    if (searchQuery.trim() === '') return;
+    navigate(`/search-results?query=${searchQuery}`);
   };
 
+  const toggleSearch = () => setSearchOpen(!searchOpen);
+
+  const isActiveLink = (path) => location.pathname === path;
+
   return (
-    <nav className="bg-black text-white py-4 px-6 transition-all ease-in-out duration-300">
+    <nav className="bg-black text-white py-4 px-6">
       <div className="flex items-center justify-between">
-        <Link
-          to="/"
-          className="text-3xl font-bold text-[#bd0003] transition-colors duration-300 hover:text-white"
-          style={{ fontFamily: 'Verdana, sans-serif', fontWeight: 'bold' }}
-        >
+        <Link to="/" className="text-3xl font-bold text-[#bd0003]" style={{ fontFamily: 'Verdana, sans-serif', fontWeight: 'bold' }}>
           Tela<span className="text-white">Viva</span>
         </Link>
-        <div className="md:hidden flex items-center ml-4">
-          <button onClick={toggleSearch} className="text-white mr-4 transition-transform duration-300 hover:scale-110">
-            {searchOpen ? <FaTimes size={25} /> : <FaSearch size={25} />}
-          </button>
-          {searchOpen && (
-            <input
-              type="text"
-              placeholder="Buscar filme..."
-              className="text-black p-2 rounded-lg w-40 transition-all duration-300"
-            />
+        <div className="md:hidden flex items-center">
+          {!searchOpen ? (
+            <button onClick={toggleSearch} className="text-white mr-3">
+              <FaSearch size={20} />
+            </button>
+          ) : (
+            <div className="flex items-center">
+              <input
+                type="text"
+                value={searchQuery}
+                onChange={handleSearchChange}
+                onKeyPress={(e) => e.key === 'Enter' && handleSearch()}
+                className="w-40 px-4 py-2 rounded-full bg-neutral-800 text-white placeholder-white focus:outline-none focus:ring-2 focus:ring-[#bd0003]"
+                placeholder="Pesquisar filmes"
+              />
+              <button onClick={handleSearch} className="text-[#bd0003] ml-2">
+                <FaSearch size={20} />
+              </button>
+            </div>
           )}
+          <button onClick={toggleMenu} className="text-white">
+            {menuOpen ? <FaTimes size={30} /> : <FaBars size={30} />}
+          </button>
         </div>
-        <div className="md:flex hidden items-center space-x-6 ml-6">
-          <ul className="flex space-x-6 items-center transition-all ease-in-out duration-300">
-            {['Em Cartaz', 'Populares', 'Alta Avaliação', 'Em Breve', 'Ver Depois', 'Assistidos', 'Gêneros'].map((text, index) => (
-              <li
-                key={index}
-                className={`relative group rounded-lg transition-all duration-300 ${
-                  activeLink === text ? 'bg-[#bd0003] text-white' : 'text-[#bd0003] hover:text-white'
-                }`}
+        <ul className={`md:flex space-x-4 items-center md:flex-row ${menuOpen ? 'block' : 'hidden'} md:block`}>
+          {['Início', 'Gêneros', 'Assistidos', 'Ver Depois', 'Populares', 'Alta Avaliação', 'Agora Em Cartaz', 'Em Breve'].map((text, index) => (
+            <li key={index}>
+              <Link
+                to={`/${text.toLowerCase().replace(/\s+/g, '-')}`}
+                className={`text-[#bd0003] hover:text-gray-300 ${isActiveLink(`/${text.toLowerCase().replace(/\s+/g, '-')}`) ? 'border-2 border-[#bd0003] text-white' : ''} px-2 py-1 rounded-full`}
               >
-                <Link
-                  to={`/${text.toLowerCase().replace(/\s+/g, '-')}`}
-                  onClick={() => handleLinkClick(text)}
-                  className="px-4 py-2 transition-all duration-300"
-                >
-                  {text}
-                </Link>
-                {activeLink === text && (
-                  <span className="absolute inset-0 bg-[#bd0003] opacity-80 transition-opacity duration-300"></span>
-                )}
-              </li>
-            ))}
-          </ul>
-          <div className="relative ml-8">
+                {text}
+              </Link>
+            </li>
+          ))}
+        </ul>
+        <div className={`md:flex space-x-4 items-center ${searchOpen ? 'block' : 'hidden'} md:block`}>
+          <div className="relative">
             <input
               type="text"
-              placeholder="Buscar filme..."
-              className="text-black p-2 rounded-lg w-64 transition-all duration-300"
+              value={searchQuery}
+              onChange={handleSearchChange}
+              onKeyPress={(e) => e.key === 'Enter' && handleSearch()}
+              className="w-full px-4 py-2 rounded-full bg-neutral-800 text-white placeholder-white focus:outline-none focus:ring-2 focus:ring-[#bd0003]"
+              placeholder="Pesquisar filmes"
             />
+            <button
+              onClick={handleSearch}
+              className="absolute right-2 top-2 text-[#bd0003]"
+            >
+              <FaSearch size={20} />
+            </button>
           </div>
         </div>
       </div>
-      <div className={`md:hidden ${menuOpen ? 'block' : 'hidden'} transition-all duration-300`}>
-        <ul className="flex flex-col items-center space-y-4 bg-black p-4 mt-4 rounded-md shadow-md">
-          {['Em Cartaz', 'Populares', 'Alta Avaliação', 'Em Breve', 'Ver Depois', 'Assistidos', 'Gêneros'].map((text, index) => (
-            <li key={index} className="w-full">
+      <div className={`absolute top-16 right-0 mt-2 bg-black text-white w-56 ${menuOpen ? 'block' : 'hidden'} md:hidden`}>
+        <ul>
+          {['Início', 'Gêneros', 'Assistidos', 'Ver Depois', 'Populares', 'Alta Avaliação', 'Agora Em Cartaz', 'Em Breve'].map((text, index) => (
+            <li key={index}>
               <Link
                 to={`/${text.toLowerCase().replace(/\s+/g, '-')}`}
-                onClick={() => handleLinkClick(text)}
-                className={`text-[#bd0003] hover:text-white transition-all duration-300 w-full text-center py-2 rounded-lg ${
-                  activeLink === text ? 'bg-[#bd0003] text-white' : ''
-                }`}
+                className={`block py-2 px-4 text-[#bd0003] hover:text-gray-300 ${isActiveLink(`/${text.toLowerCase().replace(/\s+/g, '-')}`) ? 'border-2 border-[#bd0003] text-white' : ''}`}
               >
                 {text}
               </Link>
