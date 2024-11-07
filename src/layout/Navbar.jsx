@@ -25,7 +25,10 @@ const Navbar = () => {
         <Link to="/" className="text-3xl font-bold text-red-500" style={{ fontFamily: 'Verdana, sans-serif', fontWeight: 'bold' }}>
           Tela<span className="text-white">Viva</span>
         </Link>
-        <div className="md:hidden">
+        <div className="md:hidden flex items-center">
+          <button onClick={toggleSearch} className="text-white mr-3">
+            <FaSearch size={20} />
+          </button>
           <button onClick={toggleMenu} className="text-white">
             {menuOpen ? <FaTimes size={30} /> : <FaBars size={30} />}
           </button>
