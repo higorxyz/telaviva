@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { FaBars, FaTimes, FaSearch } from 'react-icons/fa';
 
@@ -8,6 +8,7 @@ const Navbar = () => {
   const [searchOpen, setSearchOpen] = useState(false);
   const navigate = useNavigate();
   const location = useLocation();
+  const searchInputRef = useRef(null);
 
   const toggleMenu = () => setMenuOpen(!menuOpen);
 
@@ -21,6 +22,17 @@ const Navbar = () => {
   const toggleSearch = () => setSearchOpen(!searchOpen);
 
   const isActiveLink = (path) => location.pathname === path;
+
+  const handleClickOutside = (e) => {
+    if (searchOpen && searchInputRef.current && !searchInputRef.current.contains(e.target)) {
+      setSearchOpen(false);
+    }
+  };
+
+  React.useEffect(() => {
+    document.addEventListener('click', handleClickOutside);
+    return () => document.removeEventListener('click', handleClickOutside);
+  }, [searchOpen]);
 
   return (
     <nav className="bg-black text-white py-4 px-6">
@@ -113,6 +125,7 @@ const Navbar = () => {
                 value={searchQuery}
                 onChange={handleSearchChange}
                 onKeyPress={(e) => e.key === 'Enter' && handleSearch()}
+                ref={searchInputRef}
                 className="w-full px-4 py-2 rounded-full bg-neutral-800 text-white placeholder-white focus:outline-none focus:ring-2 focus:ring-[#bd0003]"
                 placeholder="Pesquisar filmes"
               />
