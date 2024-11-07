@@ -5,6 +5,7 @@ import { FaBars, FaTimes, FaSearch } from 'react-icons/fa';
 const Navbar = () => {
   const [menuOpen, setMenuOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
+  const [searchOpen, setSearchOpen] = useState(false);
   const navigate = useNavigate();
 
   const toggleMenu = () => setMenuOpen(!menuOpen);
@@ -15,6 +16,8 @@ const Navbar = () => {
     if (searchQuery.trim() === '') return;
     navigate(`/search-results?query=${searchQuery}`);
   };
+
+  const toggleSearch = () => setSearchOpen(!searchOpen);
 
   return (
     <nav className="bg-black text-white py-4 px-6">
@@ -52,23 +55,28 @@ const Navbar = () => {
           <li>
             <Link to="/upcoming-movies" className="text-red-500 hover:text-gray-300">Em Breve</Link>
           </li>
-          <li>
-            <div className="relative">
-              <input
-                type="text"
-                value={searchQuery}
-                onChange={handleSearchChange}
-                onKeyPress={(e) => e.key === 'Enter' && handleSearch()}
-                className="px-4 py-2 rounded-full bg-neutral-800 text-white placeholder-white focus:outline-none focus:ring-2 focus:ring-red-500"
-                placeholder="Pesquisar filmes"
-              />
-              <button
-                onClick={handleSearch}
-                className="absolute right-2 top-2 text-red-500"
-              >
-                <FaSearch size={20} />
-              </button>
-            </div>
+          <li className="relative">
+            <button onClick={toggleSearch} className="text-red-500">
+              <FaSearch size={20} />
+            </button>
+            {searchOpen && (
+              <div className="absolute top-full right-0 mt-2 w-64 md:w-80 bg-neutral-800 p-2 rounded-md">
+                <input
+                  type="text"
+                  value={searchQuery}
+                  onChange={handleSearchChange}
+                  onKeyPress={(e) => e.key === 'Enter' && handleSearch()}
+                  className="w-full px-4 py-2 rounded-full bg-neutral-800 text-white placeholder-white focus:outline-none focus:ring-2 focus:ring-red-500"
+                  placeholder="Pesquisar filmes"
+                />
+                <button
+                  onClick={handleSearch}
+                  className="absolute right-2 top-2 text-red-500"
+                >
+                  <FaSearch size={20} />
+                </button>
+              </div>
+            )}
           </li>
         </ul>
       </div>
