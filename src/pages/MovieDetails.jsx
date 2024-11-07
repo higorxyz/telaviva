@@ -107,7 +107,7 @@ const MovieDetails = () => {
       <div className="relative z-10 p-12 bg-neutral-800 bg-opacity-75 rounded-xl shadow-lg max-w-3xl mx-auto">
         <h1 className="pt-4 pb-8 text-4xl font-bold">{movie.title}</h1>
         {trailer ? (
-          <div className="mt-8 ">
+          <div className="mt-8">
             <iframe
               className="w-full h-96 sm:h-80 lg:h-96 rounded-2xl shadow-md"
               src={`https://www.youtube.com/embed/${trailer.key}`}
@@ -120,14 +120,16 @@ const MovieDetails = () => {
         )}
         <h1>ㅤ</h1>
         <div className="flex space-x-4 my-4">
-          <button 
-            onClick={handleToggleWatched} 
-            className={`py-2 px-4 rounded ${isWatched ? 'bg-white text-black' : 'bg-[#bd0003] text-white'}`}>
+          <button
+            onClick={handleToggleWatched}
+            className={`py-2 px-4 rounded ${isWatched ? 'bg-white text-black' : 'bg-[#bd0003] text-white'}`}
+          >
             {isWatched ? 'Remover dos Assistidos' : 'Adicionar aos Assistidos'}
           </button>
-          <button 
-            onClick={handleToggleToWatch} 
-            className={`py-2 px-4 rounded ${isToWatch ? 'bg-white text-black' : 'bg-[#bd0003] text-white'}`}>
+          <button
+            onClick={handleToggleToWatch}
+            className={`py-2 px-4 rounded ${isToWatch ? 'bg-white text-black' : 'bg-[#bd0003] text-white'}`}
+          >
             {isToWatch ? 'Remover da Lista de Para Ver' : 'Adicionar à Lista de Para Ver'}
           </button>
         </div>
@@ -135,13 +137,14 @@ const MovieDetails = () => {
         <p>Lançamento: {releaseDate}</p>
         <p className="mt-2 mb-8">
           Avaliação: {Array(5).fill(0).map((_, index) => (
-            <span key={index} className={`text-${index < Math.round(movie.vote_average / 2) ? 'yellow-500' : 'gray-400'}`}>
+            <span
+              key={index}
+              className={`text-${index < Math.round(movie.vote_average / 2) ? 'yellow-500' : 'gray-400'}`}
+            >
               ★
             </span>
           ))} ({voteAverage})
         </p>
-
-        
 
         <h2 className="text-2xl my-4">Elenco:</h2>
         <div className="relative">
@@ -152,9 +155,9 @@ const MovieDetails = () => {
           >
             ←
           </button>
-          <div 
-            ref={castRef} 
-            className="flex overflow-x-auto space-x-4 pb-4 cursor-grab" 
+          <div
+            ref={castRef}
+            className="flex overflow-x-auto space-x-4 pb-4 cursor-grab"
             onMouseDown={handleMouseDown}
           >
             {cast.map((actor) => (
@@ -177,7 +180,11 @@ const MovieDetails = () => {
             →
           </button>
         </div>
-        <Link to="/" className="mt-4 inline-block bg-[#bd0003] text-white py-2 px-4 rounded hover:bg-red-700 transition-colors" aria-label="Voltar para a lista de filmes">
+        <Link
+          to="/"
+          className="mt-4 inline-block bg-[#bd0003] text-white py-2 px-4 rounded hover:bg-red-700 transition-colors"
+          aria-label="Voltar para a lista de filmes"
+        >
           Voltar
         </Link>
       </div>
