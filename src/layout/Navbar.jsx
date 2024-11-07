@@ -19,8 +19,6 @@ const Navbar = () => {
     navigate(`/search-results?query=${searchQuery}`);
   };
 
-  const toggleSearch = () => setSearchOpen(!searchOpen);
-
   const isActiveLink = (path) => location.pathname === path;
 
   const handleClickOutside = (e) => {
@@ -63,7 +61,7 @@ const Navbar = () => {
                 to="/top-rated-movies"
                 className={`text-[#bd0003] hover:text-gray-300 ${isActiveLink('/top-rated-movies') ? 'border-2 border-[#bd0003] text-white' : ''} px-2 py-1 rounded-full`}
               >
-                Alta Avaliação
+                Bem Avaliados
               </Link>
             </li>
             <li>
@@ -114,11 +112,7 @@ const Navbar = () => {
           </div>
         </div>
         <div className="md:hidden flex items-center">
-          {!searchOpen ? (
-            <button onClick={toggleSearch} className="text-white mr-3">
-              <FaSearch size={20} />
-            </button>
-          ) : (
+          {searchOpen ? (
             <div className="flex items-center w-48">
               <input
                 type="text"
@@ -133,16 +127,21 @@ const Navbar = () => {
                 <FaSearch size={20} />
               </button>
             </div>
+          ) : (
+            <button onClick={() => setSearchOpen(true)} className="text-white">
+              <FaSearch size={20} />
+            </button>
           )}
-          <button onClick={toggleMenu} className="text-white">
+          <button onClick={toggleMenu} className="text-white ml-4">
             {menuOpen ? <FaTimes size={30} /> : <FaBars size={30} />}
           </button>
         </div>
       </div>
 
       <div
-        className={`fixed top-0 left-0 w-full h-full bg-black bg-opacity-75 md:hidden ${menuOpen ? 'block' : 'hidden'}`}
+        className={`fixed top-0 right-0 w-64 h-full bg-black bg-opacity-75 md:hidden ${menuOpen ? 'block' : 'hidden'}`}
         onClick={toggleMenu}
+        style={{ zIndex: 999 }}
       >
         <div className="flex justify-end p-6">
           <button onClick={toggleMenu} className="text-white">
@@ -166,7 +165,7 @@ const Navbar = () => {
             to="/top-rated-movies"
             className="text-[#bd0003] hover:text-gray-300 px-2 py-1 rounded-full"
           >
-            Alta Avaliação
+            Bem Avaliados
           </Link>
           <Link
             to="/upcoming-movies"
