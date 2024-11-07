@@ -26,15 +26,24 @@ export const fetchUpcomingMovies = async () => {
 };
 
 export const fetchMovieDetails = async (movieId) => {
-  const response = await fetch(`${API_BASE_URL}/movie/${movieId}?api_key=${API_KEY}&language=pt-BR`);
+  const response = await fetch(`${API_BASE_URL}/movie/${movieId}?api_key=${API_KEY}&language=pt-BR&append_to_response=translations`);
   if (!response.ok) {
     throw new Error('Erro ao buscar detalhes do filme');
   }
-  return response.json();
+  const data = await response.json();
+  
+  const translation = data.translations?.translations.find(
+    (t) => t.iso_639_1 === 'pt' && t.data.title
+  );
+  if (translation && translation.data.title) {
+    data.title = translation.data.title;
+  }
+
+  return data;
 };
 
 export const fetchMoviesByCategory = async (categoryId) => {
-  const response = await fetch(`${API_BASE_URL}/discover/movie?api_key=${API_KEY}&with_genres=${categoryId}`);
+  const response = await fetch(`${API_BASE_URL}/discover/movie?api_key=${API_KEY}&with_genres=${categoryId}&language=pt-BR`);
   const data = await response.json();
   return data.results;
 };
