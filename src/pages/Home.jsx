@@ -78,7 +78,7 @@ const Home = () => {
         </button>
         <div ref={nowPlayingRef} className="flex overflow-x-auto space-x-4 pb-4">
           {displayedNowPlayingMovies.map((movie) => (
-            <div key={movie.id} className="flex-shrink-0 w-64 sm:w-72 md:w-80 lg:w-96 xl:w-96">
+            <div key={movie.id} className="flex-shrink-0 w-72 sm:w-80 md:w-96 lg:w-96 xl:w-96">
               <MovieCard movie={movie} />
             </div>
           ))}
@@ -100,7 +100,7 @@ const Home = () => {
         </button>
         <div ref={topRatedRef} className="flex overflow-x-auto space-x-4 pb-4">
           {displayedTopRatedMovies.map((movie) => (
-            <div key={movie.id} className="flex-shrink-0 w-64 sm:w-72 md:w-80 lg:w-96 xl:w-96">
+            <div key={movie.id} className="flex-shrink-0 w-72 sm:w-80 md:w-96 lg:w-96 xl:w-96">
               <MovieCard movie={movie} />
             </div>
           ))}
@@ -122,7 +122,7 @@ const Home = () => {
         </button>
         <div ref={popularRef} className="flex overflow-x-auto space-x-4 pb-4">
           {displayedPopularMovies.map((movie) => (
-            <div key={movie.id} className="flex-shrink-0 w-64 sm:w-72 md:w-80 lg:w-96 xl:w-96">
+            <div key={movie.id} className="flex-shrink-0 w-72 sm:w-80 md:w-96 lg:w-96 xl:w-96">
               <MovieCard movie={movie} />
             </div>
           ))}
@@ -144,7 +144,7 @@ const Home = () => {
         </button>
         <div ref={upcomingRef} className="flex overflow-x-auto space-x-4 pb-4">
           {displayedUpcomingMovies.map((movie) => (
-            <div key={movie.id} className="flex-shrink-0 w-64 sm:w-72 md:w-80 lg:w-96 xl:w-96">
+            <div key={movie.id} className="flex-shrink-0 w-72 sm:w-80 md:w-96 lg:w-96 xl:w-96">
               <MovieCard movie={movie} />
             </div>
           ))}
