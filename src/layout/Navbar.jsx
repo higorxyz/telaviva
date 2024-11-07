@@ -17,7 +17,7 @@ const Navbar = () => {
       <div className="flex items-center justify-between">
         <Link
           to="/"
-          className="text-3xl font-bold text-red-500"
+          className="text-3xl font-bold text-[#bd0003]"
           style={{ fontFamily: 'Verdana, sans-serif', fontWeight: 'bold' }}
         >
           Tela<span className="text-white">Viva</span>
@@ -37,7 +37,7 @@ const Navbar = () => {
             <Link
               to="/"
               onClick={() => handleLinkClick('/')}
-              className={`text-red-500 hover:text-gray-300 hover:shadow-lg px-2 py-1 rounded-md transition-all duration-300 ${activeLink === '/' ? 'bg-red-500 text-white' : ''}`}
+              className={`text-[#bd0003] hover:text-gray-300 hover:shadow-lg px-2 py-1 rounded-md transition-all duration-300 ${activeLink === '/' ? 'bg-[#bd0003] text-white' : ''}`}
             >
               Início
             </Link>
@@ -46,7 +46,7 @@ const Navbar = () => {
             <Link
               to="/genres"
               onClick={() => handleLinkClick('/genres')}
-              className={`text-red-500 hover:text-gray-300 hover:shadow-lg px-2 py-1 rounded-md transition-all duration-300 ${activeLink === '/genres' ? 'bg-red-500 text-white' : ''}`}
+              className={`text-[#bd0003] hover:text-gray-300 hover:shadow-lg px-2 py-1 rounded-md transition-all duration-300 ${activeLink === '/genres' ? 'bg-[#bd0003] text-white' : ''}`}
             >
               Gêneros
             </Link>
@@ -55,7 +55,7 @@ const Navbar = () => {
             <Link
               to="/watched-movies"
               onClick={() => handleLinkClick('/watched-movies')}
-              className={`text-red-500 hover:text-gray-300 hover:shadow-lg px-2 py-1 rounded-md transition-all duration-300 ${activeLink === '/watched-movies' ? 'bg-red-500 text-white' : ''}`}
+              className={`text-[#bd0003] hover:text-gray-300 hover:shadow-lg px-2 py-1 rounded-md transition-all duration-300 ${activeLink === '/watched-movies' ? 'bg-[#bd0003] text-white' : ''}`}
             >
               Assistidos
             </Link>
@@ -64,7 +64,7 @@ const Navbar = () => {
             <Link
               to="/to-watch-movies"
               onClick={() => handleLinkClick('/to-watch-movies')}
-              className={`text-red-500 hover:text-gray-300 hover:shadow-lg px-2 py-1 rounded-md transition-all duration-300 ${activeLink === '/to-watch-movies' ? 'bg-red-500 text-white' : ''}`}
+              className={`text-[#bd0003] hover:text-gray-300 hover:shadow-lg px-2 py-1 rounded-md transition-all duration-300 ${activeLink === '/to-watch-movies' ? 'bg-[#bd0003] text-white' : ''}`}
             >
               Ver Depois
             </Link>
@@ -73,7 +73,7 @@ const Navbar = () => {
             <Link
               to="/popular-movies"
               onClick={() => handleLinkClick('/popular-movies')}
-              className={`text-red-500 hover:text-gray-300 hover:shadow-lg px-2 py-1 rounded-md transition-all duration-300 ${activeLink === '/popular-movies' ? 'bg-red-500 text-white' : ''}`}
+              className={`text-[#bd0003] hover:text-gray-300 hover:shadow-lg px-2 py-1 rounded-md transition-all duration-300 ${activeLink === '/popular-movies' ? 'bg-[#bd0003] text-white' : ''}`}
             >
               Populares
             </Link>
@@ -82,7 +82,7 @@ const Navbar = () => {
             <Link
               to="/top-rated-movies"
               onClick={() => handleLinkClick('/top-rated-movies')}
-              className={`text-red-500 hover:text-gray-300 hover:shadow-lg px-2 py-1 rounded-md transition-all duration-300 ${activeLink === '/top-rated-movies' ? 'bg-red-500 text-white' : ''}`}
+              className={`text-[#bd0003] hover:text-gray-300 hover:shadow-lg px-2 py-1 rounded-md transition-all duration-300 ${activeLink === '/top-rated-movies' ? 'bg-[#bd0003] text-white' : ''}`}
             >
               Alta Avaliação
             </Link>
@@ -91,7 +91,7 @@ const Navbar = () => {
             <Link
               to="/now-playing-movies"
               onClick={() => handleLinkClick('/now-playing-movies')}
-              className={`text-red-500 hover:text-gray-300 hover:shadow-lg px-2 py-1 rounded-md transition-all duration-300 ${activeLink === '/now-playing-movies' ? 'bg-red-500 text-white' : ''}`}
+              className={`text-[#bd0003] hover:text-gray-300 hover:shadow-lg px-2 py-1 rounded-md transition-all duration-300 ${activeLink === '/now-playing-movies' ? 'bg-[#bd0003] text-white' : ''}`}
             >
               Agora Em Cartaz
             </Link>
@@ -100,7 +100,7 @@ const Navbar = () => {
             <Link
               to="/upcoming-movies"
               onClick={() => handleLinkClick('/upcoming-movies')}
-              className={`text-red-500 hover:text-gray-300 hover:shadow-lg px-2 py-1 rounded-md transition-all duration-300 ${activeLink === '/upcoming-movies' ? 'bg-red-500 text-white' : ''}`}
+              className={`text-[#bd0003] hover:text-gray-300 hover:shadow-lg px-2 py-1 rounded-md transition-all duration-300 ${activeLink === '/upcoming-movies' ? 'bg-[#bd0003] text-white' : ''}`}
             >
               Em Breve
             </Link>
