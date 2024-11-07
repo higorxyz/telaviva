@@ -1,6 +1,6 @@
 import React, { useState, useRef } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
-import { FaBars, FaTimes, FaSearch } from 'react-icons/fa';
+import { FaBars, FaTimes } from 'react-icons/fa';
 
 const Navbar = () => {
   const [menuOpen, setMenuOpen] = useState(false);
@@ -112,8 +112,8 @@ const Navbar = () => {
           </div>
         </div>
         <div className="md:hidden flex items-center">
-          {searchOpen ? (
-            <div className="flex items-center w-48">
+          {searchOpen && (
+            <div className="flex items-center w-full">
               <input
                 type="text"
                 value={searchQuery}
@@ -127,11 +127,10 @@ const Navbar = () => {
                 <FaSearch size={20} />
               </button>
             </div>
-          ) : (
-            <button onClick={() => setSearchOpen(true)} className="text-white">
-              <FaSearch size={20} />
-            </button>
           )}
+          <button onClick={() => setSearchOpen(!searchOpen)} className="text-white ml-4">
+            {!searchOpen ? <FaSearch size={20} /> : <FaTimes size={20} />}
+          </button>
           <button onClick={toggleMenu} className="text-white ml-4">
             {menuOpen ? <FaTimes size={30} /> : <FaBars size={30} />}
           </button>
