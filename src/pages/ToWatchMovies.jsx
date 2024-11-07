@@ -11,7 +11,7 @@ const ToWatchMovies = () => {
       {toWatchMovies.length === 0 ? (
         <p>Nenhum filme na lista de para ver.</p>
       ) : (
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
           {toWatchMovies.map((movie) => (
             <div key={movie.id} className="bg-neutral-800 p-4 rounded-md">
               <h2 className="text-lg font-bold">{movie.title}</h2>
