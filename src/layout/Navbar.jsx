@@ -44,14 +44,6 @@ const Navbar = () => {
           <ul className="flex space-x-4 items-center">
             <li>
               <Link
-                to="/"
-                className={`text-[#bd0003] hover:text-gray-300 ${isActiveLink('/') ? 'border-2 border-[#bd0003] text-white' : ''} px-2 py-1 rounded-full`}
-              >
-                Início
-              </Link>
-            </li>
-            <li>
-              <Link
                 to="/now-playing-movies"
                 className={`text-[#bd0003] hover:text-gray-300 ${isActiveLink('/now-playing-movies') ? 'border-2 border-[#bd0003] text-white' : ''} px-2 py-1 rounded-full`}
               >
@@ -114,7 +106,7 @@ const Navbar = () => {
               onChange={handleSearchChange}
               onKeyPress={(e) => e.key === 'Enter' && handleSearch()}
               className="w-48 px-4 py-2 rounded-full bg-neutral-800 text-white placeholder-white focus:outline-none focus:ring-2 focus:ring-[#bd0003]"
-              placeholder="Pesquisar filmes"
+              placeholder="Pesquisar"
             />
             <button onClick={handleSearch} className="absolute right-2 top-2 text-[#bd0003]">
               <FaSearch size={20} />
@@ -130,13 +122,13 @@ const Navbar = () => {
               onKeyPress={(e) => e.key === 'Enter' && handleSearch()}
               ref={searchInputRef}
               className="w-full px-4 py-2 rounded-full bg-neutral-800 text-white placeholder-white focus:outline-none focus:ring-2 focus:ring-[#bd0003]"
-              placeholder="Pesquisar filmes"
+              placeholder="Pesquisar"
             />
             <button onClick={handleSearch} className="text-[#bd0003] ml-2">
               <FaSearch size={20} />
             </button>
           </div>
-          <button onClick={toggleMenu} className="text-white">
+          <button onClick={toggleMenu} className="text-white ml-2">
             {menuOpen ? <FaTimes size={30} /> : <FaBars size={30} />}
           </button>
         </div>
