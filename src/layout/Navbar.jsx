@@ -52,6 +52,19 @@ const Navbar = () => {
             {menuOpen ? <FaTimes size={30} /> : <FaBars size={30} />}
           </button>
         </div>
+        <div className={`hidden md:flex items-center ${searchOpen ? 'block' : 'hidden'} w-48`}>
+          <input
+            type="text"
+            value={searchQuery}
+            onChange={handleSearchChange}
+            onKeyPress={(e) => e.key === 'Enter' && handleSearch()}
+            className="w-full px-4 py-2 rounded-full bg-neutral-800 text-white placeholder-white focus:outline-none focus:ring-2 focus:ring-[#bd0003]"
+            placeholder="Pesquisar filmes"
+          />
+          <button onClick={handleSearch} className="text-[#bd0003] ml-2">
+            <FaSearch size={20} />
+          </button>
+        </div>
         <ul className={`md:flex space-x-4 items-center md:flex-row ${menuOpen ? 'block' : 'hidden'} md:block`}>
           <li>
             <Link
