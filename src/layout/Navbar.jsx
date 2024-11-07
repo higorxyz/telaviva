@@ -1,46 +1,34 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
+import { FaBars, FaTimes } from 'react-icons/fa';
 
 const Navbar = () => {
+  const [isOpen, setIsOpen] = useState(false);
+
+  const toggleMenu = () => setIsOpen(!isOpen);
+
   return (
-    <nav className="bg-[#bd0003] px-6 py-4 shadow-lg">
-      <div className="max-w-screen-xl mx-auto flex items-center justify-between">
-        <div className="text-white text-2xl font-semibold">
-          <Link to="/">MovieApp</Link>
-        </div>
-        <div className="lg:flex hidden space-x-8">
-          <ul className="flex space-x-6">
-            <li>
-              <Link to="/" className="text-white hover:text-gray-300 transition duration-300">Home</Link>
-            </li>
-            <li>
-              <Link to="/genres" className="text-white hover:text-gray-300 transition duration-300">Gêneros</Link>
-            </li>
-            <li>
-              <Link to="/watched-movies" className="text-white hover:text-gray-300 transition duration-300">Filmes Assistidos</Link>
-            </li>
-            <li>
-              <Link to="/to-watch-movies" className="text-white hover:text-gray-300 transition duration-300">Filmes para Ver Depois</Link>
-            </li>
-            <li>
-              <Link to="/popular-movies" className="text-white hover:text-gray-300 transition duration-300">Filmes Populares</Link>
-            </li>
-            <li>
-              <Link to="/top-rated-movies" className="text-white hover:text-gray-300 transition duration-300">Top Rated</Link>
-            </li>
-            <li>
-              <Link to="/now-playing-movies" className="text-white hover:text-gray-300 transition duration-300">Now Playing</Link>
-            </li>
-            <li>
-              <Link to="/upcoming-movies" className="text-white hover:text-gray-300 transition duration-300">Upcoming</Link>
-            </li>
-          </ul>
+    <nav className="bg-black px-6 py-4">
+      <div className="flex justify-between items-center">
+        <div className="text-2xl font-bold">
+          <span className="text-[#bd0003]">Tela</span>
+          <span className="text-white">Viva</span>
         </div>
         <div className="lg:hidden">
-          <button className="text-white">
-            <i className="fas fa-bars"></i>
+          <button onClick={toggleMenu}>
+            {isOpen ? <FaTimes className="text-[#bd0003]" size={30} /> : <FaBars className="text-[#bd0003]" size={30} />}
           </button>
         </div>
+        <ul className={`lg:flex space-x-6 ${isOpen ? 'block' : 'hidden'} lg:block`}>
+          <li><Link to="/" className="text-[#bd0003] hover:text-gray-300">Home</Link></li>
+          <li><Link to="/genres" className="text-[#bd0003] hover:text-gray-300">Gêneros</Link></li>
+          <li><Link to="/watched-movies" className="text-[#bd0003] hover:text-gray-300">Filmes Assistidos</Link></li>
+          <li><Link to="/to-watch-movies" className="text-[#bd0003] hover:text-gray-300">Filmes para Ver Depois</Link></li>
+          <li><Link to="/popular-movies" className="text-[#bd0003] hover:text-gray-300">Filmes Populares</Link></li>
+          <li><Link to="/top-rated-movies" className="text-[#bd0003] hover:text-gray-300">Top Rated</Link></li>
+          <li><Link to="/now-playing-movies" className="text-[#bd0003] hover:text-gray-300">Now Playing</Link></li>
+          <li><Link to="/upcoming-movies" className="text-[#bd0003] hover:text-gray-300">Upcoming</Link></li>
+        </ul>
       </div>
     </nav>
   );
