@@ -66,7 +66,6 @@ const Home = () => {
 
   return (
     <div className="p-6 bg-neutral-950 text-white">
-      {/* Section: Now Playing */}
       <h1 className="text-4xl font-bold my-8 flex justify-between items-center">
         Agora em Cartaz
         <Link to="/now-playing-movies" className="bg-[#bd0003] text-white py-1 px-3 rounded-full text-sm">
@@ -79,7 +78,7 @@ const Home = () => {
         </button>
         <div ref={nowPlayingRef} className="flex overflow-x-auto space-x-4 pb-4">
           {displayedNowPlayingMovies.map((movie) => (
-            <div key={movie.id} className="flex-shrink-0 w-48 sm:w-64 lg:w-72">
+            <div key={movie.id} className="flex-shrink-0 w-48 sm:w-64 md:w-72 lg:w-80 xl:w-96">
               <MovieCard movie={movie} />
             </div>
           ))}
@@ -89,7 +88,6 @@ const Home = () => {
         </button>
       </div>
 
-      {/* Section: Top Rated */}
       <h1 className="text-4xl font-bold mt-12 mb-8 flex justify-between items-center">
         Melhores Avaliados
         <Link to="/top-rated-movies" className="bg-[#bd0003] text-white py-1 px-3 rounded-full text-sm">
@@ -102,7 +100,7 @@ const Home = () => {
         </button>
         <div ref={topRatedRef} className="flex overflow-x-auto space-x-4 pb-4">
           {displayedTopRatedMovies.map((movie) => (
-            <div key={movie.id} className="flex-shrink-0 w-48 sm:w-64 lg:w-72">
+            <div key={movie.id} className="flex-shrink-0 w-48 sm:w-64 md:w-72 lg:w-80 xl:w-96">
               <MovieCard movie={movie} />
             </div>
           ))}
@@ -112,7 +110,6 @@ const Home = () => {
         </button>
       </div>
 
-      {/* Section: Popular */}
       <h1 className="text-4xl font-bold mt-12 mb-8 flex justify-between items-center">
         Filmes Populares
         <Link to="/popular-movies" className="bg-[#bd0003] text-white py-1 px-3 rounded-full text-sm">
@@ -125,7 +122,7 @@ const Home = () => {
         </button>
         <div ref={popularRef} className="flex overflow-x-auto space-x-4 pb-4">
           {displayedPopularMovies.map((movie) => (
-            <div key={movie.id} className="flex-shrink-0 w-48 sm:w-64 lg:w-72">
+            <div key={movie.id} className="flex-shrink-0 w-48 sm:w-64 md:w-72 lg:w-80 xl:w-96">
               <MovieCard movie={movie} />
             </div>
           ))}
@@ -135,7 +132,6 @@ const Home = () => {
         </button>
       </div>
 
-      {/* Section: Upcoming */}
       <h1 className="text-4xl font-bold mt-12 mb-8 flex justify-between items-center">
         Próximos Lançamentos
         <Link to="/upcoming-movies" className="bg-[#bd0003] text-white py-1 px-3 rounded-full text-sm">
@@ -148,7 +144,7 @@ const Home = () => {
         </button>
         <div ref={upcomingRef} className="flex overflow-x-auto space-x-4 pb-4">
           {displayedUpcomingMovies.map((movie) => (
-            <div key={movie.id} className="flex-shrink-0 w-48 sm:w-64 lg:w-72">
+            <div key={movie.id} className="flex-shrink-0 w-48 sm:w-64 md:w-72 lg:w-80 xl:w-96">
               <MovieCard movie={movie} />
             </div>
           ))}
