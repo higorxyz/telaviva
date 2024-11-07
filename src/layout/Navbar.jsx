@@ -1,6 +1,6 @@
 import React, { useState, useRef } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
-import { FaBars, FaTimes } from 'react-icons/fa';
+import { FaBars, FaTimes, FaSearch } from 'react-icons/fa';
 
 const Navbar = () => {
   const [menuOpen, setMenuOpen] = useState(false);
@@ -18,6 +18,8 @@ const Navbar = () => {
     if (searchQuery.trim() === '') return;
     navigate(`/search-results?query=${searchQuery}`);
   };
+
+  const toggleSearch = () => setSearchOpen(!searchOpen);
 
   const isActiveLink = (path) => location.pathname === path;
 
@@ -112,8 +114,12 @@ const Navbar = () => {
           </div>
         </div>
         <div className="md:hidden flex items-center">
-          {searchOpen && (
-            <div className="flex items-center w-full">
+          {!searchOpen ? (
+            <button onClick={toggleSearch} className="text-white mr-3">
+              <FaSearch size={20} />
+            </button>
+          ) : (
+            <div className="flex items-center w-48">
               <input
                 type="text"
                 value={searchQuery}
@@ -128,10 +134,7 @@ const Navbar = () => {
               </button>
             </div>
           )}
-          <button onClick={() => setSearchOpen(!searchOpen)} className="text-white ml-4">
-            {!searchOpen ? <FaSearch size={20} /> : <FaTimes size={20} />}
-          </button>
-          <button onClick={toggleMenu} className="text-white ml-4">
+          <button onClick={toggleMenu} className="text-white">
             {menuOpen ? <FaTimes size={30} /> : <FaBars size={30} />}
           </button>
         </div>
@@ -140,7 +143,6 @@ const Navbar = () => {
       <div
         className={`fixed top-0 right-0 w-64 h-full bg-black bg-opacity-75 md:hidden ${menuOpen ? 'block' : 'hidden'}`}
         onClick={toggleMenu}
-        style={{ zIndex: 999 }}
       >
         <div className="flex justify-end p-6">
           <button onClick={toggleMenu} className="text-white">
