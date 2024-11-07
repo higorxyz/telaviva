@@ -56,11 +56,14 @@ const Navbar = () => {
             <Link to="/upcoming-movies" className="text-red-500 hover:text-gray-300">Em Breve</Link>
           </li>
           <li className="relative">
-            <button onClick={toggleSearch} className="text-red-500">
+            <button
+              onClick={toggleSearch}
+              className={`text-white ${searchOpen ? 'hidden' : 'block'}`}
+            >
               <FaSearch size={20} />
             </button>
             {searchOpen && (
-              <div className="absolute top-full right-0 mt-2 w-64 md:w-80 bg-neutral-800 p-2 rounded-md">
+              <div className="absolute top-full right-0 mt-2 w-56 md:w-80 bg-neutral-800 p-2 rounded-md">
                 <input
                   type="text"
                   value={searchQuery}
