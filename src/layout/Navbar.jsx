@@ -20,19 +20,19 @@ const Navbar = () => {
         </div>
         <ul className={`md:flex space-x-4 items-center md:flex-row ${menuOpen ? 'block' : 'hidden'} md:block`}>
           <li>
-            <Link to="/" className="text-red-500 hover:text-gray-300">Home</Link>
+            <Link to="/" className="text-red-500 hover:text-gray-300">Início</Link>
           </li>
           <li>
             <Link to="/genres" className="text-red-500 hover:text-gray-300">Gêneros</Link>
           </li>
           <li>
-            <Link to="/watched-movies" className="text-red-500 hover:text-gray-300">Filmes Assistidos</Link>
+            <Link to="/watched-movies" className="text-red-500 hover:text-gray-300">Assistidos</Link>
           </li>
           <li>
-            <Link to="/to-watch-movies" className="text-red-500 hover:text-gray-300">Filmes para Ver Depois</Link>
+            <Link to="/to-watch-movies" className="text-red-500 hover:text-gray-300">Ver Depois</Link>
           </li>
           <li>
-            <Link to="/popular-movies" className="text-red-500 hover:text-gray-300">Filmes Populares</Link>
+            <Link to="/popular-movies" className="text-red-500 hover:text-gray-300">Populares</Link>
           </li>
           <li>
             <Link to="/top-rated-movies" className="text-red-500 hover:text-gray-300">Alta Avaliação</Link>
