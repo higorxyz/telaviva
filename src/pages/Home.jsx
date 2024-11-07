@@ -2,9 +2,6 @@ import React, { useEffect, useState, useRef } from 'react';
 import { fetchPopularMovies, fetchTopRatedMovies, fetchNowPlayingMovies, fetchUpcomingMovies } from '../api';
 import MovieCard from '../components/MovieCard';
 import { Link } from 'react-router-dom';
-import { waveform } from 'ldrs';
-
-waveform.register();
 
 const Home = () => {
   const [popularMovies, setPopularMovies] = useState([]);
@@ -13,6 +10,7 @@ const Home = () => {
   const [upcomingMovies, setUpcomingMovies] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+
   const popularRef = useRef(null);
   const topRatedRef = useRef(null);
   const nowPlayingRef = useRef(null);
@@ -58,33 +56,17 @@ const Home = () => {
     }
   };
 
-  if (loading) return (
-    <div className="flex items-center justify-center min-h-screen bg-neutral-950">
-      <l-waveform size="35" stroke="3.5" speed="1" color="red"></l-waveform>
-    </div>
-  );
-
-  if (error) return (
-    <div className="flex items-center justify-center min-h-screen bg-neutral-950 text-red-500">
-      <p>{error}</p>
-    </div>
-  );
+  if (loading) return <div>Carregando...</div>;
+  if (error) return <div>{error}</div>;
 
   const displayedPopularMovies = popularMovies.slice(0, 12);
-  displayedPopularMovies.push({ id: 'add' });
-
   const displayedTopRatedMovies = topRatedMovies.slice(0, 12);
-  displayedTopRatedMovies.push({ id: 'add' });
-
   const displayedNowPlayingMovies = nowPlayingMovies.slice(0, 12);
-  displayedNowPlayingMovies.push({ id: 'add' });
-
   const displayedUpcomingMovies = upcomingMovies.slice(0, 12);
-  displayedUpcomingMovies.push({ id: 'add' });
 
   return (
     <div className="p-6 bg-neutral-950 text-white">
-
+      {/* Section: Now Playing */}
       <h1 className="text-4xl font-bold my-8 flex justify-between items-center">
         Agora em Cartaz
         <Link to="/now-playing-movies" className="bg-[#bd0003] text-white py-1 px-3 rounded-full text-sm">
@@ -97,16 +79,8 @@ const Home = () => {
         </button>
         <div ref={nowPlayingRef} className="flex overflow-x-auto space-x-4 pb-4">
           {displayedNowPlayingMovies.map((movie) => (
-            <div key={movie.id} className="flex-shrink-0 w-48">
-              {movie.id === 'add' ? (
-                <Link to="/now-playing-movies" className="block bg-neutral-900 rounded-md shadow-lg overflow-hidden hover:shadow-xl h-full">
-                  <div className="flex items-center justify-center h-72">
-                    <span className="text-5xl text-white">+</span>
-                  </div>
-                </Link>
-              ) : (
-                <MovieCard movie={movie} />
-              )}
+            <div key={movie.id} className="flex-shrink-0 w-48 sm:w-64 lg:w-72">
+              <MovieCard movie={movie} />
             </div>
           ))}
         </div>
@@ -115,6 +89,7 @@ const Home = () => {
         </button>
       </div>
 
+      {/* Section: Top Rated */}
       <h1 className="text-4xl font-bold mt-12 mb-8 flex justify-between items-center">
         Melhores Avaliados
         <Link to="/top-rated-movies" className="bg-[#bd0003] text-white py-1 px-3 rounded-full text-sm">
@@ -127,16 +102,8 @@ const Home = () => {
         </button>
         <div ref={topRatedRef} className="flex overflow-x-auto space-x-4 pb-4">
           {displayedTopRatedMovies.map((movie) => (
-            <div key={movie.id} className="flex-shrink-0 w-48">
-              {movie.id === 'add' ? (
-                <Link to="/top-rated-movies" className="block bg-neutral-900 rounded-md shadow-lg overflow-hidden hover:shadow-xl h-full">
-                  <div className="flex items-center justify-center h-72">
-                    <span className="text-5xl text-white">+</span>
-                  </div>
-                </Link>
-              ) : (
-                <MovieCard movie={movie} />
-              )}
+            <div key={movie.id} className="flex-shrink-0 w-48 sm:w-64 lg:w-72">
+              <MovieCard movie={movie} />
             </div>
           ))}
         </div>
@@ -145,6 +112,7 @@ const Home = () => {
         </button>
       </div>
 
+      {/* Section: Popular */}
       <h1 className="text-4xl font-bold mt-12 mb-8 flex justify-between items-center">
         Filmes Populares
         <Link to="/popular-movies" className="bg-[#bd0003] text-white py-1 px-3 rounded-full text-sm">
@@ -157,16 +125,8 @@ const Home = () => {
         </button>
         <div ref={popularRef} className="flex overflow-x-auto space-x-4 pb-4">
           {displayedPopularMovies.map((movie) => (
-            <div key={movie.id} className="flex-shrink-0 w-48">
-              {movie.id === 'add' ? (
-                <Link to="/popular-movies" className="block bg-neutral-900 rounded-md shadow-lg overflow-hidden hover:shadow-xl h-full">
-                  <div className="flex items-center justify-center h-72">
-                    <span className="text-5xl text-white">+</span>
-                  </div>
-                </Link>
-              ) : (
-                <MovieCard movie={movie} />
-              )}
+            <div key={movie.id} className="flex-shrink-0 w-48 sm:w-64 lg:w-72">
+              <MovieCard movie={movie} />
             </div>
           ))}
         </div>
@@ -175,6 +135,7 @@ const Home = () => {
         </button>
       </div>
 
+      {/* Section: Upcoming */}
       <h1 className="text-4xl font-bold mt-12 mb-8 flex justify-between items-center">
         Próximos Lançamentos
         <Link to="/upcoming-movies" className="bg-[#bd0003] text-white py-1 px-3 rounded-full text-sm">
@@ -187,16 +148,8 @@ const Home = () => {
         </button>
         <div ref={upcomingRef} className="flex overflow-x-auto space-x-4 pb-4">
           {displayedUpcomingMovies.map((movie) => (
-            <div key={movie.id} className="flex-shrink-0 w-48">
-              {movie.id === 'add' ? (
-                <Link to="/upcoming-movies" className="block bg-neutral-900 rounded-md shadow-lg overflow-hidden hover:shadow-xl h-full">
-                  <div className="flex items-center justify-center h-72">
-                    <span className="text-5xl text-white">+</span>
-                  </div>
-                </Link>
-              ) : (
-                <MovieCard movie={movie} />
-              )}
+            <div key={movie.id} className="flex-shrink-0 w-48 sm:w-64 lg:w-72">
+              <MovieCard movie={movie} />
             </div>
           ))}
         </div>
