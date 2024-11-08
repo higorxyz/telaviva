@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { fetchNowPlayingMovies } from '../api';
 import MovieCard from '../components/MovieCard';
 import { waveform } from 'ldrs';
@@ -9,24 +9,34 @@ const NowPlayingMovies = () => {
   const [movies, setMovies] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [page, setPage] = useState(1);
+
+  const loadMovies = async () => {
+    try {
+      setLoading(true);
+      const movieData = await fetchNowPlayingMovies(page);
+      setMovies((prevMovies) => [...prevMovies, ...movieData]);
+    } catch (err) {
+      setError('Erro ao carregar os filmes.');
+    } finally {
+      setLoading(false);
+    }
+  };
 
   useEffect(() => {
-    const getMovies = async () => {
-      try {
-        const movieData = await fetchNowPlayingMovies();
-        setMovies(movieData);
-      } catch (err) {
-        setError('Erro ao carregar os filmes.');
-      } finally {
-        setLoading(false);
-      }
-    };
-    getMovies();
-  }, []);
+    loadMovies();
+  }, [page]);
 
-  if (loading) return (
+  const handleScroll = (e) => {
+    const bottom = e.target.scrollHeight === e.target.scrollTop + e.target.clientHeight;
+    if (bottom && !loading) {
+      setPage((prevPage) => prevPage + 1);
+    }
+  };
+
+  if (loading && page === 1) return (
     <div className="flex items-center justify-center min-h-screen bg-neutral-950">
-      <l-waveform size="35" stroke="3.5" speed="1" color="red"></l-waveform>
+      <l-waveform size="35" stroke="3.5" speed="1" color="#bd0003"></l-waveform>
     </div>
   );
 
@@ -37,13 +47,29 @@ const NowPlayingMovies = () => {
   );
 
   return (
-    <div className="p-6 bg-neutral-950 text-white">
+    <div
+      className="p-6 bg-neutral-950 text-white"
+      onScroll={handleScroll}
+      style={{
+        maxHeight: 'calc(100vh - 64px)',
+        overflowY: 'auto',
+      }}
+    >
       <h1 className="text-4xl font-bold mb-4">Filmes em Cartaz</h1>
       <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
-        {movies.map((movie) => (
-          <MovieCard key={movie.id} movie={movie} />
-        ))}
+        {movies.length === 0 ? (
+          <p className="col-span-full text-center">Nenhum filme encontrado.</p>
+        ) : (
+          movies.map((movie) => (
+            <MovieCard key={movie.id} movie={movie} />
+          ))
+        )}
       </div>
+      {loading && page > 1 && (
+        <div className="flex items-center justify-center mt-6">
+          <l-waveform size="35" stroke="3.5" speed="1" color="#bd0003"></l-waveform>
+        </div>
+      )}
     </div>
   );
 };
