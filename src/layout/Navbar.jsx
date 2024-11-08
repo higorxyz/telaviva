@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { FaBars, FaTimes, FaSearch } from 'react-icons/fa';
 
@@ -6,49 +6,18 @@ const Navbar = () => {
   const [menuOpen, setMenuOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [searchOpen, setSearchOpen] = useState(false);
-  const [searchResults, setSearchResults] = useState([]);
-  const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
   const location = useLocation();
   const searchInputRef = useRef(null);
 
   const toggleMenu = () => setMenuOpen(!menuOpen);
-
   const handleSearchChange = (e) => setSearchQuery(e.target.value);
-
-  const fetchSearchResults = async (query) => {
-    if (!query.trim()) {
-      setSearchResults([]);
-      return;
-    }
-
-    setLoading(true);
-    try {
-      const response = await fetch(`https://api.themoviedb.org/3/search/movie?api_key=YOUR_API_KEY&query=${query}`);
-      const data = await response.json();
-      setSearchResults(data.results);
-    } catch (error) {
-      console.error('Error fetching search results:', error);
-    } finally {
-      setLoading(false);
-    }
+  const handleSearch = () => {
+    if (searchQuery.trim() === '') return;
+    navigate(`/search-results?query=${searchQuery}`);
   };
-
-  useEffect(() => {
-    if (searchQuery.trim()) {
-      const timer = setTimeout(() => {
-        fetchSearchResults(searchQuery);
-      }, 500);
-      return () => clearTimeout(timer);
-    } else {
-      setSearchResults([]);
-    }
-  }, [searchQuery]);
-
   const toggleSearch = () => setSearchOpen(!searchOpen);
-
   const isActiveLink = (path) => location.pathname === path;
-
   const handleClickOutside = (e) => {
     if (searchOpen && searchInputRef.current && !searchInputRef.current.contains(e.target)) {
       setSearchOpen(false);
@@ -69,37 +38,58 @@ const Navbar = () => {
         <div className="md:flex items-center justify-end space-x-6 hidden">
           <ul className="flex space-x-4 items-center">
             <li>
-              <Link to="/now-playing-movies" className={`text-[#bd0003] hover:text-gray-300 ${isActiveLink('/now-playing-movies') ? 'border-2 border-[#bd0003] text-white' : ''} px-2 py-1 rounded-full`}>
-                Agora Em Cartaz
+              <Link
+                to="/now-playing-movies"
+                className={`text-[#bd0003] hover:text-gray-300 ${isActiveLink('/now-playing-movies') ? 'border-2 border-[#bd0003] text-white' : ''} px-2 py-1 rounded-full`}
+              >
+                Em Cartaz
               </Link>
             </li>
             <li>
-              <Link to="/popular-movies" className={`text-[#bd0003] hover:text-gray-300 ${isActiveLink('/popular-movies') ? 'border-2 border-[#bd0003] text-white' : ''} px-2 py-1 rounded-full`}>
+              <Link
+                to="/popular-movies"
+                className={`text-[#bd0003] hover:text-gray-300 ${isActiveLink('/popular-movies') ? 'border-2 border-[#bd0003] text-white' : ''} px-2 py-1 rounded-full`}
+              >
                 Populares
               </Link>
             </li>
             <li>
-              <Link to="/top-rated-movies" className={`text-[#bd0003] hover:text-gray-300 ${isActiveLink('/top-rated-movies') ? 'border-2 border-[#bd0003] text-white' : ''} px-2 py-1 rounded-full`}>
-                Alta Avaliação
+              <Link
+                to="/top-rated-movies"
+                className={`text-[#bd0003] hover:text-gray-300 ${isActiveLink('/top-rated-movies') ? 'border-2 border-[#bd0003] text-white' : ''} px-2 py-1 rounded-full`}
+              >
+                Bem Avaliados
               </Link>
             </li>
             <li>
-              <Link to="/upcoming-movies" className={`text-[#bd0003] hover:text-gray-300 ${isActiveLink('/upcoming-movies') ? 'border-2 border-[#bd0003] text-white' : ''} px-2 py-1 rounded-full`}>
+              <Link
+                to="/upcoming-movies"
+                className={`text-[#bd0003] hover:text-gray-300 ${isActiveLink('/upcoming-movies') ? 'border-2 border-[#bd0003] text-white' : ''} px-2 py-1 rounded-full`}
+              >
                 Em Breve
               </Link>
             </li>
             <li>
-              <Link to="/watched-movies" className={`text-[#bd0003] hover:text-gray-300 ${isActiveLink('/watched-movies') ? 'border-2 border-[#bd0003] text-white' : ''} px-2 py-1 rounded-full`}>
+              <Link
+                to="/watched-movies"
+                className={`text-[#bd0003] hover:text-gray-300 ${isActiveLink('/watched-movies') ? 'border-2 border-[#bd0003] text-white' : ''} px-2 py-1 rounded-full`}
+              >
                 Assistidos
               </Link>
             </li>
             <li>
-              <Link to="/to-watch-movies" className={`text-[#bd0003] hover:text-gray-300 ${isActiveLink('/to-watch-movies') ? 'border-2 border-[#bd0003] text-white' : ''} px-2 py-1 rounded-full`}>
+              <Link
+                to="/to-watch-movies"
+                className={`text-[#bd0003] hover:text-gray-300 ${isActiveLink('/to-watch-movies') ? 'border-2 border-[#bd0003] text-white' : ''} px-2 py-1 rounded-full`}
+              >
                 Ver Depois
               </Link>
             </li>
             <li>
-              <Link to="/genres" className={`text-[#bd0003] hover:text-gray-300 ${isActiveLink('/genres') ? 'border-2 border-[#bd0003] text-white' : ''} px-2 py-1 rounded-full`}>
+              <Link
+                to="/genres"
+                className={`text-[#bd0003] hover:text-gray-300 ${isActiveLink('/genres') ? 'border-2 border-[#bd0003] text-white' : ''} px-2 py-1 rounded-full`}
+              >
                 Gêneros
               </Link>
             </li>
@@ -109,30 +99,95 @@ const Navbar = () => {
               type="text"
               value={searchQuery}
               onChange={handleSearchChange}
-              onKeyPress={(e) => e.key === 'Enter' && navigate(`/search-results?query=${searchQuery}`)}
+              onKeyPress={(e) => e.key === 'Enter' && handleSearch()}
               className="w-48 px-4 py-2 rounded-full bg-neutral-800 text-white placeholder-white focus:outline-none focus:ring-2 focus:ring-[#bd0003]"
               placeholder="Pesquisar"
             />
-            <button onClick={() => navigate(`/search-results?query=${searchQuery}`)} className="absolute right-2 top-2 text-[#bd0003]">
+            <button onClick={handleSearch} className="absolute right-2 top-2 text-[#bd0003]">
               <FaSearch size={20} />
             </button>
           </div>
         </div>
-        {searchQuery && searchResults.length > 0 && (
-          <div className="absolute bg-black bg-opacity-80 w-full mt-2 rounded-lg max-h-96 overflow-y-auto z-50">
-            <ul className="p-2">
-              {loading ? (
-                <li className="text-white">Carregando...</li>
-              ) : (
-                searchResults.map((movie) => (
-                  <li key={movie.id} className="text-[#bd0003] hover:text-gray-300 py-2 px-4">
-                    <Link to={`/movie/${movie.id}`}>{movie.title}</Link>
-                  </li>
-                ))
-              )}
-            </ul>
+        <div className="md:hidden flex items-center">
+          <div className="flex items-center w-full">
+            <input
+              type="text"
+              value={searchQuery}
+              onChange={handleSearchChange}
+              onKeyPress={(e) => e.key === 'Enter' && handleSearch()}
+              ref={searchInputRef}
+              className="w-full px-4 py-2 rounded-full bg-neutral-800 text-white placeholder-white focus:outline-none focus:ring-2 focus:ring-[#bd0003]"
+              placeholder="Pesquisar"
+            />
+            <button onClick={handleSearch} className="text-[#bd0003] ml-2">
+              <FaSearch size={20} />
+            </button>
           </div>
-        )}
+          <button onClick={toggleMenu} className="text-white ml-2">
+            {menuOpen ? <FaTimes size={30} /> : <FaBars size={30} />}
+          </button>
+        </div>
+      </div>
+
+      <div
+        className={`fixed top-0 right-0 w-64 h-full bg-black bg-opacity-75 md:hidden ${menuOpen ? 'block' : 'hidden'} z-50`}
+        onClick={toggleMenu}
+      >
+        <div className="flex justify-end p-6">
+          <button onClick={toggleMenu} className="text-white">
+            <FaTimes size={30} />
+          </button>
+        </div>
+        <div className="flex flex-col items-center space-y-4 text-white">
+          <Link
+            to="/"
+            className="text-[#bd0003] hover:text-gray-300 px-2 py-1 rounded-full"
+          >
+            Início
+          </Link>
+          <Link
+            to="/now-playing-movies"
+            className="text-[#bd0003] hover:text-gray-300 px-2 py-1 rounded-full"
+          >
+            Em Cartaz
+          </Link>
+          <Link
+            to="/popular-movies"
+            className="text-[#bd0003] hover:text-gray-300 px-2 py-1 rounded-full"
+          >
+            Populares
+          </Link>
+          <Link
+            to="/top-rated-movies"
+            className="text-[#bd0003] hover:text-gray-300 px-2 py-1 rounded-full"
+          >
+            Bem Avaliados
+          </Link>
+          <Link
+            to="/upcoming-movies"
+            className="text-[#bd0003] hover:text-gray-300 px-2 py-1 rounded-full"
+          >
+            Em Breve
+          </Link>
+          <Link
+            to="/watched-movies"
+            className="text-[#bd0003] hover:text-gray-300 px-2 py-1 rounded-full"
+          >
+            Assistidos
+          </Link>
+          <Link
+            to="/to-watch-movies"
+            className="text-[#bd0003] hover:text-gray-300 px-2 py-1 rounded-full"
+          >
+            Ver Depois
+          </Link>
+          <Link
+            to="/genres"
+            className="text-[#bd0003] hover:text-gray-300 px-2 py-1 rounded-full"
+          >
+            Gêneros
+          </Link>
+        </div>
       </div>
     </nav>
   );
