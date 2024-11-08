@@ -1,28 +1,28 @@
 const API_BASE_URL = 'https://api.themoviedb.org/3';
 const API_KEY = process.env.REACT_APP_TMDB_API_KEY;
 
-export const fetchPopularMovies = async () => {
-  const response = await fetch(`${API_BASE_URL}/movie/popular?api_key=${API_KEY}&language=pt-BR&page=1`);
+export const fetchPopularMovies = async (page = 1) => {
+  const response = await fetch(`${API_BASE_URL}/movie/popular?api_key=${API_KEY}&language=pt-BR&page=${page}`);
   const data = await response.json();
-  return data.results.slice(0, 12);
+  return data.results;
 };
 
-export const fetchTopRatedMovies = async () => {
-  const response = await fetch(`${API_BASE_URL}/movie/top_rated?api_key=${API_KEY}&language=pt-BR&page=1`);
+export const fetchTopRatedMovies = async (page = 1) => {
+  const response = await fetch(`${API_BASE_URL}/movie/top_rated?api_key=${API_KEY}&language=pt-BR&page=${page}`);
   const data = await response.json();
-  return data.results.slice(0, 12);
+  return data.results;
 };
 
-export const fetchNowPlayingMovies = async () => {
-  const response = await fetch(`${API_BASE_URL}/movie/now_playing?api_key=${API_KEY}&language=pt-BR&page=1`);
+export const fetchNowPlayingMovies = async (page = 1) => {
+  const response = await fetch(`${API_BASE_URL}/movie/now_playing?api_key=${API_KEY}&language=pt-BR&page=${page}`);
   const data = await response.json();
-  return data.results.slice(0, 12);
+  return data.results;
 };
 
-export const fetchUpcomingMovies = async () => {
-  const response = await fetch(`${API_BASE_URL}/movie/upcoming?api_key=${API_KEY}&language=pt-BR&page=1`);
+export const fetchUpcomingMovies = async (page = 1) => {
+  const response = await fetch(`${API_BASE_URL}/movie/upcoming?api_key=${API_KEY}&language=pt-BR&page=${page}`);
   const data = await response.json();
-  return data.results.slice(0, 12);
+  return data.results;
 };
 
 export const fetchMovieDetails = async (movieId) => {
@@ -40,10 +40,10 @@ export const fetchMovieDetails = async (movieId) => {
   return data;
 };
 
-export const fetchMoviesByCategory = async (categoryId) => {
-  const response = await fetch(`${API_BASE_URL}/discover/movie?api_key=${API_KEY}&with_genres=${categoryId}&language=pt-BR&page=1`);
+export const fetchMoviesByCategory = async (categoryId, page = 1) => {
+  const response = await fetch(`${API_BASE_URL}/discover/movie?api_key=${API_KEY}&with_genres=${categoryId}&language=pt-BR&page=${page}`);
   const data = await response.json();
-  return data.results.slice(0, 12);
+  return data.results;
 };
 
 export const fetchMovieTrailer = async (movieId) => {
@@ -70,17 +70,8 @@ export const fetchMovieCast = async (movieId) => {
   return data.cast;
 };
 
-export const fetchMoviesBySearch = async (query) => {
-  let page = 1;
-  let allResults = [];
-  let hasMore = true;
-
-  while (hasMore) {
-    const response = await fetch(`${API_BASE_URL}/search/movie?api_key=${API_KEY}&query=${query}&language=pt-BR&page=${page}`);
-    const data = await response.json();
-    allResults = [...allResults, ...data.results];
-    hasMore = page < data.total_pages;
-    page++;
-  }
-  return allResults;
+export const fetchMoviesBySearch = async (query, page = 1) => {
+  const response = await fetch(`${API_BASE_URL}/search/movie?api_key=${API_KEY}&query=${query}&language=pt-BR&page=${page}`);
+  const data = await response.json();
+  return data.results;
 };
