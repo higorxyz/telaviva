@@ -124,21 +124,6 @@ const Navbar = () => {
             </button>
           </div>
         </div>
-        {searchQuery && searchResults.length > 0 && (
-          <div className="absolute bg-black bg-opacity-80 w-full mt-2 rounded-lg max-h-96 overflow-y-auto z-50">
-            <ul className="p-2">
-              {loading ? (
-                <li className="text-white">Carregando...</li>
-              ) : (
-                searchResults.map((movie) => (
-                  <li key={movie.id} className="text-[#bd0003] hover:text-gray-300 py-2 px-4">
-                    <Link to={`/movie/${movie.id}`}>{movie.title}</Link>
-                  </li>
-                ))
-              )}
-            </ul>
-          </div>
-        )}
       </div>
     </nav>
   );
