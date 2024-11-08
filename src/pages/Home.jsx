@@ -66,8 +66,8 @@ const Home = () => {
   const displayedUpcomingMovies = upcomingMovies.slice(0, 12);
 
   return (
-    <div className="p-2 sm:p-4 md:p-6 lg:p-6 xl:p-6 bg-neutral-950 text-white">
-      <h1 className="text-4xl font-bold my-8 flex justify-between items-center">
+    <div className="bg-neutral-950 text-white md:p-6 lg:p-8 xl:p-10">
+      <h1 className="text-4xl font-bold my-8 flex justify-between items-center md:mx-6 lg:mx-8 xl:mx-10">
         Agora em Cartaz
         <Link to="/now-playing-movies" className="bg-[#bd0003] text-white py-1 px-3 rounded-full text-sm">
           Ver Todos
@@ -77,7 +77,7 @@ const Home = () => {
         <button onClick={() => scrollLeft(nowPlayingRef)} className="absolute left-0 -translate-x-1/2 transform p-4 bg-[#bd0003] rounded-full hover:bg-red-500">
           ←
         </button>
-        <div ref={nowPlayingRef} className="flex overflow-x-auto space-x-4 pb-4 mx-2">
+        <div ref={nowPlayingRef} className="flex overflow-x-auto space-x-4 pb-4 mx-0 md:mx-6 lg:mx-8 xl:mx-10">
           {displayedNowPlayingMovies.map((movie) => (
             <div key={movie.id} className="flex-shrink-0 w-48 sm:w-48 md:w-48 lg:w-56 xl:w-64">
               <MovieCard movie={movie} />
@@ -89,7 +89,7 @@ const Home = () => {
         </button>
       </div>
 
-      <h1 className="text-4xl font-bold mt-12 mb-8 flex justify-between items-center">
+      <h1 className="text-4xl font-bold mt-12 mb-8 flex justify-between items-center md:mx-6 lg:mx-8 xl:mx-10">
         Melhores Avaliados
         <Link to="/top-rated-movies" className="bg-[#bd0003] text-white py-1 px-3 rounded-full text-sm">
           Ver Todos
@@ -99,7 +99,7 @@ const Home = () => {
         <button onClick={() => scrollLeft(topRatedRef)} className="absolute left-0 -translate-x-1/2 transform p-4 bg-[#bd0003] rounded-full hover:bg-red-500">
           ←
         </button>
-        <div ref={topRatedRef} className="flex overflow-x-auto space-x-4 pb-4 mx-2">
+        <div ref={topRatedRef} className="flex overflow-x-auto space-x-4 pb-4 mx-0 md:mx-6 lg:mx-8 xl:mx-10">
           {displayedTopRatedMovies.map((movie) => (
             <div key={movie.id} className="flex-shrink-0 w-48 sm:w-48 md:w-48 lg:w-56 xl:w-64">
               <MovieCard movie={movie} />
@@ -111,7 +111,7 @@ const Home = () => {
         </button>
       </div>
 
-      <h1 className="text-4xl font-bold mt-12 mb-8 flex justify-between items-center">
+      <h1 className="text-4xl font-bold mt-12 mb-8 flex justify-between items-center md:mx-6 lg:mx-8 xl:mx-10">
         Filmes Populares
         <Link to="/popular-movies" className="bg-[#bd0003] text-white py-1 px-3 rounded-full text-sm">
           Ver Todos
@@ -121,7 +121,7 @@ const Home = () => {
         <button onClick={() => scrollLeft(popularRef)} className="absolute left-0 -translate-x-1/2 transform p-4 bg-[#bd0003] rounded-full hover:bg-red-500">
           ←
         </button>
-        <div ref={popularRef} className="flex overflow-x-auto space-x-4 pb-4 mx-2">
+        <div ref={popularRef} className="flex overflow-x-auto space-x-4 pb-4 mx-0 md:mx-6 lg:mx-8 xl:mx-10">
           {displayedPopularMovies.map((movie) => (
             <div key={movie.id} className="flex-shrink-0 w-48 sm:w-48 md:w-48 lg:w-56 xl:w-64">
               <MovieCard movie={movie} />
@@ -133,7 +133,7 @@ const Home = () => {
         </button>
       </div>
 
-      <h1 className="text-4xl font-bold mt-12 mb-8 flex justify-between items-center">
+      <h1 className="text-4xl font-bold mt-12 mb-8 flex justify-between items-center md:mx-6 lg:mx-8 xl:mx-10">
         Próximos Lançamentos
         <Link to="/upcoming-movies" className="bg-[#bd0003] text-white py-1 px-3 rounded-full text-sm">
           Ver Todos
@@ -143,7 +143,7 @@ const Home = () => {
         <button onClick={() => scrollLeft(upcomingRef)} className="absolute left-0 -translate-x-1/2 transform p-4 bg-[#bd0003] rounded-full hover:bg-red-500">
           ←
         </button>
-        <div ref={upcomingRef} className="flex overflow-x-auto space-x-4 pb-4 mx-2">
+        <div ref={upcomingRef} className="flex overflow-x-auto space-x-4 pb-4 mx-0 md:mx-6 lg:mx-8 xl:mx-10">
           {displayedUpcomingMovies.map((movie) => (
             <div key={movie.id} className="flex-shrink-0 w-48 sm:w-48 md:w-48 lg:w-56 xl:w-64">
               <MovieCard movie={movie} />
