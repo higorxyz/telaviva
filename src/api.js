@@ -71,3 +71,9 @@ export const fetchMovieCast = async (movieId) => {
   const data = await response.json();
   return data.cast;
 };
+
+export const fetchMoviesBySearch = async (query) => {
+  const response = await fetch(`${API_BASE_URL}/search/movie?api_key=${API_KEY}&query=${query}&language=pt-BR`);
+  const data = await response.json();
+  return data.results;
+};
