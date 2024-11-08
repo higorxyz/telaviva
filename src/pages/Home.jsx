@@ -2,6 +2,7 @@ import React, { useEffect, useState, useRef } from 'react';
 import { fetchPopularMovies, fetchTopRatedMovies, fetchNowPlayingMovies, fetchUpcomingMovies } from '../api';
 import MovieCard from '../components/MovieCard';
 import { Link } from 'react-router-dom';
+import Loading from '../components/Loading';
 
 const Home = () => {
   const [popularMovies, setPopularMovies] = useState([]);
@@ -56,15 +57,16 @@ const Home = () => {
     }
   };
 
-  if (loading) return <div>Carregando...</div>;
-  if (error) return <div>{error}</div>;
+  if (loading) return <Loading />;
+  if (error) return <div className="text-red-500 text-center mt-6">{error}</div>;
 
   const displayedPopularMovies = popularMovies.slice(0, 12);
   const displayedTopRatedMovies = topRatedMovies.slice(0, 12);
   const displayedNowPlayingMovies = nowPlayingMovies.slice(0, 12);
   const displayedUpcomingMovies = upcomingMovies.slice(0, 12);
+
   return (
-    <div className="p-6 sm:p-6 md:p-6 lg:p-6 xl:p-6 bg-neutral-950 text-white">
+    <div className="p-4 sm:p-6 md:p-6 lg:p-6 xl:p-6 bg-neutral-950 text-white">
       <h1 className="text-4xl font-bold my-8 flex justify-between items-center">
         Agora em Cartaz
         <Link to="/now-playing-movies" className="bg-[#bd0003] text-white py-1 px-3 rounded-full text-sm">
@@ -75,9 +77,9 @@ const Home = () => {
         <button onClick={() => scrollLeft(nowPlayingRef)} className="absolute left-0 -translate-x-1/2 transform p-4 bg-[#bd0003] rounded-full hover:bg-red-500">
           ←
         </button>
-        <div ref={nowPlayingRef} className="flex overflow-x-auto space-x-4 pb-4">
+        <div ref={nowPlayingRef} className="flex overflow-x-auto space-x-4 pb-4 mx-2">
           {displayedNowPlayingMovies.map((movie) => (
-            <div key={movie.id} className="flex-shrink-0 w-40 sm:w-48 md:w-56 lg:w-64 xl:w-72">
+            <div key={movie.id} className="flex-shrink-0 w-48 sm:w-48 md:w-48 lg:w-56 xl:w-64">
               <MovieCard movie={movie} />
             </div>
           ))}
@@ -97,9 +99,9 @@ const Home = () => {
         <button onClick={() => scrollLeft(topRatedRef)} className="absolute left-0 -translate-x-1/2 transform p-4 bg-[#bd0003] rounded-full hover:bg-red-500">
           ←
         </button>
-        <div ref={topRatedRef} className="flex overflow-x-auto space-x-4 pb-4">
+        <div ref={topRatedRef} className="flex overflow-x-auto space-x-4 pb-4 mx-2">
           {displayedTopRatedMovies.map((movie) => (
-            <div key={movie.id} className="flex-shrink-0 w-40 sm:w-48 md:w-56 lg:w-64 xl:w-72">
+            <div key={movie.id} className="flex-shrink-0 w-48 sm:w-48 md:w-48 lg:w-56 xl:w-64">
               <MovieCard movie={movie} />
             </div>
           ))}
@@ -119,9 +121,9 @@ const Home = () => {
         <button onClick={() => scrollLeft(popularRef)} className="absolute left-0 -translate-x-1/2 transform p-4 bg-[#bd0003] rounded-full hover:bg-red-500">
           ←
         </button>
-        <div ref={popularRef} className="flex overflow-x-auto space-x-4 pb-4">
+        <div ref={popularRef} className="flex overflow-x-auto space-x-4 pb-4 mx-2">
           {displayedPopularMovies.map((movie) => (
-            <div key={movie.id} className="flex-shrink-0 w-40 sm:w-48 md:w-56 lg:w-64 xl:w-72">
+            <div key={movie.id} className="flex-shrink-0 w-48 sm:w-48 md:w-48 lg:w-56 xl:w-64">
               <MovieCard movie={movie} />
             </div>
           ))}
@@ -141,9 +143,9 @@ const Home = () => {
         <button onClick={() => scrollLeft(upcomingRef)} className="absolute left-0 -translate-x-1/2 transform p-4 bg-[#bd0003] rounded-full hover:bg-red-500">
           ←
         </button>
-        <div ref={upcomingRef} className="flex overflow-x-auto space-x-4 pb-4">
+        <div ref={upcomingRef} className="flex overflow-x-auto space-x-4 pb-4 mx-2">
           {displayedUpcomingMovies.map((movie) => (
-            <div key={movie.id} className="flex-shrink-0 w-40 sm:w-48 md:w-56 lg:w-64 xl:w-72">
+            <div key={movie.id} className="flex-shrink-0 w-48 sm:w-48 md:w-48 lg:w-56 xl:w-64">
               <MovieCard movie={movie} />
             </div>
           ))}
