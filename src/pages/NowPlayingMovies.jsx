@@ -31,14 +31,12 @@ const NowPlayingMovies = () => {
     const bottom =
       e.target.scrollHeight === e.target.scrollTop + e.target.clientHeight;
 
-    // Verifica se a rolagem atingiu o final e se não há outro carregamento em andamento
     if (bottom && !loading) {
       setPage((prevPage) => prevPage + 1);
     }
   };
 
   useEffect(() => {
-    // Adiciona o evento de rolagem ao body
     const scrollContainer = document.documentElement;
 
     scrollContainer.addEventListener('scroll', handleScroll);
