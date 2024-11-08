@@ -17,16 +17,16 @@ const App = () => {
     <Router>
       <Navbar />
       <Routes>
-        <Route path="/" element={<div className="px-28"><Home /></div>} />
+        <Route path="/" element={<div className="px-4 md:px-28"><Home /></div>} />
         <Route path="/movie/:id" element={<MovieDetails />} />
-        <Route path="/genres" element={<div className="px-28"><Genres /></div>} />
-        <Route path="/category/:category" element={<div className="px-28"><Category /></div>} />
-        <Route path="/popular-movies" element={<div className="px-28"><PopularMovies /></div>} />
-        <Route path="/top-rated-movies" element={<div className="px-28"><TopRatedMovies /></div>} />
-        <Route path="/now-playing-movies" element={<div className="px-28"><NowPlayingMovies /></div>} />
-        <Route path="/upcoming-movies" element={<div className="px-28"><UpcomingMovies /></div>} />
-        <Route path="/watched-movies" element={<div className="px-28"><WatchedMovies /></div>} />
-        <Route path="/to-watch-movies" element={<div className="px-28"><ToWatchMovies /></div>} />
+        <Route path="/genres" element={<div className="px-4 md:px-28"><Genres /></div>} />
+        <Route path="/category/:category" element={<div className="px-4 md:px-28"><Category /></div>} />
+        <Route path="/popular-movies" element={<div className="px-4 md:px-28"><PopularMovies /></div>} />
+        <Route path="/top-rated-movies" element={<div className="px-4 md:px-28"><TopRatedMovies /></div>} />
+        <Route path="/now-playing-movies" element={<div className="px-4 md:px-28"><NowPlayingMovies /></div>} />
+        <Route path="/upcoming-movies" element={<div className="px-4 md:px-28"><UpcomingMovies /></div>} />
+        <Route path="/watched-movies" element={<div className="px-4 md:px-28"><WatchedMovies /></div>} />
+        <Route path="/to-watch-movies" element={<div className="px-4 md:px-28"><ToWatchMovies /></div>} />
       </Routes>
     </Router>
   );
