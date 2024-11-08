@@ -27,22 +27,12 @@ const NowPlayingMovies = () => {
     loadMovies();
   }, [page]);
 
-  const handleScroll = () => {
-    const scrollPosition = window.scrollY + window.innerHeight;
-    const bottom = document.documentElement.scrollHeight === scrollPosition;
-
+  const handleScroll = (e) => {
+    const bottom = e.target.scrollHeight === e.target.scrollTop + e.target.clientHeight;
     if (bottom && !loading) {
       setPage((prevPage) => prevPage + 1);
     }
   };
-
-  useEffect(() => {
-    window.addEventListener('scroll', handleScroll);
-    
-    return () => {
-      window.removeEventListener('scroll', handleScroll);
-    };
-  }, [loading]);
 
   if (loading && page === 1) return (
     <div className="flex items-center justify-center min-h-screen bg-neutral-950">
@@ -57,18 +47,21 @@ const NowPlayingMovies = () => {
   );
 
   return (
-    <div className="p-6 bg-neutral-950 text-white">
+    <div
+      className="p-6 bg-neutral-950 text-white"
+      onScroll={handleScroll}
+      style={{
+        maxHeight: 'calc(100vh - 64px)',
+        overflowY: 'auto',
+      }}
+    >
       <h1 className="text-4xl font-bold mb-4">Filmes em Cartaz</h1>
-      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
+      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4">
         {movies.length === 0 ? (
           <p className="col-span-full text-center">Nenhum filme encontrado.</p>
         ) : (
           movies.map((movie) => (
-            <div key={movie.id} className="flex justify-center">
-              <div className="w-full max-w-sm mx-auto">
-                <MovieCard movie={movie} />
-              </div>
-            </div>
+            <MovieCard key={movie.id} movie={movie} />
           ))
         )}
       </div>
