@@ -27,9 +27,10 @@ const NowPlayingMovies = () => {
     loadMovies();
   }, [page]);
 
-  const handleScroll = (e) => {
-    const bottom =
-      e.target.scrollHeight === e.target.scrollTop + e.target.clientHeight;
+  // Detecção de rolagem na página
+  const handleScroll = () => {
+    const scrollPosition = window.scrollY + window.innerHeight;
+    const bottom = document.documentElement.scrollHeight === scrollPosition;
 
     if (bottom && !loading) {
       setPage((prevPage) => prevPage + 1);
@@ -37,12 +38,10 @@ const NowPlayingMovies = () => {
   };
 
   useEffect(() => {
-    const scrollContainer = document.documentElement;
-
-    scrollContainer.addEventListener('scroll', handleScroll);
-
+    window.addEventListener('scroll', handleScroll);
+    
     return () => {
-      scrollContainer.removeEventListener('scroll', handleScroll);
+      window.removeEventListener('scroll', handleScroll);
     };
   }, [loading]);
 
