@@ -7,7 +7,7 @@ waveform.register();
 
 const NowPlayingMovies = () => {
   const [movies, setMovies] = useState([]);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [page, setPage] = useState(1);
 
