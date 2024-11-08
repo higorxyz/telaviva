@@ -27,7 +27,6 @@ const NowPlayingMovies = () => {
     loadMovies();
   }, [page]);
 
-  // Detecção de rolagem na página
   const handleScroll = () => {
     const scrollPosition = window.scrollY + window.innerHeight;
     const bottom = document.documentElement.scrollHeight === scrollPosition;
@@ -65,7 +64,11 @@ const NowPlayingMovies = () => {
           <p className="col-span-full text-center">Nenhum filme encontrado.</p>
         ) : (
           movies.map((movie) => (
-            <MovieCard key={movie.id} movie={movie} />
+            <div key={movie.id} className="flex justify-center">
+              <div className="w-full max-w-sm mx-auto">
+                <MovieCard movie={movie} />
+              </div>
+            </div>
           ))
         )}
       </div>
