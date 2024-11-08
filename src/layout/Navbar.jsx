@@ -1,7 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { FaBars, FaTimes, FaSearch } from 'react-icons/fa';
-import { fetchMoviesBySearch } from './api';
+import { fetchMoviesBySearch } from '../api';
 
 const Navbar = () => {
   const [menuOpen, setMenuOpen] = useState(false);
