@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { useLocation } from 'react-router-dom';
 import { fetchMoviesBySearch } from '../api';
 import Loading from '../components/Loading';
+import MovieCard from '../components/MovieCard';
 
 const SearchResults = () => {
   const [searchResults, setSearchResults] = useState([]);
@@ -33,14 +34,7 @@ const SearchResults = () => {
             <p>Nenhum resultado encontrado.</p>
           ) : (
             searchResults.map((movie) => (
-              <div key={movie.id} className="bg-neutral-900 text-white rounded-lg p-4">
-                <img
-                  src={`https://image.tmdb.org/t/p/w500${movie.poster_path}`}
-                  alt={movie.title}
-                  className="w-full h-72 object-cover rounded-md"
-                />
-                <h3 className="text-xl mt-4">{movie.title}</h3>
-              </div>
+              <MovieCard key={movie.id} movie={movie} />
             ))
           )}
         </div>
