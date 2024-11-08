@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useLocation } from 'react-router-dom';
 import { fetchMoviesBySearch } from '../api';
-import Loading from '../Components/Loading';
+import Loading from '../components/Loading';
 
 const SearchResults = () => {
   const [searchResults, setSearchResults] = useState([]);
