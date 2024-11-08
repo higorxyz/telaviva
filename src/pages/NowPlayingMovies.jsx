@@ -27,21 +27,25 @@ const NowPlayingMovies = () => {
     loadMovies();
   }, [page]);
 
-  const handleScroll = () => {
-    if (loading) return;
+  const handleScroll = (e) => {
+    const bottom =
+      e.target.scrollHeight === e.target.scrollTop + e.target.clientHeight;
 
-    const scrollHeight = document.documentElement.scrollHeight;
-    const scrollTop = document.documentElement.scrollTop;
-    const clientHeight = document.documentElement.clientHeight;
-
-    if (scrollHeight === scrollTop + clientHeight) {
+    // Verifica se a rolagem atingiu o final e se não há outro carregamento em andamento
+    if (bottom && !loading) {
       setPage((prevPage) => prevPage + 1);
     }
   };
 
   useEffect(() => {
-    window.addEventListener('scroll', handleScroll);
-    return () => window.removeEventListener('scroll', handleScroll);
+    // Adiciona o evento de rolagem ao body
+    const scrollContainer = document.documentElement;
+
+    scrollContainer.addEventListener('scroll', handleScroll);
+
+    return () => {
+      scrollContainer.removeEventListener('scroll', handleScroll);
+    };
   }, [loading]);
 
   if (loading && page === 1) return (
