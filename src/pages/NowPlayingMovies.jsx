@@ -1,75 +1,49 @@
 import React, { useState, useEffect } from 'react';
 import { fetchNowPlayingMovies } from '../api';
 import MovieCard from '../components/MovieCard';
-import { waveform } from 'ldrs';
-
-waveform.register();
+import { Link } from 'react-router-dom';
+import Loading from '../components/Loading';
 
 const NowPlayingMovies = () => {
   const [movies, setMovies] = useState([]);
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [page, setPage] = useState(1);
-
-  const loadMovies = async () => {
-    try {
-      setLoading(true);
-      const movieData = await fetchNowPlayingMovies(page);
-      setMovies((prevMovies) => [...prevMovies, ...movieData]);
-    } catch (err) {
-      setError('Erro ao carregar os filmes.');
-    } finally {
-      setLoading(false);
-    }
-  };
 
   useEffect(() => {
-    loadMovies();
-  }, [page]);
+    const getMovies = async () => {
+      try {
+        const nowPlayingData = await fetchNowPlayingMovies();
+        setMovies(nowPlayingData);
+      } catch (err) {
+        setError('Erro ao carregar os filmes.');
+      } finally {
+        setLoading(false);
+      }
+    };
+    getMovies();
+  }, []);
 
-  const handleScroll = (e) => {
-    const bottom = e.target.scrollHeight === e.target.scrollTop + e.target.clientHeight;
-    if (bottom && !loading) {
-      setPage((prevPage) => prevPage + 1);
-    }
-  };
+  if (loading) return <Loading />;
+  if (error) return <div className="text-red-500 text-center mt-6">{error}</div>;
 
-  if (loading && page === 1) return (
-    <div className="flex items-center justify-center min-h-screen bg-neutral-950">
-      <l-waveform size="35" stroke="3.5" speed="1" color="#bd0003"></l-waveform>
-    </div>
-  );
-
-  if (error) return (
-    <div className="flex items-center justify-center min-h-screen bg-neutral-950 text-red-500">
-      <p>{error}</p>
-    </div>
-  );
+  const displayedMovies = movies.slice(0, 12);
 
   return (
-    <div
-      className="p-6 bg-neutral-950 text-white"
-      onScroll={handleScroll}
-      style={{
-        maxHeight: 'calc(100vh - 64px)',
-        overflowY: 'auto',
-      }}
-    >
-      <h1 className="text-4xl font-bold mb-4">Filmes em Cartaz</h1>
-      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4">
-        {movies.length === 0 ? (
-          <p className="col-span-full text-center">Nenhum filme encontrado.</p>
-        ) : (
-          movies.map((movie) => (
-            <MovieCard key={movie.id} movie={movie} />
-          ))
-        )}
+    <div className="bg-neutral-950 text-white md:p-6 lg:p-8 xl:p-10">
+      <h1 className="text-4xl font-bold my-8 md:mx-6 lg:mx-8 xl:mx-10">
+        Agora em Cartaz
+        <Link to="/now-playing-movies" className="bg-[#bd0003] text-white py-1 px-3 rounded-full text-sm">
+          Ver Todos
+        </Link>
+      </h1>
+
+      <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-6 md:mx-6 lg:mx-8 xl:mx-10">
+        {displayedMovies.map((movie) => (
+          <div key={movie.id} className="flex-shrink-0">
+            <MovieCard movie={movie} />
+          </div>
+        ))}
       </div>
-      {loading && page > 1 && (
-        <div className="flex items-center justify-center mt-6">
-          <l-waveform size="35" stroke="3.5" speed="1" color="#bd0003"></l-waveform>
-        </div>
-      )}
     </div>
   );
 };
