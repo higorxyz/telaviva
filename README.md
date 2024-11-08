@@ -1,70 +1,61 @@
-# Getting Started with Create React App
+# TelaViva
 
-This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
+**TelaViva** Ã© uma plataforma de streaming de filmes e sÃ©ries, onde os usuÃ¡rios podem explorar filmes populares, mais bem avaliados, em exibiÃ§Ã£o, prÃ³ximos lanÃ§amentos e muito mais. A plataforma oferece uma experiÃªncia de navegaÃ§Ã£o fluÃ­da, com carrossÃ©is interativos e uma interface totalmente responsiva para dispositivos mÃ³veis e desktop.
 
-## Available Scripts
+## Funcionalidades
 
-In the project directory, you can run:
+- **PÃ¡gina inicial** com filmes populares, em exibiÃ§Ã£o, bem avaliados e prÃ³ximos lanÃ§amentos.
+- **Detalhes dos filmes**, com informaÃ§Ãµes como sinopse, elenco, avaliaÃ§Ã£o e trailers.
+- **Sistema de filmes assistidos e filmes para ver depois**, que permite ao usuÃ¡rio salvar e acompanhar sua lista de filmes.
+- **Pesquisa por filmes**, permitindo aos usuÃ¡rios buscar por tÃ­tulo, gÃªnero ou categoria.
+- **Design responsivo**, garantindo uma Ã³tima experiÃªncia em qualquer dispositivo.
 
-### `npm start`
+## Tecnologias Utilizadas
 
-Runs the app in the development mode.\
-Open [http://localhost:3000](http://localhost:3000) to view it in your browser.
+- **React.js**: Framework JavaScript para a construÃ§Ã£o da interface do usuÃ¡rio.
+- **Tailwind CSS**: Framework CSS para um design moderno e responsivo.
+- **Vercel**: Plataforma de deploy contÃ­nuo para hospedar o projeto.
+- **TMDb API**: API para busca de dados de filmes e sÃ©ries.
+- **LocalStorage**: Para salvar os filmes assistidos e para ver depois no navegador do usuÃ¡rio.
 
-The page will reload when you make changes.\
-You may also see any lint errors in the console.
+## Como Rodar o Projeto Localmente
 
-### `npm test`
+### PrÃ©-requisitos
+- **Node.js** instalado na sua mÃ¡quina.
+- **NPM** ou **Yarn** para gerenciamento de pacotes.
 
-Launches the test runner in the interactive watch mode.\
-See the section about [running tests](https://facebook.github.io/create-react-app/docs/running-tests) for more information.
+### Passos
 
-### `npm run build`
+1. Clone o repositÃ³rio:
+   ```bash
+   git clone https://github.com/seu-usuario/telaviva.git
+   ```
 
-Builds the app for production to the `build` folder.\
-It correctly bundles React in production mode and optimizes the build for the best performance.
+2. Navegue atÃ© o diretÃ³rio do projeto:
+   ```bash
+   cd telaviva
+   ```
 
-The build is minified and the filenames include the hashes.\
-Your app is ready to be deployed!
+3. Instale as dependÃªncias:
+   ```bash
+   npm install
+   ```
+   ou, se estiver usando o Yarn:
+   ```bash
+   yarn
+   ```
 
-See the section about [deployment](https://facebook.github.io/create-react-app/docs/deployment) for more information.
+4. Para rodar o projeto localmente, execute o comando:
+   ```bash
+   npm start
+   ```
+   ou, se estiver usando o Yarn:
+   ```bash
+   yarn start
+   ```
 
-### `npm run eject`
+5. Acesse o aplicativo no navegador em [http://localhost:3000](http://localhost:3000).
 
-**Note: this is a one-way operation. Once you `eject`, you can't go back!**
+## License
 
-If you aren't satisfied with the build tool and configuration choices, you can `eject` at any time. This command will remove the single build dependency from your project.
-
-Instead, it will copy all the configuration files and the transitive dependencies (webpack, Babel, ESLint, etc) right into your project so you have full control over them. All of the commands except `eject` will still work, but they will point to the copied scripts so you can tweak them. At this point you're on your own.
-
-You don't have to ever use `eject`. The curated feature set is suitable for small and middle deployments, and you shouldn't feel obligated to use this feature. However we understand that this tool wouldn't be useful if you couldn't customize it when you are ready for it.
-
-## Learn More
-
-You can learn more in the [Create React App documentation](https://facebook.github.io/create-react-app/docs/getting-started).
-
-To learn React, check out the [React documentation](https://reactjs.org/).
-
-### Code Splitting
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/code-splitting](https://facebook.github.io/create-react-app/docs/code-splitting)
-
-### Analyzing the Bundle Size
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size](https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size)
-
-### Making a Progressive Web App
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app](https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app)
-
-### Advanced Configuration
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/advanced-configuration](https://facebook.github.io/create-react-app/docs/advanced-configuration)
-
-### Deployment
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/deployment](https://facebook.github.io/create-react-app/docs/deployment)
-
-### `npm run build` fails to minify
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify](https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify)
+Este projeto estÃ¡ sob a licenÃ§a MIT. Veja o arquivo [LICENSE](LICENSE) para mais detalhes.
