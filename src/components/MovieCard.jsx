@@ -8,12 +8,12 @@ const MovieCard = ({ movie }) => {
   return (
     <Link 
       to={`/movie/${movie.id}`} 
-      className="block bg-neutral-900 rounded-md shadow-lg overflow-hidden hover:shadow-xl transition-shadow h-full w-full max-w-xs mx-auto"
+      className="block bg-neutral-900 rounded-md shadow-lg overflow-hidden hover:shadow-xl transition-shadow h-full"
     >
       <img
         src={`https://image.tmdb.org/t/p/w500${movie.poster_path}`}
         alt={movie.title}
-        className="w-full h-72 object-cover"
+        className="w-full h-auto max-h-72 object-cover"
       />
       <div className="p-4">
         <h3 className="text-xl font-semibold line-clamp-2 h-12 leading-tight">{movie.title}</h3>
