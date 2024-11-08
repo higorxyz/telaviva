@@ -66,7 +66,7 @@ const Home = () => {
   const displayedUpcomingMovies = upcomingMovies.slice(0, 12);
 
   return (
-    <div className="p-4 sm:p-6 md:p-6 lg:p-6 xl:p-6 bg-neutral-950 text-white">
+    <div className="p-2 sm:p-4 md:p-6 lg:p-6 xl:p-6 bg-neutral-950 text-white">
       <h1 className="text-4xl font-bold my-8 flex justify-between items-center">
         Agora em Cartaz
         <Link to="/now-playing-movies" className="bg-[#bd0003] text-white py-1 px-3 rounded-full text-sm">
