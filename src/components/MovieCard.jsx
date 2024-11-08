@@ -6,7 +6,10 @@ const MovieCard = ({ movie }) => {
   const stars = Array(5).fill(0).map((_, index) => index < rating ? '★' : '☆').join('');
 
   return (
-    <Link to={`/movie/${movie.id}`} className="block bg-neutral-900 rounded-md shadow-lg overflow-hidden hover:shadow-xl transition-shadow h-full">
+    <Link 
+      to={`/movie/${movie.id}`} 
+      className="block bg-neutral-900 rounded-md shadow-lg overflow-hidden hover:shadow-xl transition-shadow h-full w-full max-w-xs mx-auto"
+    >
       <img
         src={`https://image.tmdb.org/t/p/w500${movie.poster_path}`}
         alt={movie.title}
