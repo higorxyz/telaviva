@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useRef, useContext } from 'react';
-import { fetchPopularMovies, fetchTopRatedMovies, fetchNowPlayingMovies, fetchUpcomingMovies } from '../api';
+import { fetchPopularMovies, fetchTopRatedMovies, fetchNowPlayingMovies, fetchUpcomingMovies, fetchSimilarMovies } from '../api';
 import MovieCard from '../components/MovieCard';
 import { Link } from 'react-router-dom';
 import Loading from '../components/Loading';
@@ -45,8 +45,27 @@ const Home = () => {
   }, []);
 
   useEffect(() => {
-    const allMovies = [...toWatchMovies, ...watchedMovies];
-    setRecommendedMovies(allMovies);
+    const getRecommendedMovies = async () => {
+      try {
+        const similarMovies = [];
+        
+        const allMovies = [...toWatchMovies, ...watchedMovies];
+        
+        for (const movie of allMovies) {
+          const similarData = await fetchSimilarMovies(movie.id);
+          similarMovies.push(...similarData);
+        }
+        
+        const uniqueRecommendedMovies = Array.from(new Set(similarMovies.map(a => a.id)))
+          .map(id => similarMovies.find(a => a.id === id));
+          
+        setRecommendedMovies(uniqueRecommendedMovies.slice(0, 12));
+      } catch (err) {
+        setError('Erro ao carregar filmes recomendados.');
+      }
+    };
+    
+    getRecommendedMovies();
   }, [toWatchMovies, watchedMovies]);
 
   const scrollLeft = (ref) => {
@@ -74,7 +93,6 @@ const Home = () => {
   const displayedTopRatedMovies = topRatedMovies.slice(0, 12);
   const displayedNowPlayingMovies = nowPlayingMovies.slice(0, 12);
   const displayedUpcomingMovies = upcomingMovies.slice(0, 12);
-  const displayedRecommendedMovies = recommendedMovies.slice(0, 12);
 
   return (
     <div className="bg-neutral-950 text-white md:p-6 lg:p-8 xl:p-10">
@@ -99,6 +117,7 @@ const Home = () => {
           →
         </button>
       </div>
+
       <h1 className="text-4xl font-bold my-8 flex justify-between items-center md:mx-6 lg:mx-8 xl:mx-10">
         Filmes Recomendados
       </h1>
@@ -107,7 +126,7 @@ const Home = () => {
           ←
         </button>
         <div ref={recommendedRef} className="flex overflow-x-auto space-x-4 pb-4 mx-0 md:mx-6 lg:mx-8 xl:mx-10">
-          {displayedRecommendedMovies.map((movie) => (
+          {recommendedMovies.map((movie) => (
             <div key={movie.id} className="flex-shrink-0 w-48 sm:w-48 md:w-48 lg:w-56 xl:w-64">
               <MovieCard movie={movie} />
             </div>
@@ -117,7 +136,6 @@ const Home = () => {
           →
         </button>
       </div>
-
       <h1 className="text-4xl font-bold my-8 flex justify-between items-center md:mx-6 lg:mx-8 xl:mx-10">
         Melhores Avaliados
         <Link to="/top-rated-movies" className="bg-[#bd0003] text-white py-1 px-3 rounded-full text-sm">
@@ -158,6 +176,28 @@ const Home = () => {
           ))}
         </div>
         <button onClick={() => scrollRight(popularRef)} className="absolute right-0 translate-x-1/2 transform p-4 bg-[#bd0003] rounded-full hover:bg-red-500">
+          →
+        </button>
+      </div>
+
+      <h1 className="text-4xl font-bold my-8 flex justify-between items-center md:mx-6 lg:mx-8 xl:mx-10">
+        Filmes em Breve
+        <Link to="/upcoming-movies" className="bg-[#bd0003] text-white py-1 px-3 rounded-full text-sm">
+          Ver Todos
+        </Link>
+      </h1>
+      <div className="flex items-center relative">
+        <button onClick={() => scrollLeft(upcomingRef)} className="absolute left-0 -translate-x-1/2 transform p-4 bg-[#bd0003] rounded-full hover:bg-red-500">
+          ←
+        </button>
+        <div ref={upcomingRef} className="flex overflow-x-auto space-x-4 pb-4 mx-0 md:mx-6 lg:mx-8 xl:mx-10">
+          {displayedUpcomingMovies.map((movie) => (
+            <div key={movie.id} className="flex-shrink-0 w-48 sm:w-48 md:w-48 lg:w-56 xl:w-64">
+              <MovieCard movie={movie} />
+            </div>
+          ))}
+        </div>
+        <button onClick={() => scrollRight(upcomingRef)} className="absolute right-0 translate-x-1/2 transform p-4 bg-[#bd0003] rounded-full hover:bg-red-500">
           →
         </button>
       </div>
