@@ -13,7 +13,7 @@ import WatchedMovies from './pages/WatchedMovies';
 import ToWatchMovies from './pages/ToWatchMovies';
 import SearchResults from './pages/SearchResults';
 import PageNotFound from './pages/PageNotFound'; 
-import Footer from './layouts/Footer';
+import Footer from './layout/Footer';
 
 const App = () => {
   return (
