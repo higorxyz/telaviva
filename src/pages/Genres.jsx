@@ -25,13 +25,16 @@ const Genres = () => {
   );
 
   return (
-    <div className="p-6 bg-neutral-950 min-h-screen text-white">
-      <h1 className="text-4xl font-bold mb-4">Gêneros</h1>
-      <ul className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+    <div className="p-8 bg-neutral-950 min-h-screen text-white">
+      <h1 className="text-4xl font-bold mb-6 text-center">Gêneros</h1>
+      <ul className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
         {genres.map((genre) => (
-          <li key={genre.id} className="text-center mb-2">
-            <Link to={`/category/${genre.id}`} className="text-red-500 hover:underline">
-              {genre.name}
+          <li key={genre.id} className="transform transition-transform hover:scale-105 duration-300">
+            <Link 
+              to={`/category/${genre.id}`} 
+              className="block bg-[#bd0003] hover:bg-red-700 text-white text-center p-6 rounded-lg shadow-lg transform transition-all hover:shadow-2xl"
+            >
+              <h3 className="text-2xl font-semibold">{genre.name}</h3>
             </Link>
           </li>
         ))}
