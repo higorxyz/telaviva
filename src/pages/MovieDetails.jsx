@@ -108,7 +108,7 @@ const MovieDetails = () => {
         {trailer ? (
           <div className="mt-8">
             <iframe
-              className="w-full h-96 sm:h-[200px] lg:h-96 rounded-2xl shadow-md"
+              className="w-full h-96 sm:h-[250px] lg:h-96 rounded-2xl shadow-md"
               src={`https://www.youtube.com/embed/${trailer.key}`}
               title="Trailer"
               allowFullScreen
