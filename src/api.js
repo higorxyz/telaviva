@@ -75,3 +75,18 @@ export const fetchMoviesBySearch = async (query, page = 1) => {
   const data = await response.json();
   return data.results;
 };
+
+export const fetchRecommendedMovies = async (movies) => {
+  const recommendedMovies = [];
+  for (const movie of movies) {
+    const movieDetails = await fetchMovieDetails(movie.id);
+    recommendedMovies.push(movieDetails);
+  }
+  return recommendedMovies;
+};
+
+export const fetchMoviesFromLocalStorage = () => {
+  const watchedMovies = JSON.parse(localStorage.getItem('watchedMovies')) || [];
+  const toWatchMovies = JSON.parse(localStorage.getItem('toWatchMovies')) || [];
+  return { watchedMovies, toWatchMovies };
+};
