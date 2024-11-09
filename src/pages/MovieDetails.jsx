@@ -175,13 +175,15 @@ const MovieDetails = () => {
             →
           </button>
         </div>
-        <Link
-          to="/"
-          className="mt-4 inline-block bg-[#bd0003] text-white py-2 px-4 rounded hover:bg-red-700 transition-colors"
-          aria-label="Voltar para a lista de filmes"
-        >
-          Voltar
-        </Link>
+        <div className="flex justify-center mt-4">
+          <Link
+            to="/"
+            className="bg-[#bd0003] text-white py-2 px-4 rounded hover:bg-red-700 transition-colors"
+            aria-label="Voltar para a lista de filmes"
+          >
+            Voltar
+          </Link>
+        </div>
       </div>
     </div>
   );
