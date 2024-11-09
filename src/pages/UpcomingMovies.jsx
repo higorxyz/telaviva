@@ -9,22 +9,40 @@ const UpcomingMovies = () => {
   const [movies, setMovies] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [page, setPage] = useState(1);
+  const [loadingMore, setLoadingMore] = useState(false);
 
   useEffect(() => {
     const getMovies = async () => {
       try {
-        const movieData = await fetchUpcomingMovies();
-        setMovies(movieData);
+        setLoadingMore(true);
+        const movieData = await fetchUpcomingMovies(page);
+        setMovies((prevMovies) => [...prevMovies, ...movieData]);
       } catch (err) {
         setError('Erro ao carregar os filmes.');
       } finally {
         setLoading(false);
+        setLoadingMore(false);
       }
     };
     getMovies();
+  }, [page]);
+
+  useEffect(() => {
+    const handleScroll = () => {
+      if (
+        window.innerHeight + document.documentElement.scrollTop + 100 >=
+        document.documentElement.scrollHeight
+      ) {
+        setPage((prevPage) => prevPage + 1);
+      }
+    };
+
+    window.addEventListener('scroll', handleScroll);
+    return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
-  if (loading) {
+  if (loading && page === 1) {
     return (
       <div className="flex items-center justify-center min-h-screen bg-neutral-950">
         <l-waveform size="35" stroke="3.5" speed="1" color="red"></l-waveform>
@@ -52,6 +70,12 @@ const UpcomingMovies = () => {
           </div>
         ))}
       </div>
+
+      {loadingMore && (
+        <div className="flex justify-center py-6">
+          <l-waveform size="35" stroke="3.5" speed="1" color="red"></l-waveform>
+        </div>
+      )}
     </div>
   );
 };
