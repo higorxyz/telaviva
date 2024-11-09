@@ -56,7 +56,7 @@ const SearchResults = () => {
 
   return (
     <div className="bg-neutral-950 text-white md:p-6 lg:p-8 xl:p-10">
-      <h1 className="text-3xl font-bold text-[#bd0003] mb-6">Resultados</h1>
+      <h1 className="text-3xl font-bold text-white mb-6">Resultados</h1>
       {loading && page === 1 ? (
         <Loading />
       ) : (
