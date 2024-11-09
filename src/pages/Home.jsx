@@ -97,7 +97,7 @@ const Home = () => {
   return (
     <div className="bg-neutral-950 text-white md:p-6 lg:p-8 xl:p-10">
       <h1 className="text-4xl font-bold my-8 flex justify-between items-center md:mx-6 lg:mx-8 xl:mx-10">
-        Agora em Cartaz
+        Em Cartaz
         <Link to="/now-playing-movies" className="bg-[#bd0003] text-white py-1 px-3 rounded-full text-sm">
           Ver Todos
         </Link>
@@ -119,7 +119,7 @@ const Home = () => {
       </div>
 
       <h1 className="text-4xl font-bold my-8 flex justify-between items-center md:mx-6 lg:mx-8 xl:mx-10">
-        Filmes Recomendados
+        Recomendados para Você
       </h1>
       <div className="flex items-center relative">
         <button onClick={() => scrollLeft(recommendedRef)} className="absolute left-0 -translate-x-1/2 transform p-4 bg-[#bd0003] rounded-full hover:bg-red-500">
@@ -137,7 +137,7 @@ const Home = () => {
         </button>
       </div>
       <h1 className="text-4xl font-bold my-8 flex justify-between items-center md:mx-6 lg:mx-8 xl:mx-10">
-        Melhores Avaliados
+        Maiores Avaliações
         <Link to="/top-rated-movies" className="bg-[#bd0003] text-white py-1 px-3 rounded-full text-sm">
           Ver Todos
         </Link>
@@ -159,7 +159,7 @@ const Home = () => {
       </div>
 
       <h1 className="text-4xl font-bold my-8 flex justify-between items-center md:mx-6 lg:mx-8 xl:mx-10">
-        Filmes Populares
+        Populares
         <Link to="/popular-movies" className="bg-[#bd0003] text-white py-1 px-3 rounded-full text-sm">
           Ver Todos
         </Link>
@@ -181,7 +181,7 @@ const Home = () => {
       </div>
 
       <h1 className="text-4xl font-bold my-8 flex justify-between items-center md:mx-6 lg:mx-8 xl:mx-10">
-        Filmes em Breve
+        Lançamentos
         <Link to="/upcoming-movies" className="bg-[#bd0003] text-white py-1 px-3 rounded-full text-sm">
           Ver Todos
         </Link>
