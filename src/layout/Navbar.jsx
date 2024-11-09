@@ -2,20 +2,35 @@ import React, { useState, useRef, useEffect } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { FaBars, FaTimes, FaSearch } from 'react-icons/fa';
 import { fetchMoviesBySearch } from '../api';
+import logo from '../images/logonavbar.png';
 
 const Navbar = () => {
   const [menuOpen, setMenuOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
-  const [searchOpen, setSearchOpen] = useState(false);
   const [searchResults, setSearchResults] = useState([]);
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
   const location = useLocation();
   const searchInputRef = useRef(null);
+  const searchButtonRef = useRef(null);
+  const searchWrapperRef = useRef(null);
 
   const toggleMenu = () => setMenuOpen(!menuOpen);
 
   const handleSearchChange = (e) => setSearchQuery(e.target.value);
+
+  const handleSearchSubmit = () => {
+    if (searchQuery.trim()) {
+      navigate(`/search-results?query=${searchQuery}`);
+      setMenuOpen(false);
+    }
+  };
+
+  const handleKeyDown = (e) => {
+    if (e.key === 'Enter') {
+      handleSearchSubmit();
+    }
+  };
 
   const fetchSearchResults = async (query) => {
     if (!query.trim()) {
@@ -45,84 +60,127 @@ const Navbar = () => {
     }
   }, [searchQuery]);
 
-  const toggleSearch = () => setSearchOpen(!searchOpen);
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (
+        searchWrapperRef.current &&
+        !searchWrapperRef.current.contains(event.target)
+      ) {
+        setSearchQuery('');
+        setSearchResults([]);
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, []);
 
   const isActiveLink = (path) => location.pathname === path;
 
-  const handleClickOutside = (e) => {
-    if (searchOpen && searchInputRef.current && !searchInputRef.current.contains(e.target)) {
-      setSearchOpen(false);
-    }
-  };
-
-  React.useEffect(() => {
-    document.addEventListener('click', handleClickOutside);
-    return () => document.removeEventListener('click', handleClickOutside);
-  }, [searchOpen]);
-
   return (
-    <nav className="bg-black text-white py-4 px-6">
+    <nav className="bg-black text-white py-4 px-6 relative">
       <div className="flex items-center justify-between">
-        <Link to="/" className="text-3xl font-bold text-[#bd0003]" style={{ fontFamily: 'Verdana, sans-serif', fontWeight: 'bold' }}>
-          Tela<span className="text-white">Viva</span>
+        <Link to="/">
+          <img src={logo} alt="TelaViva Logo" className="px-6 h-10 w-auto" />
         </Link>
-        <div className="md:flex items-center justify-end space-x-6 hidden">
+
+        <div className="hidden md:flex items-center space-x-4">
           <ul className="flex space-x-4 items-center">
-            <li>
-              <Link to="/now-playing-movies" className={`text-[#bd0003] hover:text-gray-300 ${isActiveLink('/now-playing-movies') ? 'border-2 border-[#bd0003] text-white' : ''} px-2 py-1 rounded-full`}>
-                Agora Em Cartaz
-              </Link>
-            </li>
-            <li>
-              <Link to="/popular-movies" className={`text-[#bd0003] hover:text-gray-300 ${isActiveLink('/popular-movies') ? 'border-2 border-[#bd0003] text-white' : ''} px-2 py-1 rounded-full`}>
-                Populares
-              </Link>
-            </li>
-            <li>
-              <Link to="/top-rated-movies" className={`text-[#bd0003] hover:text-gray-300 ${isActiveLink('/top-rated-movies') ? 'border-2 border-[#bd0003] text-white' : ''} px-2 py-1 rounded-full`}>
-                Alta Avaliação
-              </Link>
-            </li>
-            <li>
-              <Link to="/upcoming-movies" className={`text-[#bd0003] hover:text-gray-300 ${isActiveLink('/upcoming-movies') ? 'border-2 border-[#bd0003] text-white' : ''} px-2 py-1 rounded-full`}>
-                Em Breve
-              </Link>
-            </li>
-            <li>
-              <Link to="/watched-movies" className={`text-[#bd0003] hover:text-gray-300 ${isActiveLink('/watched-movies') ? 'border-2 border-[#bd0003] text-white' : ''} px-2 py-1 rounded-full`}>
-                Assistidos
-              </Link>
-            </li>
-            <li>
-              <Link to="/to-watch-movies" className={`text-[#bd0003] hover:text-gray-300 ${isActiveLink('/to-watch-movies') ? 'border-2 border-[#bd0003] text-white' : ''} px-2 py-1 rounded-full`}>
-                Ver Depois
-              </Link>
-            </li>
-            <li>
-              <Link to="/genres" className={`text-[#bd0003] hover:text-gray-300 ${isActiveLink('/genres') ? 'border-2 border-[#bd0003] text-white' : ''} px-2 py-1 rounded-full`}>
-                Gêneros
-              </Link>
-            </li>
+            
+            {['/now-playing-movies', '/popular-movies', '/top-rated-movies', '/upcoming-movies', '/watched-movies', '/to-watch-movies', '/genres'].map((path) => (
+              <li key={path}>
+                <Link
+                  to={path}
+                  className={`text-[#bd0003] hover:text-gray-300 ${isActiveLink(path) ? 'border-2 border-[#bd0003] text-white' : ''} px-2 py-1 rounded-full`}
+                  onClick={() => setMenuOpen(false)}
+                >
+                  {path === '/now-playing-movies' ? 'Em Cartaz' :
+                   path === '/popular-movies' ? 'Populares' :
+                   path === '/top-rated-movies' ? 'Alta Avaliação' :
+                   path === '/upcoming-movies' ? 'Em Breve' :
+                   path === '/watched-movies' ? 'Assistidos' :
+                   path === '/to-watch-movies' ? 'Ver Depois' : 'Gêneros'}
+                </Link>
+              </li>
+            ))}
+            <div className="relative" ref={searchWrapperRef}>
+              <input
+                type="text"
+                value={searchQuery}
+                onChange={handleSearchChange}
+                onKeyDown={handleKeyDown}
+                ref={searchInputRef}
+                className="w-48 px-4 py-2 rounded-full bg-neutral-800 text-white placeholder -white focus:outline-none focus:ring-2 focus:ring-[#bd0003]"
+                placeholder="Pesquisar"
+              />
+              <button
+                onClick={handleSearchSubmit}
+                className="absolute right-2 top-2 text-[#bd0003]"
+                ref={searchButtonRef}
+              >
+                <FaSearch size={20} />
+              </button>
+            </div>
           </ul>
-          <div className="relative">
+        </div>
+
+        <button
+          onClick={toggleMenu}
+          className="text-white focus:outline-none md:hidden"
+        >
+          {menuOpen ? <FaTimes size={24} /> : <FaBars size={24} />}
+        </button>
+      </div>
+
+      <div
+        className={`fixed inset-0 bg-black bg-opacity-90 transform ${
+          menuOpen ? 'translate-x-0' : '-translate-x-full'
+        } transition-transform duration-300 ease-in-out z-50 md:hidden`}
+      >
+        <div className="flex justify-end p-4">
+          <button onClick={toggleMenu} className="text-white">
+            <FaTimes size={24} />
+          </button>
+        </div>
+        <div className="flex flex-col items-start space-y-6 px-6 pt-4">
+          <div className="relative w-full">
             <input
               type="text"
               value={searchQuery}
               onChange={handleSearchChange}
-              onFocus={() => setSearchOpen(true)}
-              onBlur={() => {
-                if (!searchQuery.trim()) {
-                  setSearchOpen(false);
-                }
-              }}
+              onKeyDown={handleKeyDown}
               ref={searchInputRef}
-              className="w-48 px-4 py-2 rounded-full bg-neutral-800 text-white placeholder-white focus:outline-none focus:ring-2 focus:ring-[#bd0003]"
+              className="w-full px-4 py-2 rounded-full bg-neutral-800 text-white placeholder-white focus:outline-none"
               placeholder="Pesquisar"
             />
-            <button onClick={() => navigate(`/search-results?query=${searchQuery}`)} className="absolute right-2 top-2 text-[#bd0003]">
+            <button
+              onClick={handleSearchSubmit}
+              className="absolute right-4 top-3 text-[#bd0003]"
+            >
               <FaSearch size={20} />
             </button>
           </div>
+          <ul className="flex flex-col space-y-4">
+            {['/now-playing-movies', '/popular-movies', '/top-rated-movies', '/upcoming-movies', '/watched-movies', '/to-watch-movies', '/genres'].map((path) => (
+              <li key={path}>
+                <Link
+                  to={path}
+                  className="text-[#bd0003] hover:text-gray-300"
+                  onClick={() => setMenuOpen(false)}
+                >
+                  {path === '/now-playing-movies' ? 'Em Cartaz' :
+                   path === '/popular-movies' ? 'Populares' :
+                   path === '/top-rated-movies' ? 'Alta Avaliação' :
+                   path === '/upcoming-movies' ? 'Em Breve' :
+                   path === '/watched-movies' ? 'Assistidos' :
+                   path === '/to-watch-movies' ? 'Ver Depois' : 'Gêneros'}
+                </Link>
+              </li>
+            ))}
+          </ul>
         </div>
       </div>
     </nav>

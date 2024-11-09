@@ -12,6 +12,7 @@ import UpcomingMovies from './pages/UpcomingMovies';
 import WatchedMovies from './pages/WatchedMovies';
 import ToWatchMovies from './pages/ToWatchMovies';
 import SearchResults from './pages/SearchResults';
+import PageNotFound from './pages/PageNotFound'; // Importando a página 404
 
 const App = () => {
   return (
@@ -29,6 +30,8 @@ const App = () => {
         <Route path="/watched-movies" element={<div className="px-8 md:px-28"><WatchedMovies /></div>} />
         <Route path="/to-watch-movies" element={<div className="px-8 md:px-28"><ToWatchMovies /></div>} />
         <Route path="/search-results" element={<div className="px-8 md:px-28"><SearchResults /></div>} />
+        <Route path="*" element={<div className="px-8 md:px-28"><PageNotFound /></div>} />
+
       </Routes>
     </Router>
   );

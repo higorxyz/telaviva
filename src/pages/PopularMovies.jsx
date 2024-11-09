@@ -24,24 +24,32 @@ const PopularMovies = () => {
     getMovies();
   }, []);
 
-  if (loading) return (
-    <div className="flex items-center justify-center min-h-screen bg-neutral-950">
-      <l-waveform size="35" stroke="3.5" speed="1" color="red"></l-waveform>
-    </div>
-  );
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center min-h-screen bg-neutral-950">
+        <l-waveform size="35" stroke="3.5" speed="1" color="red"></l-waveform>
+      </div>
+    );
+  }
 
-  if (error) return (
-    <div className="flex items-center justify-center min-h-screen bg-neutral-950 text-red-500">
-      <p>{error}</p>
-    </div>
-  );
+  if (error) {
+    return (
+      <div className="flex items-center justify-center min-h-screen bg-neutral-950 text-red-500">
+        <p>{error}</p>
+      </div>
+    );
+  }
 
   return (
-    <div className="p-6 bg-neutral-950 text-white">
-      <h1 className="text-4xl font-bold mb-4">Todos os Filmes Populares</h1>
-      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
+    <div className="bg-neutral-950 text-white md:p-6 lg:p-8 xl:p-10">
+      <h1 className="text-4xl font-bold my-8 md:mx-6 lg:mx-8 xl:mx-10">
+        Filmes Populares
+      </h1>
+      <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-6 md:mx-6 lg:mx-8 xl:mx-10">
         {movies.map((movie) => (
-          <MovieCard key={movie.id} movie={movie} />
+          <div key={movie.id} className="flex-shrink-0">
+            <MovieCard movie={movie} />
+          </div>
         ))}
       </div>
     </div>

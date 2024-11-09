@@ -8,18 +8,18 @@ const MovieCard = ({ movie }) => {
   return (
     <Link 
       to={`/movie/${movie.id}`} 
-      className="block bg-neutral-900 rounded-md shadow-lg overflow-hidden hover:shadow-xl transition-shadow h-full"
+      className="block bg-neutral-800 rounded-lg shadow-lg overflow-hidden hover:shadow-xl transition-shadow h-[400px]"
     >
       <img
         src={`https://image.tmdb.org/t/p/w500${movie.poster_path}`}
         alt={movie.title}
-        className="w-full h-auto max-h-72 object-cover"
+        className="w-full h-[250px] object-cover" 
       />
-      <div className="p-4">
-        <h3 className="text-xl font-semibold line-clamp-2 h-12 leading-tight">{movie.title}</h3>
-      </div>
-      <div className="p-4 flex justify-start items-center">
-        <div className="text-[#bd0003] text-xl">{stars}</div>
+      <div className="p-4 flex flex-col justify-between h-[150px]"> 
+        <h3 className="text-xl font-semibold line-clamp-2 h-14 overflow-hidden">{movie.title}</h3>
+        <div className="flex justify-start items-center mt-1">
+          <div className="text-[#bd0003] text-lg">{stars}</div>
+        </div>
       </div>
     </Link>
   );

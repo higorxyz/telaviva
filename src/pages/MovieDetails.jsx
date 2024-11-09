@@ -109,7 +109,7 @@ const MovieDetails = () => {
         {trailer ? (
           <div className="mt-8">
             <iframe
-              className="w-full h-96 sm:h-80 lg:h-96 rounded-2xl shadow-md"
+              className="w-full h-auto sm:h-auto lg:h-96 rounded-2xl shadow-md"
               src={`https://www.youtube.com/embed/${trailer.key}`}
               title="Trailer"
               allowFullScreen
@@ -130,7 +130,7 @@ const MovieDetails = () => {
             onClick={handleToggleToWatch}
             className={`py-2 px-4 rounded ${isToWatch ? 'bg-white text-black' : 'bg-[#bd0003] text-white'}`}
           >
-            {isToWatch ? 'Remover da Lista de Para Ver' : 'Adicionar à Lista de Para Ver'}
+            {isToWatch ? 'Remover da Lista à Assistir' : 'Adicionar à Lista para Assistir'}
           </button>
         </div>
         <p className="mb-8">{movie.overview}</p>
@@ -139,7 +139,7 @@ const MovieDetails = () => {
           Avaliação: {Array(5).fill(0).map((_, index) => (
             <span
               key={index}
-              className={`text-${index < Math.round(movie.vote_average / 2) ? 'yellow-500' : 'gray-400'}`}
+              className={`text-${index < Math.round(movie.vote_average / 2) ? 'text-yellow-500' : 'text-gray-400'}`}
             >
               ★
             </span>

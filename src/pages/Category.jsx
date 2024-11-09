@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import { useParams } from 'react-router-dom';
 import { fetchMoviesByCategory, fetchCategories } from '../api';
 import MovieCard from '../components/MovieCard';
@@ -12,6 +12,8 @@ const Category = () => {
   const [categoryName, setCategoryName] = useState('');
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+
+  const moviesRef = useRef(null);
 
   useEffect(() => {
     const getMoviesByCategory = async () => {
@@ -35,6 +37,24 @@ const Category = () => {
     getCategoryName();
   }, [category]);
 
+  const scrollLeft = () => {
+    if (moviesRef.current) {
+      moviesRef.current.scrollBy({
+        left: -300,
+        behavior: 'smooth',
+      });
+    }
+  };
+
+  const scrollRight = () => {
+    if (moviesRef.current) {
+      moviesRef.current.scrollBy({
+        left: 300,
+        behavior: 'smooth',
+      });
+    }
+  };
+
   if (loading) return (
     <div className="flex items-center justify-center min-h-screen bg-neutral-950">
       <l-waveform size="35" stroke="3.5" speed="1" color="red"></l-waveform>
@@ -50,10 +70,20 @@ const Category = () => {
   return (
     <div className="p-6 bg-neutral-950 text-white">
       <h1 className="text-4xl font-bold mb-4">{categoryName}</h1>
-      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4">
-        {movies.map((movie) => (
-          <MovieCard key={movie.id} movie={movie} />
-        ))}
+      <div className="flex items-center relative">
+        <button onClick={scrollLeft} className="absolute left-0 -translate-x-1/2 transform p-4 bg-[#bd0003] rounded-full hover:bg-red-500">
+          ←
+        </button>
+        <div ref={moviesRef} className="flex overflow-x-auto space-x-4 pb-4">
+          {movies.map((movie) => (
+            <div key={movie.id} className="flex-shrink-0 w-48 sm:w-48 md:w-48 lg:w-56 xl:w-64">
+              <MovieCard movie={movie} />
+            </div>
+          ))}
+        </div>
+        <button onClick={scrollRight} className="absolute right-0 translate-x-1/2 transform p-4 bg-[#bd0003] rounded-full hover:bg-red-500">
+          →
+        </button>
       </div>
     </div>
   );
