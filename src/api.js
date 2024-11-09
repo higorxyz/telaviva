@@ -27,16 +27,10 @@ export const fetchUpcomingMovies = async (page = 1) => {
 
 export const fetchMovieDetails = async (movieId) => {
   const response = await fetch(`${API_BASE_URL}/movie/${movieId}?api_key=${API_KEY}&language=pt-BR&append_to_response=translations`);
-  if (!response.ok) {
-    throw new Error('Erro ao buscar detalhes do filme');
-  }
+  if (!response.ok) throw new Error('Erro ao buscar detalhes do filme');
   const data = await response.json();
-  const translation = data.translations?.translations.find(
-    (t) => t.iso_639_1 === 'pt' && t.data.title
-  );
-  if (translation && translation.data.title) {
-    data.title = translation.data.title;
-  }
+  const translation = data.translations?.translations.find((t) => t.iso_639_1 === 'pt' && t.data.title);
+  if (translation && translation.data.title) data.title = translation.data.title;
   return data;
 };
 
@@ -48,9 +42,7 @@ export const fetchMoviesByCategory = async (categoryId, page = 1) => {
 
 export const fetchMovieTrailer = async (movieId) => {
   const response = await fetch(`${API_BASE_URL}/movie/${movieId}/videos?api_key=${API_KEY}&language=pt-BR`);
-  if (!response.ok) {
-    throw new Error('Erro ao buscar trailer do filme');
-  }
+  if (!response.ok) throw new Error('Erro ao buscar trailer do filme');
   const data = await response.json();
   return data.results.length > 0 ? data.results[0] : null; 
 };
@@ -63,9 +55,7 @@ export const fetchCategories = async () => {
 
 export const fetchMovieCast = async (movieId) => {
   const response = await fetch(`${API_BASE_URL}/movie/${movieId}/credits?api_key=${API_KEY}&language=pt-BR`);
-  if (!response.ok) {
-    throw new Error('Erro ao buscar elenco do filme');
-  }
+  if (!response.ok) throw new Error('Erro ao buscar elenco do filme');
   const data = await response.json();
   return data.cast;
 };
@@ -76,13 +66,22 @@ export const fetchMoviesBySearch = async (query, page = 1) => {
   return data.results;
 };
 
+export const fetchSimilarMovies = async (movieId) => {
+  const response = await fetch(`${API_BASE_URL}/movie/${movieId}/similar?api_key=${API_KEY}&language=pt-BR&page=1`);
+  if (!response.ok) throw new Error('Erro ao buscar filmes similares');
+  const data = await response.json();
+  return data.results;
+};
+
 export const fetchRecommendedMovies = async (movies) => {
   const recommendedMovies = [];
   for (const movie of movies) {
-    const movieDetails = await fetchMovieDetails(movie.id);
-    recommendedMovies.push(movieDetails);
+    const similarMovies = await fetchSimilarMovies(movie.id);
+    recommendedMovies.push(...similarMovies);
   }
-  return recommendedMovies;
+  const uniqueMovies = Array.from(new Set(recommendedMovies.map(a => a.id)))
+    .map(id => recommendedMovies.find(a => a.id === id));
+  return uniqueMovies;
 };
 
 export const fetchMoviesFromLocalStorage = () => {
