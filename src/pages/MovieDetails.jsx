@@ -80,7 +80,6 @@ const MovieDetails = () => {
 
   const isWatched = watchedMovies.some((m) => m.id === movie.id);
   const isToWatch = toWatchMovies.some((m) => m.id === movie.id);
-
   const handleToggleWatched = () => {
     if (isWatched) {
       removeFromWatched(movie.id);
@@ -137,15 +136,11 @@ const MovieDetails = () => {
         <p>Lançamento: {releaseDate}</p>
         <p className="mt-2 mb-8">
           Avaliação: {Array(5).fill(0).map((_, index) => (
-            <span
-              key={index}
-              className={`text-${index < Math.round(movie.vote_average / 2) ? 'text-yellow-500' : 'text-gray-400'}`}
-            >
-              ★
+            <span key={index} className="text-yellow-500">
+              {index < Math.round(movie.vote_average / 2) ? '★' : '☆'}
             </span>
           ))} ({voteAverage})
         </p>
-
         <h2 className="text-2xl my-4">Elenco:</h2>
         <div className="relative">
           <button
