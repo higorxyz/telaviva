@@ -161,28 +161,6 @@ const Home = () => {
           →
         </button>
       </div>
-
-      <h1 className="text-4xl font-bold my-8 flex justify-between items-center md:mx-6 lg:mx-8 xl:mx-10">
-        Filmes para Ver Depois
-        <Link to="/to-watch-movies" className="bg-[#bd0003] text-white py-1 px-3 rounded-full text-sm">
-          Ver Todos
-        </Link>
-      </h1>
-      <div className="flex items-center relative">
-        <button onClick={() => scrollLeft(upcomingRef)} className="absolute left-0 -translate-x-1/2 transform p-4 bg-[#bd0003] rounded-full hover:bg-red-500">
-          ←
-        </button>
-        <div ref={upcomingRef} className="flex overflow-x-auto space-x-4 pb-4 mx-0 md:mx-6 lg:mx-8 xl:mx-10">
-          {displayedUpcomingMovies.map((movie) => (
-            <div key={movie.id} className="flex-shrink-0 w-48 sm:w-48 md:w-48 lg:w-56 xl:w-64">
-              <MovieCard movie={movie} />
-            </div>
-          ))}
-        </div>
-        <button onClick={() => scrollRight(upcomingRef)} className="absolute right-0 translate-x-1/2 transform p-4 bg-[#bd0003] rounded-full hover:bg-red-500">
-          →
-        </button>
-      </div>
     </div>
   );
 };
