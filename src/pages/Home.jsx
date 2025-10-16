@@ -1,7 +1,6 @@
-import React, { useEffect, useState, useRef, useContext } from 'react';
+import React, { useEffect, useState, useContext } from 'react';
 import { fetchPopularMovies, fetchTopRatedMovies, fetchNowPlayingMovies, fetchUpcomingMovies, fetchSimilarMovies } from '../api';
-import MovieCard from '../components/MovieCard';
-import { Link } from 'react-router-dom';
+import MovieSection from '../components/MovieSection';
 import Loading from '../components/Loading';
 import { MovieContext } from '../context/MovieContext';
 
@@ -15,12 +14,6 @@ const Home = () => {
   const [error, setError] = useState(null);
 
   const { toWatchMovies, watchedMovies } = useContext(MovieContext);
-
-  const popularRef = useRef(null);
-  const topRatedRef = useRef(null);
-  const nowPlayingRef = useRef(null);
-  const upcomingRef = useRef(null);
-  const recommendedRef = useRef(null);
 
   useEffect(() => {
     const getMovies = async () => {
@@ -51,7 +44,10 @@ const Home = () => {
         
         const allMovies = [...toWatchMovies, ...watchedMovies];
         
-        for (const movie of allMovies) {
+        // Limita a 5 filmes para melhor performance
+        const limitedMovies = allMovies.slice(0, 5);
+        
+        for (const movie of limitedMovies) {
           const similarData = await fetchSimilarMovies(movie.id);
           similarMovies.push(...similarData);
         }
@@ -61,30 +57,14 @@ const Home = () => {
           
         setRecommendedMovies(uniqueRecommendedMovies.slice(0, 12));
       } catch (err) {
-        setError('Erro ao carregar filmes recomendados.');
+        console.error('Erro ao carregar filmes recomendados:', err);
       }
     };
     
-    getRecommendedMovies();
+    if (toWatchMovies.length > 0 || watchedMovies.length > 0) {
+      getRecommendedMovies();
+    }
   }, [toWatchMovies, watchedMovies]);
-
-  const scrollLeft = (ref) => {
-    if (ref.current) {
-      ref.current.scrollBy({
-        left: -300,
-        behavior: 'smooth',
-      });
-    }
-  };
-
-  const scrollRight = (ref) => {
-    if (ref.current) {
-      ref.current.scrollBy({
-        left: 300,
-        behavior: 'smooth',
-      });
-    }
-  };
 
   if (loading) return <Loading />;
   if (error) return <div className="text-red-500 text-center mt-6">{error}</div>;
@@ -96,111 +76,37 @@ const Home = () => {
 
   return (
     <div className="bg-neutral-950 text-white md:p-6 lg:p-8 xl:p-10">
-      <h1 className="text-4xl font-bold my-8 flex justify-between items-center md:mx-6 lg:mx-8 xl:mx-10">
-        Em Cartaz
-        <Link to="/now-playing-movies" className="bg-[#bd0003] text-white py-1 px-3 rounded-full text-sm">
-          Ver Todos
-        </Link>
-      </h1>
-      <div className="flex items-center relative">
-        <button onClick={() => scrollLeft(nowPlayingRef)} className="absolute left-0 -translate-x-1/2 transform p-4 bg-[#bd0003] rounded-full hover:bg-red-500">
-          ←
-        </button>
-        <div ref={nowPlayingRef} className="flex overflow-x-auto space-x-4 pb-4 mx-0 md:mx-6 lg:mx-8 xl:mx-10">
-          {displayedNowPlayingMovies.map((movie) => (
-            <div key={movie.id} className="flex-shrink-0 w-48 sm:w-48 md:w-48 lg:w-56 xl:w-64">
-              <MovieCard movie={movie} />
-            </div>
-          ))}
-        </div>
-        <button onClick={() => scrollRight(nowPlayingRef)} className="absolute right-0 translate-x-1/2 transform p-4 bg-[#bd0003] rounded-full hover:bg-red-500">
-          →
-        </button>
-      </div>
+      <MovieSection 
+        title="Em Cartaz" 
+        movies={displayedNowPlayingMovies} 
+        linkTo="/now-playing-movies" 
+      />
 
-      <h1 className="text-4xl font-bold my-8 flex justify-between items-center md:mx-6 lg:mx-8 xl:mx-10">
-        Recomendados para Você
-      </h1>
-      <div className="flex items-center relative">
-        <button onClick={() => scrollLeft(recommendedRef)} className="absolute left-0 -translate-x-1/2 transform p-4 bg-[#bd0003] rounded-full hover:bg-red-500">
-          ←
-        </button>
-        <div ref={recommendedRef} className="flex overflow-x-auto space-x-4 pb-4 mx-0 md:mx-6 lg:mx-8 xl:mx-10">
-          {recommendedMovies.map((movie) => (
-            <div key={movie.id} className="flex-shrink-0 w-48 sm:w-48 md:w-48 lg:w-56 xl:w-64">
-              <MovieCard movie={movie} />
-            </div>
-          ))}
-        </div>
-        <button onClick={() => scrollRight(recommendedRef)} className="absolute right-0 translate-x-1/2 transform p-4 bg-[#bd0003] rounded-full hover:bg-red-500">
-          →
-        </button>
-      </div>
-      <h1 className="text-4xl font-bold my-8 flex justify-between items-center md:mx-6 lg:mx-8 xl:mx-10">
-        Maiores Avaliações
-        <Link to="/top-rated-movies" className="bg-[#bd0003] text-white py-1 px-3 rounded-full text-sm">
-          Ver Todos
-        </Link>
-      </h1>
-      <div className="flex items-center relative">
-        <button onClick={() => scrollLeft(topRatedRef)} className="absolute left-0 -translate-x-1/2 transform p-4 bg-[#bd0003] rounded-full hover:bg-red-500">
-          ←
-        </button>
-        <div ref={topRatedRef} className="flex overflow-x-auto space-x-4 pb-4 mx-0 md:mx-6 lg:mx-8 xl:mx-10">
-          {displayedTopRatedMovies.map((movie) => (
-            <div key={movie.id} className="flex-shrink-0 w-48 sm:w-48 md:w-48 lg:w-56 xl:w-64">
-              <MovieCard movie={movie} />
-            </div>
-          ))}
-        </div>
-        <button onClick={() => scrollRight(topRatedRef)} className="absolute right-0 translate-x-1/2 transform p-4 bg-[#bd0003] rounded-full hover:bg-red-500">
-          →
-        </button>
-      </div>
+      {recommendedMovies.length > 0 && (
+        <MovieSection 
+          title="Recomendados para Você" 
+          movies={recommendedMovies} 
+          showViewAll={false}
+        />
+      )}
 
-      <h1 className="text-4xl font-bold my-8 flex justify-between items-center md:mx-6 lg:mx-8 xl:mx-10">
-        Populares
-        <Link to="/popular-movies" className="bg-[#bd0003] text-white py-1 px-3 rounded-full text-sm">
-          Ver Todos
-        </Link>
-      </h1>
-      <div className="flex items-center relative">
-        <button onClick={() => scrollLeft(popularRef)} className="absolute left-0 -translate-x-1/2 transform p-4 bg-[#bd0003] rounded-full hover:bg-red-500">
-          ←
-        </button>
-        <div ref={popularRef} className="flex overflow-x-auto space-x-4 pb-4 mx-0 md:mx-6 lg:mx-8 xl:mx-10">
-          {displayedPopularMovies.map((movie) => (
-            <div key={movie.id} className="flex-shrink-0 w-48 sm:w-48 md:w-48 lg:w-56 xl:w-64">
-              <MovieCard movie={movie} />
-            </div>
-          ))}
-        </div>
-        <button onClick={() => scrollRight(popularRef)} className="absolute right-0 translate-x-1/2 transform p-4 bg-[#bd0003] rounded-full hover:bg-red-500">
-          →
-        </button>
-      </div>
+      <MovieSection 
+        title="Maiores Avaliações" 
+        movies={displayedTopRatedMovies} 
+        linkTo="/top-rated-movies" 
+      />
 
-      <h1 className="text-4xl font-bold my-8 flex justify-between items-center md:mx-6 lg:mx-8 xl:mx-10">
-        Lançamentos
-        <Link to="/upcoming-movies" className="bg-[#bd0003] text-white py-1 px-3 rounded-full text-sm">
-          Ver Todos
-        </Link>
-      </h1>
-      <div className="flex items-center relative">
-        <button onClick={() => scrollLeft(upcomingRef)} className="absolute left-0 -translate-x-1/2 transform p-4 bg-[#bd0003] rounded-full hover:bg-red-500">
-          ←
-        </button>
-        <div ref={upcomingRef} className="flex overflow-x-auto space-x-4 pb-4 mx-0 md:mx-6 lg:mx-8 xl:mx-10">
-          {displayedUpcomingMovies.map((movie) => (
-            <div key={movie.id} className="flex-shrink-0 w-48 sm:w-48 md:w-48 lg:w-56 xl:w-64">
-              <MovieCard movie={movie} />
-            </div>
-          ))}
-        </div>
-        <button onClick={() => scrollRight(upcomingRef)} className="absolute right-0 translate-x-1/2 transform p-4 bg-[#bd0003] rounded-full hover:bg-red-500">
-          →
-        </button>
-      </div>
+      <MovieSection 
+        title="Populares" 
+        movies={displayedPopularMovies} 
+        linkTo="/popular-movies" 
+      />
+
+      <MovieSection 
+        title="Lançamentos" 
+        movies={displayedUpcomingMovies} 
+        linkTo="/upcoming-movies" 
+      />
     </div>
   );
 };

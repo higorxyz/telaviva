@@ -1,20 +1,10 @@
 import React, { useContext, useState, useEffect } from 'react';
 import { MovieContext } from '../context/MovieContext';
 import MovieCard from '../components/MovieCard';
-import Loading from '../components/Loading';
 
 const ToWatchMovies = () => {
   const { toWatchMovies } = useContext(MovieContext);
-  const [loading, setLoading] = useState(true); 
   const [visibleCount, setVisibleCount] = useState(15);
-
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      setLoading(false);
-    }, 500);
-
-    return () => clearTimeout(timer);
-  }, []);
 
   const handleScroll = () => {
     if (window.innerHeight + document.documentElement.scrollTop !== document.documentElement.offsetHeight) return;
@@ -25,8 +15,6 @@ const ToWatchMovies = () => {
     window.addEventListener('scroll', handleScroll);
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
-
-  if (loading) return <Loading />;
 
   const displayedMovies = toWatchMovies.slice(0, visibleCount);
 
