@@ -13,18 +13,23 @@ TelaViva é uma plataforma moderna para exibição de filmes, com funcionalidade
 - ✅ Recomendações personalizadas baseadas em filmes salvos
 - ✅ Navegação por gêneros
 - ✅ Design moderno com Tailwind CSS
+- ✅ Controles de acessibilidade com ajuste de fonte e suporte total a teclado
+- ✅ Metadados dinâmicos em cada página com react-helmet-async
+- ✅ Testes automatizados cobrindo fluxos críticos com Jest, React Testing Library e MSW
 
 ## 🚀 Tecnologias Usadas
 
-- **React** 18.3.1 - Biblioteca JavaScript para interfaces
-- **React Router DOM** 6.27.0 - Navegação entre páginas
-- **Tailwind CSS** 3.4.14 - Framework CSS utilitário
-- **@tanstack/react-query** 5.59.16 - Gerenciamento de estado assíncrono
-- **Framer Motion** 11.11.9 - Animações fluidas
-- **LDRS** 1.0.2 - Componentes de loading
-- **React Icons** 4.3.1 - Ícones
-- **React Slick** 0.30.2 - Carrosséis
-- **API The Movie Database (TMDb)** - Dados de filmes
+- **React** 18.3.1 – biblioteca para construção de interfaces
+- **React Router DOM** 6.27.0 – navegação entre rotas
+- **Tailwind CSS** 3.4.14 – estilização com utilitários
+- **@tanstack/react-query** 5.59.16 – cache e sincronização de requisições
+- **React Helmet Async** 1.3.0 – gerenciamento de metadados e SEO
+- **React Icons** 4.3.1 – biblioteca de ícones
+- **LDRS** 1.0.2 – componentes de loading acessíveis
+- **Jest + React Testing Library** 29/14 – suíte de testes
+- **MSW** 1.3.3 – mocking de API em testes
+- **whatwg-fetch** – polyfill de Fetch API para o Jest
+- **API The Movie Database (TMDb)** – dados oficiais de filmes
 
 ## 📦 Instalação
 
@@ -63,55 +68,67 @@ O projeto abrirá em `http://localhost:3000`
 
 ```
 src/
-├── api.js                    # Funções de API com tratamento de erros
-├── App.jsx                   # Componente principal com rotas
-├── index.js                  # Entry point da aplicação
+├── api.js                    # Camada de comunicação com a TMDb
+├── App.jsx                   # Rotas e layout raiz
+├── index.js                  # Ponto de entrada da aplicação
 ├── components/
-│   ├── ErrorMessage.jsx      # Componente de mensagem de erro
-│   ├── Loading.jsx           # Componente de loading
-│   ├── MovieCard.jsx         # Card de filme reutilizável
-│   ├── MovieList.jsx         # Lista genérica de filmes com scroll infinito
-│   └── MovieSection.jsx      # Seção horizontal de filmes
+│   ├── AccessibilityControls.jsx
+│   ├── ErrorMessage.jsx
+│   ├── Loading.jsx
+│   ├── MovieCard.jsx
+│   ├── MovieCardSkeleton.jsx
+│   ├── MovieList.jsx
+│   ├── MovieSection.jsx
+│   └── PageSEO.jsx
 ├── context/
-│   └── MovieContext.js       # Context API para gerenciar listas
+│   └── MovieContext.js
+├── hooks/
+│   ├── useDebouncedValue.js
+│   └── useIntersectionObserver.js
 ├── layout/
-│   ├── Footer.jsx            # Rodapé da aplicação
-│   └── Navbar.jsx            # Navbar com busca e navegação
-└── pages/
-    ├── Category.jsx          # Página de categoria por gênero
-    ├── Genres.jsx            # Página de todos os gêneros
-    ├── Home.jsx              # Página inicial
-    ├── MovieDetails.jsx      # Detalhes do filme
-    ├── NowPlayingMovies.jsx  # Filmes em cartaz
-    ├── PageNotFound.jsx      # Página 404
-    ├── PopularMovies.jsx     # Filmes populares
-    ├── SearchResults.jsx     # Resultados da busca
-    ├── TopRatedMovies.jsx    # Filmes mais bem avaliados
-    ├── ToWatchMovies.jsx     # Lista de filmes para assistir
-    ├── UpcomingMovies.jsx    # Próximos lançamentos
-    └── WatchedMovies.jsx     # Filmes já assistidos
+│   ├── Footer.jsx
+│   ├── Navbar.jsx
+│   └── PageContainer.jsx
+├── pages/
+│   ├── Category.jsx
+│   ├── Genres.jsx
+│   ├── Home.jsx
+│   ├── MovieDetails.jsx
+│   ├── NowPlayingMovies.jsx
+│   ├── PageNotFound.jsx
+│   ├── PopularMovies.jsx
+│   ├── SearchResults.jsx
+│   ├── TopRatedMovies.jsx
+│   ├── ToWatchMovies.jsx
+│   ├── UpcomingMovies.jsx
+│   └── WatchedMovies.jsx
+├── test-utils/
+│   ├── renderWithProviders.js
+│   └── server.js
+└── utils/
+  ├── movieAdapter.js
+  └── telemetry.js
 ```
 
 ## 🔧 Melhorias Implementadas
 
 ### Performance
-- ✅ Otimização de chamadas à API (requisições em paralelo)
-- ✅ Limitação de recomendações para 5 filmes base (evita sobrecarga)
-- ✅ Scroll infinito eficiente em todas as páginas de listagem
-- ✅ Tratamento de erros consistente em todas as funções da API
+- ✅ Cache e revalidação automática com React Query nas listagens principais
+- ✅ Scroll infinito com IntersectionObserver e fallback manual de “Carregar mais”
+- ✅ Busca com debounce real e cancelamento de requisições obsoletas
+- ✅ Telemetria centralizada para monitorar erros e status das requisições
 
 ### Código Limpo
-- ✅ Criação de componentes reutilizáveis (MovieSection, MovieList)
-- ✅ Redução de duplicação de código em 70%
-- ✅ Remoção de dependências não utilizadas (axios, react-query antiga)
-- ✅ Remoção de loading states artificiais
+- ✅ Camada de adapters para normalizar dados e facilitar internacionalização
+- ✅ Contexto resiliente com deduplicação, persistência e tratamento de falhas do localStorage
+- ✅ Test harness com React Testing Library 14, MSW e polyfills consolidados
+- ✅ Scripts de lint/format e stack atualizada para manutenção contínua
 
 ### UX/UI
-- ✅ Dropdown de busca em tempo real
-- ✅ Fallback para imagens faltantes
-- ✅ Melhor acessibilidade (remoção de user-scalable=no)
-- ✅ Meta tags SEO otimizadas
-- ✅ Mensagens de feedback mais claras
+- ✅ Dropdown de busca acessível com destaque de resultados e navegação por teclado
+- ✅ Skeletons, placeholders e fallback para imagens, trailers e elenco
+- ✅ Controles de acessibilidade (ajuste de fonte, focus-visible) e tema consistente
+- ✅ Metadados dinâmicos em todas as páginas com JSON-LD, Open Graph e Twitter Cards
 
 ## 🎨 Características de Design
 
@@ -131,7 +148,10 @@ src/
 ```bash
 npm start       # Inicia o servidor de desenvolvimento
 npm build       # Cria build de produção
+npm lint        # Executa ESLint com falha em warnings
+npm format      # Formata arquivos com Prettier
 npm test        # Executa testes
+npm test:coverage # Gera relatório de cobertura de testes
 npm eject       # Ejeta a configuração (irreversível)
 ```
 
