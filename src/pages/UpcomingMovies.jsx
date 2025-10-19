@@ -1,9 +1,3 @@
-import React from 'react';
-import { fetchUpcomingMovies } from '../api';
-import MovieList from '../components/MovieList';
+export { default } from '../features/movies/pages/UpcomingMovies';
 
-const UpcomingMovies = () => {
-  return <MovieList title="Em Breve" fetchFunction={fetchUpcomingMovies} />;
-};
 
-export default UpcomingMovies;
