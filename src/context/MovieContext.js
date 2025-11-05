@@ -1,5 +1,5 @@
 import React, { createContext, useState, useEffect } from 'react';
-// ctxt
+
 export const MovieContext = createContext();
 
 export const MovieProvider = ({ children }) => {
@@ -48,3 +48,4 @@ export const MovieProvider = ({ children }) => {
     </MovieContext.Provider>
   );
 };
+
