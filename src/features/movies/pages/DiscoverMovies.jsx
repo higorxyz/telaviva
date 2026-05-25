@@ -1071,7 +1071,7 @@ const DiscoverMovies = () => {
         <div className="mx-auto max-w-[2000px] px-4 md:px-6 lg:px-8 xl:px-10">
           <div className="mb-6 flex flex-wrap items-center justify-between gap-3">
             <div>
-              <h1 className="text-3xl font-bold md:text-4xl lg:text-5xl">Descobrir Filmes</h1>
+              <h1 className="text-3xl font-bold md:text-4xl lg:text-5xl">Encontre seu filme favorito</h1>
               {totalResults > 0 ? (
                 <p className="mt-1 text-sm text-gray-400 md:text-base">
                   {totalResults.toLocaleString('pt-BR')} {totalResults === 1 ? 'filme encontrado' : 'filmes encontrados'}

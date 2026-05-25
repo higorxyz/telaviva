@@ -10,7 +10,7 @@ const TopRatedMovies = () => (
       description="Veja os filmes mais bem avaliados pela crítica e pelo público."
       url="/top-rated"
     />
-    <MovieList title="Filmes Mais Avaliados" fetchFunction={fetchTopRatedMovies} queryKey="top-rated" />
+    <MovieList title="Maiores avaliações" fetchFunction={fetchTopRatedMovies} queryKey="top-rated" />
   </>
 );
 
