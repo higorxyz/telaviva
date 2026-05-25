@@ -23,6 +23,7 @@ const RUNTIME_MIN_LIMIT = 40;
 const RUNTIME_MAX_LIMIT = 400;
 const RUNTIME_STEP = 5;
 const RATING_STEP = 0.5;
+const MOVIE_BATCH_SIZE = 24;
 
 const DEFAULT_DISCOVER_FILTERS = {
   genreId: '',
@@ -212,6 +213,7 @@ const DiscoverMovies = () => {
 
   const [draftFilters, setDraftFilters] = useState(appliedFilters);
   const [localViewFilters, setLocalViewFilters] = useState(DEFAULT_LOCAL_VIEW_FILTERS);
+  const [visibleCount, setVisibleCount] = useState(MOVIE_BATCH_SIZE);
 
   useEffect(() => {
     setDraftFilters(appliedFilters);
@@ -429,6 +431,10 @@ const DiscoverMovies = () => {
 
   const discoverQueryKey = useMemo(() => ['discover', appliedFilters], [appliedFilters]);
 
+  useEffect(() => {
+    setVisibleCount(MOVIE_BATCH_SIZE);
+  }, [discoverQueryKey]);
+
   const { targetRef: sentinelRef, isVisible } = useIntersectionObserver({
     rootMargin: '200px 0px',
   });
@@ -449,12 +455,6 @@ const DiscoverMovies = () => {
     gcTime: 1000 * 60 * 30,
     refetchOnWindowFocus: false,
   });
-
-  useEffect(() => {
-    if (isVisible && hasNextPage && !isFetchingNextPage) {
-      fetchNextPage();
-    }
-  }, [fetchNextPage, hasNextPage, isFetchingNextPage, isVisible]);
 
   const movies = useMemo(() => data?.pages.flatMap((page) => page.results) ?? [], [data]);
 
@@ -531,6 +531,56 @@ const DiscoverMovies = () => {
     movies,
     toWatchIds,
     watchedIds,
+  ]);
+
+  const displayedMovies = useMemo(
+    () => visibleMovies.slice(0, visibleCount),
+    [visibleCount, visibleMovies]
+  );
+
+  const hasHiddenLoadedMovies = displayedMovies.length < visibleMovies.length;
+  const shouldRenderSentinel = movies.length > 0 && (hasHiddenLoadedMovies || Boolean(hasNextPage));
+
+  useEffect(() => {
+    if (status !== 'success') {
+      return;
+    }
+
+    if (visibleMovies.length >= MOVIE_BATCH_SIZE) {
+      return;
+    }
+
+    if (hasNextPage && !isFetchingNextPage) {
+      fetchNextPage();
+    }
+  }, [fetchNextPage, hasNextPage, isFetchingNextPage, status, visibleMovies.length]);
+
+  useEffect(() => {
+    if (!isVisible) {
+      return;
+    }
+
+    if (displayedMovies.length < MOVIE_BATCH_SIZE && hasNextPage) {
+      return;
+    }
+
+    const remainingLoaded = visibleMovies.length - displayedMovies.length;
+
+    if (remainingLoaded >= MOVIE_BATCH_SIZE || (!hasNextPage && remainingLoaded > 0)) {
+      setVisibleCount((previousCount) => Math.min(previousCount + MOVIE_BATCH_SIZE, visibleMovies.length));
+      return;
+    }
+
+    if (hasNextPage && !isFetchingNextPage) {
+      fetchNextPage();
+    }
+  }, [
+    displayedMovies.length,
+    fetchNextPage,
+    hasNextPage,
+    isFetchingNextPage,
+    isVisible,
+    visibleMovies.length,
   ]);
 
   const totalResults = useMemo(() => data?.pages[0]?.totalResults ?? 0, [data]);
@@ -1168,9 +1218,9 @@ const DiscoverMovies = () => {
                     </div>
                   ) : null}
 
-                  {movies.length > 0 && visibleMovies.length > 0 ? (
+                  {movies.length > 0 && displayedMovies.length > 0 ? (
                     <div className="grid grid-cols-3 gap-3 md:grid-cols-4 md:gap-4 lg:grid-cols-6 lg:gap-5 xl:grid-cols-7 2xl:grid-cols-8">
-                      {visibleMovies.map((movie) => (
+                      {displayedMovies.map((movie) => (
                         <MovieCard key={movie.id} movie={movie} />
                       ))}
                     </div>
@@ -1209,7 +1259,7 @@ const DiscoverMovies = () => {
                     </div>
                   ) : null}
 
-                  {movies.length > 0 ? <div ref={sentinelRef} className="h-20" aria-hidden="true" /> : null}
+                  {shouldRenderSentinel ? <div ref={sentinelRef} className="h-20" aria-hidden="true" /> : null}
 
                   {isFetchingNextPage ? (
                     <div className="flex items-center justify-center py-8">
@@ -1220,7 +1270,7 @@ const DiscoverMovies = () => {
                     </div>
                   ) : null}
 
-                  {!hasNextPage && visibleMovies.length > 0 ? (
+                  {!hasNextPage && displayedMovies.length > 0 && displayedMovies.length >= visibleMovies.length ? (
                     <div className="flex flex-col items-center py-10">
                       <div className="mb-4 h-1 w-16 rounded-full bg-gradient-to-r from-transparent via-tv-accent to-transparent" />
                       <p className="text-center text-sm text-gray-400 md:text-base">
