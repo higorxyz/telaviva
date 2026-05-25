@@ -5,7 +5,6 @@ import {
   fetchMovieDetails,
   fetchMovieTrailer,
   fetchMovieCast,
-  fetchSimilarMovies,
   fetchMovieRecommendations,
   fetchMovieWatchProviders,
 } from '../api';
@@ -350,20 +349,6 @@ const MovieDetails = () => {
     gcTime: 1000 * 60 * 60 * 6,
   });
 
-  const { data: similarMoviesData = [], isLoading: isSimilarMoviesLoading } = useQuery({
-    queryKey: ['movie', id, 'similar'],
-    queryFn: async () => {
-      try {
-        return await fetchSimilarMovies(id);
-      } catch {
-        return [];
-      }
-    },
-    enabled: Boolean(id),
-    staleTime: 1000 * 60 * 10,
-    gcTime: 1000 * 60 * 60,
-  });
-
   const { data: recommendedMoviesData = [], isLoading: isRecommendedMoviesLoading } = useQuery({
     queryKey: ['movie', id, 'recommendations'],
     queryFn: async () => {
@@ -379,10 +364,6 @@ const MovieDetails = () => {
   });
 
   const cast = useMemo(() => Array.isArray(castData) ? castData : [], [castData]);
-  const similarMovies = useMemo(
-    () => dedupeRelatedMovies(similarMoviesData, id).slice(0, 20),
-    [similarMoviesData, id]
-  );
   const recommendedMovies = useMemo(
     () => dedupeRelatedMovies(recommendedMoviesData, id).slice(0, 20),
     [recommendedMoviesData, id]
@@ -407,7 +388,6 @@ const MovieDetails = () => {
   const watchProvidersLink = watchProvidersData?.link ?? null;
 
   const castCarousel = useHorizontalCarousel(cast);
-  const similarCarousel = useHorizontalCarousel(similarMovies);
   const recommendedCarousel = useHorizontalCarousel(recommendedMovies);
 
   if (loading) return <Loading />;
@@ -520,7 +500,10 @@ const MovieDetails = () => {
             </div>
           )}
 
-          <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/50 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 ease-in-out flex flex-col justify-end p-4">
+          <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black via-black/60 to-transparent pb-1.5 pt-5 px-1.5 md:hidden">
+            <p className="text-white text-[10px] font-semibold leading-tight line-clamp-2">{relatedMovieTitle}</p>
+          </div>
+          <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/50 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 ease-in-out hidden md:flex flex-col justify-end p-4">
             <h3 className="text-white text-xl font-semibold line-clamp-2 mb-2 transform translate-y-4 group-hover:translate-y-0 transition-transform duration-300 ease-in-out">
               {relatedMovieTitle}
             </h3>
@@ -938,50 +921,7 @@ const MovieDetails = () => {
               </div>
 
               <div className={SECTION_CARD_CLASS}>
-                <h2 className="mb-4 text-xl font-bold text-white md:mb-6 md:text-2xl lg:text-3xl">Filmes similares</h2>
-                {isSimilarMoviesLoading ? (
-                  <p className="text-sm text-gray-400">Buscando filmes similares...</p>
-                ) : similarMovies.length > 0 ? (
-                  <div className="relative">
-                    {similarCarousel.canScrollLeft ? (
-                      <button
-                        type="button"
-                        onClick={() => similarCarousel.handleScroll('left')}
-                        className={CAROUSEL_LEFT_ARROW_CLASS}
-                        aria-label="Rolar filmes similares para a esquerda"
-                      >
-                        <FaChevronLeft size={14} />
-                      </button>
-                    ) : null}
-
-                    <div
-                      ref={similarCarousel.carouselRef}
-                      className="flex overflow-x-auto gap-3 md:gap-4 pb-4 scrollbar-hide cursor-grab active:cursor-grabbing"
-                      style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
-                      onMouseDown={similarCarousel.handleMouseDown}
-                      onClickCapture={similarCarousel.handleClickCapture}
-                    >
-                      {similarMovies.map((relatedMovie) => renderRelatedMovieCard(relatedMovie))}
-                    </div>
-
-                    {similarCarousel.canScrollRight ? (
-                      <button
-                        type="button"
-                        onClick={() => similarCarousel.handleScroll('right')}
-                        className={CAROUSEL_RIGHT_ARROW_CLASS}
-                        aria-label="Rolar filmes similares para a direita"
-                      >
-                        <FaChevronRight size={14} />
-                      </button>
-                    ) : null}
-                  </div>
-                ) : (
-                  <p className="text-gray-400 text-center py-8">Nenhum filme similar disponível.</p>
-                )}
-              </div>
-
-              <div className={SECTION_CARD_CLASS}>
-                <h2 className="mb-4 text-xl font-bold text-white md:mb-6 md:text-2xl lg:text-3xl">Filmes recomendados</h2>
+                <h2 className="mb-4 text-xl font-bold text-white md:mb-6 md:text-2xl lg:text-3xl">Você tambem pode gostar</h2>
                 {isRecommendedMoviesLoading ? (
                   <p className="text-sm text-gray-400">Buscando filmes recomendados...</p>
                 ) : recommendedMovies.length > 0 ? (

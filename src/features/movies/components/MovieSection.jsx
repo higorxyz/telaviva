@@ -158,14 +158,14 @@ const MovieSection = ({ title, movies, linkTo, showViewAll = true }) => {
 
   return (
     <div className="mb-12">
-      <div className="flex justify-between items-baseline mb-6 px-4 md:px-6 lg:px-8">
-        <h2 className="font-display text-3xl md:text-4xl lg:text-5xl uppercase tracking-[0.03em] leading-[0.92] text-white">
+      <div className="flex items-end justify-between gap-2 flex-wrap mb-4 sm:mb-6 px-4 md:px-6 lg:px-8">
+        <h2 className="font-display text-xl sm:text-2xl md:text-3xl lg:text-4xl xl:text-5xl uppercase tracking-[0.03em] leading-[0.92] text-white">
           {title}
         </h2>
         {showViewAll && linkTo ? (
           <Link
             to={linkTo}
-            className="link-underline-action link-underline-action--section text-base font-semibold md:text-lg"
+            className="link-underline-action link-underline-action--section flex-shrink-0 text-sm font-semibold sm:text-base md:text-lg"
           >
             Ver Todos
             <svg

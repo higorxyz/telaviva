@@ -58,7 +58,10 @@ const MovieCard = ({ movie }) => {
         </div>
       )}
 
-      <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/50 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 ease-in-out flex flex-col justify-end p-4">
+      <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black via-black/60 to-transparent pb-2 pt-6 px-2 md:hidden">
+        <p className="text-white text-[11px] font-semibold leading-tight line-clamp-2">{movie.title}</p>
+      </div>
+      <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/50 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 ease-in-out hidden md:flex flex-col justify-end p-4">
         <h3 className="text-white text-xl font-semibold line-clamp-2 mb-2 transform translate-y-4 group-hover:translate-y-0 transition-transform duration-300 ease-in-out">
           {movie.title}
         </h3>

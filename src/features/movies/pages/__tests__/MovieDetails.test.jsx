@@ -59,13 +59,8 @@ describe('MovieDetails', () => {
     });
     expect(personProfileLink).toHaveAttribute('href', '/person/100');
 
-    expect(screen.getByRole('heading', { name: /filmes similares/i })).toBeInTheDocument();
-    const similarMovieLink = await screen.findByRole('link', {
-      name: /abrir detalhes de john wick/i,
-    });
-    expect(similarMovieLink).toHaveAttribute('href', '/movie/21');
-
-    expect(screen.getByRole('heading', { name: /filmes recomendados/i })).toBeInTheDocument();
+    expect(screen.queryByRole('heading', { name: /filmes similares/i })).not.toBeInTheDocument();
+    expect(screen.getByRole('heading', { name: /você tambem pode gostar/i })).toBeInTheDocument();
     const recommendedMovieLink = await screen.findByRole('link', {
       name: /abrir detalhes de blade runner 2049/i,
     });

@@ -719,12 +719,12 @@ const PersonProfile = () => {
           <div className="grid grid-cols-1 gap-6 md:gap-8 lg:min-h-[calc(100vh-6rem)] lg:grid-cols-12">
             <aside className="lg:col-span-4 xl:col-span-3">
               <div className="space-y-4 lg:sticky lg:top-24 lg:flex lg:min-h-[calc(100vh-6rem)] lg:flex-col">
-                <div className="overflow-hidden rounded-2xl bg-neutral-900/60 shadow-2xl shadow-black/50">
+              <div className="mx-auto max-w-[180px] sm:max-w-[220px] md:max-w-none overflow-hidden rounded-2xl bg-neutral-900/60 shadow-2xl shadow-black/50">
                   {profileImage ? (
                     <img
                       src={profileImage}
                       alt={person.name}
-                      className="h-full w-full object-cover"
+                      className="w-full aspect-[2/3] object-cover"
                     />
                   ) : (
                     <div className="flex aspect-[2/3] w-full items-center justify-center bg-neutral-800">
@@ -868,7 +868,10 @@ const PersonProfile = () => {
                                 </div>
                               )}
 
-                              <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/50 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 ease-in-out flex flex-col justify-end p-4">
+                              <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black via-black/60 to-transparent pb-2 pt-6 px-2 md:hidden">
+                                <p className="text-white text-[11px] font-semibold leading-tight line-clamp-2">{movie.title}</p>
+                              </div>
+                              <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/50 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 ease-in-out hidden md:flex flex-col justify-end p-4">
                                 <h3 className="line-clamp-2 text-lg font-semibold text-white mb-2 transform translate-y-4 group-hover:translate-y-0 transition-transform duration-300 ease-in-out">
                                   {movie.title}
                                 </h3>
