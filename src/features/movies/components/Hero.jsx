@@ -78,6 +78,7 @@ const Hero = () => {
         }`}
       />
       <div className="absolute inset-0 bg-gradient-to-r from-black/80 via-black/40 to-transparent" />
+      <div className="pointer-events-none absolute inset-x-0 bottom-0 h-44 bg-gradient-to-b from-transparent via-black/70 to-black" />
       <div className="relative z-10 flex flex-col justify-center h-full px-8 md:px-16 lg:px-24 w-full md:w-3/5 lg:w-1/2">
         <h1 className={`font-display uppercase drop-shadow-[0_8px_24px_rgba(0,0,0,0.55)] ${heroTitleClass}`}>
           {featuredMovie.title}
@@ -87,11 +88,11 @@ const Hero = () => {
         </p>
         <Link
           to={`/movie/${featuredMovie.id}`}
-          className="btn-minimal-rect mt-8 inline-flex w-fit items-center gap-2 rounded-lg px-6 py-3 text-xs font-semibold uppercase tracking-[0.14em] md:text-sm"
+          className="link-underline-action mt-8 w-fit text-xs font-semibold uppercase tracking-[0.14em] md:text-sm"
         >
           Ver Detalhes
           <svg
-            className="h-4 w-4"
+            className="link-underline-action__icon"
             viewBox="0 0 24 24"
             fill="none"
             xmlns="http://www.w3.org/2000/svg"

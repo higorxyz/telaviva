@@ -224,7 +224,7 @@ const Home = () => {
     },
     {
       id: 'hidden-gems',
-      title: 'Joias escondidas',
+      title: 'Jóias escondidas',
       movies: displayedHiddenGemMovies,
       linkTo: '/discover?minRating=7.2&minVotes=120&sortBy=vote_average.desc',
     },
@@ -286,26 +286,41 @@ const Home = () => {
           />
         ))}
 
-        <section className="relative mb-6 mt-8 overflow-hidden rounded-[2rem] border border-neutral-800 bg-gradient-to-br from-neutral-950 via-black to-neutral-950 px-4 py-6 md:px-6 md:py-8 lg:px-8">
-          <div className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-tv-accent/60 to-transparent" />
-          <div className="pointer-events-none absolute -top-16 right-1/4 h-44 w-44 rounded-full bg-tv-accent/20 blur-3xl" />
-          <div className="pointer-events-none absolute -bottom-20 left-10 h-52 w-52 rounded-full bg-red-700/15 blur-3xl" />
+        <section className="relative mb-6 mt-8 overflow-hidden rounded-[2rem] bg-gradient-to-br from-neutral-950/70 via-black to-neutral-950/70 px-4 py-6 md:px-6 md:py-8 lg:px-8">
+          <div className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-neutral-500/28 to-transparent" />
+          <div className="pointer-events-none absolute -top-16 right-1/4 h-44 w-44 rounded-full bg-neutral-500/10 blur-3xl" />
+          <div className="pointer-events-none absolute -bottom-20 left-10 h-52 w-52 rounded-full bg-neutral-700/10 blur-3xl" />
 
           <div className="relative">
             <section className="mb-8">
               <div className="mb-5 flex flex-wrap items-end justify-between gap-3">
                 <div>
-                  <p className="text-xs font-semibold uppercase tracking-wide text-tv-accent">Area pessoal</p>
-                  <h2 className="mt-1 text-2xl font-bold text-white md:text-3xl">Seu espaco de curadoria</h2>
+                  <p className="text-xs font-semibold uppercase tracking-wide text-tv-accent">Área pessoal</p>
+                  <h2 className="mt-1 text-2xl font-bold text-white md:text-3xl">Seu espaço de curadoria</h2>
                   <p className="mt-1 text-sm text-gray-400">
                     Atalhos para descobrir mais rápido e manter sua próxima sessão organizada.
                   </p>
                 </div>
                 <Link
                   to="/discover"
-                  className="rounded-lg border border-neutral-700 px-4 py-2 text-sm font-semibold text-gray-100 transition-colors hover:border-tv-accent"
+                  className="link-underline-action text-sm font-semibold"
                 >
                   Abrir descoberta completa
+                  <svg
+                    className="link-underline-action__icon"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    xmlns="http://www.w3.org/2000/svg"
+                    aria-hidden="true"
+                  >
+                    <path
+                      d="M5 12H19M19 12L12 5M19 12L12 19"
+                      stroke="currentColor"
+                      strokeWidth="1.8"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                    />
+                  </svg>
                 </Link>
               </div>
 
@@ -314,15 +329,30 @@ const Home = () => {
                   <Link
                     key={action.title}
                     to={action.to}
-                    className="group rounded-2xl border border-neutral-800 bg-neutral-900/40 p-4 transition-all duration-200 hover:-translate-y-0.5 hover:border-tv-accent/60 hover:bg-neutral-900/70"
+                    className="group rounded-2xl bg-neutral-900/22 p-4 transition-all duration-200 hover:-translate-y-0.5 hover:bg-neutral-900/42"
                   >
                     <span className="text-[10px] font-semibold uppercase tracking-wide text-gray-500">
                       Rota rápida {index + 1}
                     </span>
                     <h3 className="mt-1 text-lg font-semibold text-white">{action.title}</h3>
                     <p className="mt-2 min-h-[44px] text-sm text-gray-400">{action.description}</p>
-                    <span className="mt-3 inline-flex text-sm font-semibold text-tv-accent group-hover:underline">
+                    <span className="mt-3 inline-flex items-center text-sm font-semibold text-gray-200 transition-colors group-hover:text-tv-accent">
                       {action.cta}
+                      <svg
+                        className="link-underline-action__icon"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        xmlns="http://www.w3.org/2000/svg"
+                        aria-hidden="true"
+                      >
+                        <path
+                          d="M5 12H19M19 12L12 5M19 12L12 19"
+                          stroke="currentColor"
+                          strokeWidth="1.8"
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                        />
+                      </svg>
                     </span>
                   </Link>
                 ))}
@@ -333,7 +363,7 @@ const Home = () => {
               watchedMovies={watchedMovies}
               toWatchMovies={toWatchMovies}
               className="mt-2"
-              cardClassName="bg-black/40 backdrop-blur-sm"
+              cardClassName="bg-neutral-900/30"
             />
           </div>
         </section>
