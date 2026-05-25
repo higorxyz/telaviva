@@ -16,19 +16,6 @@
   --tv-font-display: 'Bebas Neue', 'Oswald', sans-serif;
 }
 
-@media (prefers-color-scheme: light) {
-  :root {
-    color-scheme: light;
-    --tv-background: #f9fafb;
-    --tv-surface: #ffffff;
-    --tv-surface-alt: #f3f4f6;
-    --tv-text: #111827;
-    --tv-text-muted: #4b5563;
-    --tv-accent: #be123c;
-    --tv-accent-hover: #db2777;
-  }
-}
-
 .line-clamp-2 {
   display: -webkit-box;
   -webkit-box-orient: vertical;
