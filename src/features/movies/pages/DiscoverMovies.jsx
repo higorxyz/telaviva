@@ -1092,7 +1092,7 @@ const DiscoverMovies = () => {
                 <FaFilter size={13} />
                 Filtros
                 {activeFiltersCount > 0 ? (
-                  <span className="absolute -right-2 -top-2 inline-flex h-5 min-w-[20px] items-center justify-center rounded-full border border-tv-accent/70 bg-tv-accent px-1 text-[11px] font-bold text-white">
+                  <span className="absolute right-1 top-1 z-10 inline-flex h-4 min-w-[16px] items-center justify-center rounded-full border border-tv-accent/70 bg-tv-accent px-1 text-[10px] font-bold leading-none text-white">
                     {activeFiltersCount}
                   </span>
                 ) : null}
@@ -1107,7 +1107,7 @@ const DiscoverMovies = () => {
                 {isSidebarCollapsed ? <FaFilter size={13} /> : <FaChevronLeft size={13} />}
                 {isSidebarCollapsed ? 'Expandir filtros' : 'Recolher filtros'}
                 {isSidebarCollapsed && activeFiltersCount > 0 ? (
-                  <span className="absolute -right-2 -top-2 inline-flex h-5 min-w-[20px] items-center justify-center rounded-full border border-tv-accent/70 bg-tv-accent px-1 text-[11px] font-bold text-white">
+                  <span className="absolute right-1 top-1 z-10 inline-flex h-4 min-w-[16px] items-center justify-center rounded-full border border-tv-accent/70 bg-tv-accent px-1 text-[10px] font-bold leading-none text-white">
                     {activeFiltersCount}
                   </span>
                 ) : null}

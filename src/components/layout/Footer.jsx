@@ -8,10 +8,15 @@ const Footer = () => {
 
   const footerLinks = [
     { label: 'Início', path: '/' },
+    { label: 'Tendências', path: '/trending-movies' },
+    { label: 'Descobrir', path: '/discover' },
+    { label: 'Gêneros', path: '/genres' },
     { label: 'Em Cartaz', path: '/now-playing-movies' },
     { label: 'Populares', path: '/popular-movies' },
     { label: 'Alta Avaliação', path: '/top-rated-movies' },
     { label: 'Em Breve', path: '/upcoming-movies' },
+    { label: 'Assistidos', path: '/watched-movies' },
+    { label: 'Ver Depois', path: '/to-watch-movies' },
   ];
 
   return (
@@ -29,17 +34,28 @@ const Footer = () => {
               </div>
             </Link>
             <p className="text-gray-400 text-sm leading-relaxed mb-4">
-              Sua plataforma completa para descobrir, explorar e acompanhar os melhores filmes do cinema mundial.
+              Sua plataforma para descobrir filmes com curadorias inteligentes, busca em tempo real e listas personalizadas.
             </p>
-            <div className="flex items-center justify-center md:justify-start gap-2 text-xs text-gray-600">
+
+            <div className="flex items-center justify-center md:justify-start gap-1 text-xs text-gray-600">
               <span>Powered by</span>
-              <span className="text-tv-accent font-semibold">TMDB API</span>
+              <span className="font-semibold text-tv-accent">TMDB API</span>
+              <span>&</span>
+              <a
+                href="https://www.justwatch.com"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="font-semibold text-gray-400 transition-colors hover:text-tv-accent"
+                aria-label="Acessar site do JustWatch"
+              >
+                JustWatch
+              </a>
             </div>
           </div>
 
           <div className="text-center md:text-left">
             <h4 className="text-lg font-semibold mb-6 text-gray-200">Links Rápidos</h4>
-            <ul className="space-y-3">
+            <ul className="grid grid-cols-2 gap-x-4 gap-y-3">
               {footerLinks.map((link) => (
                 <li key={link.path}>
                   <Link

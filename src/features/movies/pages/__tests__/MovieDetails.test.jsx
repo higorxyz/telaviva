@@ -28,6 +28,16 @@ describe('MovieDetails', () => {
     expect(await screen.findByText(/lançamento no brasil/i)).toBeInTheDocument();
     expect(await screen.findByText(/lançamento oficial/i)).toBeInTheDocument();
 
+    const netflixProviderLink = await screen.findByRole('link', {
+      name: /abrir netflix para assistir no tmdb/i,
+    });
+    expect(netflixProviderLink).toHaveAttribute('href', 'https://www.themoviedb.org/movie/1/watch');
+
+    const primeProviderLink = await screen.findByRole('link', {
+      name: /abrir amazon prime video para assistir no tmdb/i,
+    });
+    expect(primeProviderLink).toHaveAttribute('href', 'https://www.themoviedb.org/movie/1/watch');
+
     const addWatchedButton = screen.getByRole('button', { name: /adicionar aos assistidos/i });
 
     await user.click(addWatchedButton);
