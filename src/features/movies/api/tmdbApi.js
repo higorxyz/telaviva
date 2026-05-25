@@ -596,6 +596,27 @@ export const fetchMovieCast = async (movieId) => {
   return data.cast ?? [];
 };
 
+export const fetchPersonDetails = async (personId) => {
+  return fetchFromTmdb(`person/${personId}`, 'buscar perfil da pessoa');
+};
+
+export const fetchPersonMovieCredits = async (personId) => {
+  const data = await fetchFromTmdb(`person/${personId}/movie_credits`, 'buscar créditos da pessoa');
+
+  return {
+    cast: normalizeMovieList(data.cast ?? []),
+    crew: normalizeMovieList(data.crew ?? []),
+  };
+};
+
+export const fetchPersonImages = async (personId) => {
+  const data = await fetchFromTmdb(`person/${personId}/images`, 'buscar imagens da pessoa', {
+    include_image_language: 'pt-BR,null',
+  });
+
+  return Array.isArray(data.profiles) ? data.profiles : [];
+};
+
 export const fetchMoviesBySearch = async (query, page = 1, options = {}) => {
   const sanitizedQuery = query?.trim();
   if (!sanitizedQuery) {
@@ -649,6 +670,18 @@ export const fetchSimilarMovies = async (movieId) => {
   const data = await fetchFromTmdb(`movie/${movieId}/similar`, 'buscar filmes similares', {
     page: 1,
   });
+  return normalizeMovieList(data.results ?? []);
+};
+
+export const fetchMovieRecommendations = async (movieId) => {
+  const data = await fetchFromTmdb(
+    `movie/${movieId}/recommendations`,
+    'buscar recomendações do filme',
+    {
+      page: 1,
+    }
+  );
+
   return normalizeMovieList(data.results ?? []);
 };
 

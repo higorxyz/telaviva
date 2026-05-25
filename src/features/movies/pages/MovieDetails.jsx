@@ -5,6 +5,8 @@ import {
   fetchMovieDetails,
   fetchMovieTrailer,
   fetchMovieCast,
+  fetchSimilarMovies,
+  fetchMovieRecommendations,
   fetchMovieWatchProviders,
 } from '../api';
 import Loading from '../../../components/feedback/Loading';
@@ -16,6 +18,8 @@ import {
   FaPlus,
   FaClock,
   FaStar,
+  FaStarHalfAlt,
+  FaRegStar,
   FaCalendar,
   FaHome,
   FaChevronLeft,
@@ -50,9 +54,13 @@ const ACTION_BUTTON_ACTIVE_CLASS =
 const NAV_BUTTON_BASE_CLASS =
   'inline-flex items-center gap-2 rounded-xl px-6 py-2.5 text-sm font-semibold transition-all duration-300 md:px-8 md:py-3 md:text-base focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-offset-black';
 const NAV_PRIMARY_BUTTON_CLASS =
-  `${NAV_BUTTON_BASE_CLASS} border border-neutral-700 bg-gradient-to-r from-tv-accent via-red-600 to-red-500 text-white shadow-[0_20px_38px_-20px_rgba(229,9,20,0.9)] hover:-translate-y-0.5 hover:from-red-600 hover:to-tv-accent hover:shadow-[0_26px_42px_-20px_rgba(229,9,20,0.9)] focus-visible:ring-tv-accent/60`;
+  `${NAV_BUTTON_BASE_CLASS} group border border-neutral-700 bg-black text-gray-100 shadow-[0_18px_34px_-24px_rgba(0,0,0,0.85)] hover:bg-black focus-visible:ring-tv-accent/45`;
 const NAV_SECONDARY_BUTTON_CLASS =
-  `${NAV_BUTTON_BASE_CLASS} border border-neutral-700 bg-neutral-900/85 text-gray-100 shadow-[0_18px_34px_-24px_rgba(0,0,0,0.85)] hover:-translate-y-0.5 hover:border-neutral-500 hover:bg-neutral-800/90 focus-visible:ring-neutral-500/60`;
+  `${NAV_BUTTON_BASE_CLASS} border border-neutral-700 bg-neutral-900/85 text-gray-100 shadow-[0_18px_34px_-24px_rgba(0,0,0,0.85)] hover:border-neutral-500 hover:bg-neutral-800/90 focus-visible:ring-neutral-500/60`;
+const CAROUSEL_ARROW_BASE_CLASS =
+  'hidden md:flex absolute top-1/2 -translate-y-1/2 z-10 h-10 w-10 items-center justify-center rounded-full border border-neutral-700/80 bg-black/75 text-gray-200 shadow-lg backdrop-blur-sm transition-colors duration-200 hover:border-neutral-500 hover:bg-neutral-900 hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-neutral-500/60';
+const CAROUSEL_LEFT_ARROW_CLASS = `${CAROUSEL_ARROW_BASE_CLASS} left-0 -translate-x-4`;
+const CAROUSEL_RIGHT_ARROW_CLASS = `${CAROUSEL_ARROW_BASE_CLASS} right-0 translate-x-4`;
 
 const normalizeDateValue = (rawDate) => {
   if (!rawDate || typeof rawDate !== 'string') {
@@ -126,6 +134,173 @@ const detectRegionByLocale = () => {
   return 'BR';
 };
 
+const dedupeRelatedMovies = (movies = [], currentMovieId) => {
+  if (!Array.isArray(movies)) {
+    return [];
+  }
+
+  const dedupedMovies = new Map();
+  const normalizedCurrentMovieId = String(currentMovieId ?? '');
+
+  movies.forEach((relatedMovie) => {
+    const relatedMovieId = relatedMovie?.id;
+
+    if (relatedMovieId == null) {
+      return;
+    }
+
+    if (String(relatedMovieId) === normalizedCurrentMovieId) {
+      return;
+    }
+
+    if (!dedupedMovies.has(relatedMovieId)) {
+      dedupedMovies.set(relatedMovieId, relatedMovie);
+    }
+  });
+
+  return Array.from(dedupedMovies.values());
+};
+
+const StarRating = ({ voteAverage }) => {
+  const normalized = Number(voteAverage);
+  if (!Number.isFinite(normalized) || normalized <= 0) {
+    return <span className="text-xs text-gray-300">Avaliação indisponível</span>;
+  }
+
+  const rating = normalized / 2;
+  const fullStars = Math.floor(rating);
+  const hasHalfStar = rating - fullStars >= 0.25 && rating - fullStars < 0.75;
+  const emptyStars = 5 - fullStars - (hasHalfStar ? 1 : 0);
+
+  return (
+    <div className="flex items-center gap-0.5" aria-label={`Avaliação ${rating.toFixed(1)} de 5`}>
+      {Array.from({ length: fullStars }, (_, index) => (
+        <FaStar key={`full-${index}`} className="text-yellow-400" size={12} />
+      ))}
+
+      {hasHalfStar ? <FaStarHalfAlt className="text-yellow-400" size={12} /> : null}
+
+      {Array.from({ length: emptyStars }, (_, index) => (
+        <FaRegStar key={`empty-${index}`} className="text-yellow-400" size={12} />
+      ))}
+
+      <span className="ml-1 text-xs font-semibold text-white">{rating.toFixed(1)}</span>
+    </div>
+  );
+};
+
+const useHorizontalCarousel = (items = []) => {
+  const carouselRef = useRef(null);
+  const [canScrollLeft, setCanScrollLeft] = useState(false);
+  const [canScrollRight, setCanScrollRight] = useState(false);
+  const dragStartXRef = useRef(0);
+  const dragDistanceRef = useRef(0);
+  const shouldSuppressClickRef = useRef(false);
+
+  useEffect(() => {
+    const carouselElement = carouselRef.current;
+    if (!carouselElement) {
+      return undefined;
+    }
+
+    const updateScrollState = () => {
+      const { scrollLeft, scrollWidth, clientWidth } = carouselElement;
+      setCanScrollLeft(scrollLeft > 0);
+      setCanScrollRight(scrollLeft < scrollWidth - clientWidth - 10);
+    };
+
+    updateScrollState();
+    carouselElement.addEventListener('scroll', updateScrollState);
+    window.addEventListener('resize', updateScrollState);
+
+    return () => {
+      carouselElement.removeEventListener('scroll', updateScrollState);
+      window.removeEventListener('resize', updateScrollState);
+    };
+  }, [items]);
+
+  const handleScroll = (direction) => {
+    const carouselElement = carouselRef.current;
+    if (!carouselElement) {
+      return;
+    }
+
+    carouselElement.scrollBy({
+      left: direction === 'left' ? -300 : 300,
+      behavior: 'smooth',
+    });
+  };
+
+  const handleMouseDown = (event) => {
+    if (event.button !== 0) {
+      return;
+    }
+
+    event.preventDefault();
+    dragStartXRef.current = event.clientX;
+    dragDistanceRef.current = 0;
+    shouldSuppressClickRef.current = false;
+
+    const currentRef = carouselRef.current;
+    if (!currentRef) {
+      return;
+    }
+
+    const initialScrollLeft = currentRef.scrollLeft;
+
+    const handleMouseMove = (moveEvent) => {
+      const x = moveEvent.clientX - dragStartXRef.current;
+      const movement = Math.abs(x);
+
+      if (movement > dragDistanceRef.current) {
+        dragDistanceRef.current = movement;
+      }
+
+      if (dragDistanceRef.current > 6) {
+        shouldSuppressClickRef.current = true;
+      }
+
+      if (carouselRef.current) {
+        carouselRef.current.scrollLeft = initialScrollLeft - x;
+      }
+    };
+
+    const handleMouseUp = () => {
+      window.removeEventListener('mousemove', handleMouseMove);
+      window.removeEventListener('mouseup', handleMouseUp);
+      if (carouselRef.current) {
+        carouselRef.current.style.cursor = 'grab';
+      }
+
+      window.setTimeout(() => {
+        shouldSuppressClickRef.current = false;
+      }, 0);
+    };
+
+    window.addEventListener('mousemove', handleMouseMove);
+    window.addEventListener('mouseup', handleMouseUp);
+    currentRef.style.cursor = 'grabbing';
+  };
+
+  const handleClickCapture = (event) => {
+    if (!shouldSuppressClickRef.current) {
+      return;
+    }
+
+    event.preventDefault();
+    event.stopPropagation();
+  };
+
+  return {
+    carouselRef,
+    canScrollLeft,
+    canScrollRight,
+    handleScroll,
+    handleMouseDown,
+    handleClickCapture,
+  };
+};
+
 const MovieDetails = () => {
   const { id } = useParams();
   const navigate = useNavigate();
@@ -137,7 +312,6 @@ const MovieDetails = () => {
     removeFromWatched,
     removeFromToWatch,
   } = useContext(MovieContext);
-  const castRef = useRef(null);
   const providerRegion = useMemo(() => detectRegionByLocale(), []);
 
   const {
@@ -176,7 +350,43 @@ const MovieDetails = () => {
     gcTime: 1000 * 60 * 60 * 6,
   });
 
+  const { data: similarMoviesData = [], isLoading: isSimilarMoviesLoading } = useQuery({
+    queryKey: ['movie', id, 'similar'],
+    queryFn: async () => {
+      try {
+        return await fetchSimilarMovies(id);
+      } catch {
+        return [];
+      }
+    },
+    enabled: Boolean(id),
+    staleTime: 1000 * 60 * 10,
+    gcTime: 1000 * 60 * 60,
+  });
+
+  const { data: recommendedMoviesData = [], isLoading: isRecommendedMoviesLoading } = useQuery({
+    queryKey: ['movie', id, 'recommendations'],
+    queryFn: async () => {
+      try {
+        return await fetchMovieRecommendations(id);
+      } catch {
+        return [];
+      }
+    },
+    enabled: Boolean(id),
+    staleTime: 1000 * 60 * 10,
+    gcTime: 1000 * 60 * 60,
+  });
+
   const cast = useMemo(() => Array.isArray(castData) ? castData : [], [castData]);
+  const similarMovies = useMemo(
+    () => dedupeRelatedMovies(similarMoviesData, id).slice(0, 20),
+    [similarMoviesData, id]
+  );
+  const recommendedMovies = useMemo(
+    () => dedupeRelatedMovies(recommendedMoviesData, id).slice(0, 20),
+    [recommendedMoviesData, id]
+  );
   const loading = isMovieLoading || isTrailerLoading || isCastLoading;
   const error = movieError;
   const watchProviderSections = useMemo(() => {
@@ -195,68 +405,10 @@ const MovieDetails = () => {
       .filter((section) => section.providers.length > 0);
   }, [watchProvidersData]);
   const watchProvidersLink = watchProvidersData?.link ?? null;
-  
-  const [canScrollLeft, setCanScrollLeft] = useState(false);
-  const [canScrollRight, setCanScrollRight] = useState(false);
-  
-  useEffect(() => {
-    const checkScroll = () => {
-      if (castRef.current) {
-        const { scrollLeft, scrollWidth, clientWidth } = castRef.current;
-        setCanScrollLeft(scrollLeft > 0);
-        setCanScrollRight(scrollLeft < scrollWidth - clientWidth - 10);
-      }
-    };
-    
-    const element = castRef.current;
-    if (element) {
-      checkScroll();
-      element.addEventListener('scroll', checkScroll);
-      window.addEventListener('resize', checkScroll);
-      return () => {
-        element.removeEventListener('scroll', checkScroll);
-        window.removeEventListener('resize', checkScroll);
-      };
-    }
-  }, [cast]);
 
-  const handleScroll = (direction) => {
-    const element = castRef.current;
-    if (!element) return;
-    element.scrollBy({
-      left: direction === 'left' ? -300 : 300,
-      behavior: 'smooth',
-    });
-  };
-
-  const handleMouseDown = (event) => {
-    if (event.button !== 0) return;
-    event.preventDefault();
-
-    const startX = event.clientX;
-    const currentRef = castRef.current;
-    if (!currentRef) return;
-    const initialScrollLeft = currentRef.scrollLeft;
-
-    const handleMouseMove = (moveEvent) => {
-      const x = moveEvent.clientX - startX;
-      if (castRef.current) {
-        castRef.current.scrollLeft = initialScrollLeft - x;
-      }
-    };
-
-    const handleMouseUp = () => {
-      window.removeEventListener('mousemove', handleMouseMove);
-      window.removeEventListener('mouseup', handleMouseUp);
-      if (castRef.current) {
-        castRef.current.style.cursor = 'grab';
-      }
-    };
-
-    window.addEventListener('mousemove', handleMouseMove);
-    window.addEventListener('mouseup', handleMouseUp);
-    currentRef.style.cursor = 'grabbing';
-  };
+  const castCarousel = useHorizontalCarousel(cast);
+  const similarCarousel = useHorizontalCarousel(similarMovies);
+  const recommendedCarousel = useHorizontalCarousel(recommendedMovies);
 
   if (loading) return <Loading />;
   if (error) return <ErrorMessage message={error.message || 'Erro ao carregar os detalhes do filme.'} />;
@@ -343,6 +495,42 @@ const MovieDetails = () => {
     }
 
     navigate('/');
+  };
+
+  const renderRelatedMovieCard = (relatedMovie) => {
+    const relatedMovieTitle = relatedMovie?.title || 'Filme sem título';
+
+    return (
+      <div key={relatedMovie.id} className="flex-shrink-0 w-28 md:w-32 lg:w-40">
+        <Link
+          to={`/movie/${relatedMovie.id}`}
+          aria-label={`Abrir detalhes de ${relatedMovieTitle}`}
+          className="relative block group rounded-lg shadow-lg overflow-hidden aspect-[2/3] bg-neutral-800 transition-all duration-300 hover:shadow-2xl hover:shadow-tv-accent/20"
+        >
+          {relatedMovie.poster_path ? (
+            <img
+              src={`https://image.tmdb.org/t/p/w500${relatedMovie.poster_path}`}
+              alt={relatedMovieTitle}
+              className="w-full h-full object-cover transition-transform duration-300 ease-in-out group-hover:scale-110"
+              onMouseDown={(event) => event.preventDefault()}
+            />
+          ) : (
+            <div className="w-full h-full bg-neutral-700 flex items-center justify-center text-center px-4">
+              <span className="text-sm text-gray-300">Poster não disponível</span>
+            </div>
+          )}
+
+          <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/50 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 ease-in-out flex flex-col justify-end p-4">
+            <h3 className="text-white text-xl font-semibold line-clamp-2 mb-2 transform translate-y-4 group-hover:translate-y-0 transition-transform duration-300 ease-in-out">
+              {relatedMovieTitle}
+            </h3>
+            <div className="transform translate-y-4 group-hover:translate-y-0 transition-transform duration-300 ease-in-out delay-100">
+              <StarRating voteAverage={relatedMovie.vote_average} />
+            </div>
+          </div>
+        </Link>
+      </div>
+    );
   };
 
   return (
@@ -534,12 +722,14 @@ const MovieDetails = () => {
               {movie.genres && movie.genres.length > 0 && (
                 <div className="flex flex-wrap gap-2">
                   {movie.genres.map((genre) => (
-                    <span
+                    <Link
                       key={genre.id}
-                      className="rounded-full border border-neutral-700 bg-neutral-900/85 px-3 py-1.5 text-xs font-medium text-gray-200 transition-all duration-200 hover:-translate-y-0.5 hover:border-tv-accent/70 hover:bg-neutral-800 hover:text-white md:px-4 md:text-sm"
+                      to={`/category/${genre.id}`}
+                      aria-label={`Abrir categoria ${genre.name}`}
+                      className="rounded-full border border-neutral-700 bg-neutral-900/85 px-3 py-1.5 text-xs font-medium text-gray-200 transition-colors duration-200 hover:border-tv-accent/70 hover:bg-neutral-800 hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-tv-accent/45 md:px-4 md:text-sm"
                     >
                       {genre.name}
-                    </span>
+                    </Link>
                   ))}
                 </div>
               )}
@@ -659,68 +849,177 @@ const MovieDetails = () => {
                 <h2 className="mb-4 text-xl font-bold text-white md:mb-6 md:text-2xl lg:text-3xl">Elenco Principal</h2>
                 {cast.length > 0 ? (
                   <div className="relative">
-                    {canScrollLeft && (
+                    {castCarousel.canScrollLeft && (
                       <button
                         type="button"
-                        onClick={() => handleScroll('left')}
-                        className="hidden md:flex absolute left-0 top-1/2 -translate-y-1/2 -translate-x-6 z-10 w-12 h-12 items-center justify-center bg-tv-accent text-white rounded-full hover:bg-tv-accent-hover shadow-xl transition-all duration-200"
+                        onClick={() => castCarousel.handleScroll('left')}
+                        className={CAROUSEL_LEFT_ARROW_CLASS}
                         aria-label="Scroll para a esquerda"
                       >
-                        <FaChevronLeft size={18} />
+                        <FaChevronLeft size={14} />
                       </button>
                     )}
                     
                     <div
-                      ref={castRef}
+                      ref={castCarousel.carouselRef}
                       className="flex overflow-x-auto gap-3 md:gap-4 pb-4 scrollbar-hide cursor-grab active:cursor-grabbing"
                       style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
-                      onMouseDown={handleMouseDown}
+                      onMouseDown={castCarousel.handleMouseDown}
+                      onClickCapture={castCarousel.handleClickCapture}
                     >
-                      {cast.map((actor) => (
-                        <div 
-                          key={actor.id} 
-                          className="flex-shrink-0 w-28 md:w-32 lg:w-40 group"
-                        >
-                          <div className="relative overflow-hidden rounded-lg mb-2 md:mb-3 shadow-lg transition-transform duration-200 group-hover:scale-105">
-                            {actor.profile_path ? (
-                              <img
-                                src={`https://image.tmdb.org/t/p/w185${actor.profile_path}`}
-                                alt={actor.name}
-                                className="w-full aspect-[2/3] object-cover"
-                                onMouseDown={(event) => event.preventDefault()}
-                              />
-                            ) : (
-                              <div className="w-full aspect-[2/3] bg-neutral-800 flex items-center justify-center">
-                                <span className="text-3xl md:text-4xl">👤</span>
-                              </div>
-                            )}
-                            <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
-                          </div>
-                          <p className="text-xs md:text-sm font-semibold line-clamp-2 text-center mb-0.5 md:mb-1">
-                            {actor.name}
-                          </p>
-                          {actor.character && (
-                            <p className="text-[10px] md:text-xs text-gray-400 line-clamp-1 text-center">
-                              {actor.character}
+                      {cast.map((actor) => {
+                        const actorName = actor.name || 'Perfil de elenco';
+                        const actorCardContent = (
+                          <>
+                            <div className="relative overflow-hidden rounded-lg mb-2 md:mb-3 shadow-lg transition-transform duration-200 group-hover:scale-105">
+                              {actor.profile_path ? (
+                                <img
+                                  src={`https://image.tmdb.org/t/p/w185${actor.profile_path}`}
+                                  alt={actorName}
+                                  className="w-full aspect-[2/3] object-cover"
+                                  onMouseDown={(event) => event.preventDefault()}
+                                />
+                              ) : (
+                                <div className="w-full aspect-[2/3] bg-neutral-800 flex items-center justify-center">
+                                  <span className="text-3xl md:text-4xl">👤</span>
+                                </div>
+                              )}
+                              <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
+                            </div>
+                            <p className="text-xs md:text-sm font-semibold line-clamp-2 text-center mb-0.5 md:mb-1">
+                              {actorName}
                             </p>
-                          )}
-                        </div>
-                      ))}
+                            {actor.character && (
+                              <p className="text-[10px] md:text-xs text-gray-400 line-clamp-1 text-center">
+                                {actor.character}
+                              </p>
+                            )}
+                          </>
+                        );
+
+                        if (actor.id == null) {
+                          return (
+                            <div
+                              key={`${actorName}-no-id`}
+                              className="flex-shrink-0 w-28 md:w-32 lg:w-40 group"
+                            >
+                              {actorCardContent}
+                            </div>
+                          );
+                        }
+
+                        return (
+                          <Link
+                            key={actor.id}
+                            to={`/person/${actor.id}`}
+                            aria-label={`Abrir perfil de ${actorName}`}
+                            className="flex-shrink-0 w-28 md:w-32 lg:w-40 group"
+                          >
+                            {actorCardContent}
+                          </Link>
+                        );
+                      })}
                     </div>
                     
-                    {canScrollRight && (
+                    {castCarousel.canScrollRight && (
                       <button
                         type="button"
-                        onClick={() => handleScroll('right')}
-                        className="hidden md:flex absolute right-0 top-1/2 -translate-y-1/2 translate-x-6 z-10 w-12 h-12 items-center justify-center bg-tv-accent text-white rounded-full hover:bg-tv-accent-hover shadow-xl transition-all duration-200"
+                        onClick={() => castCarousel.handleScroll('right')}
+                        className={CAROUSEL_RIGHT_ARROW_CLASS}
                         aria-label="Scroll para a direita"
                       >
-                        <FaChevronRight size={18} />
+                        <FaChevronRight size={14} />
                       </button>
                     )}
                   </div>
                 ) : (
                   <p className="text-gray-400 text-center py-8">Elenco não disponível.</p>
+                )}
+              </div>
+
+              <div className={SECTION_CARD_CLASS}>
+                <h2 className="mb-4 text-xl font-bold text-white md:mb-6 md:text-2xl lg:text-3xl">Filmes similares</h2>
+                {isSimilarMoviesLoading ? (
+                  <p className="text-sm text-gray-400">Buscando filmes similares...</p>
+                ) : similarMovies.length > 0 ? (
+                  <div className="relative">
+                    {similarCarousel.canScrollLeft ? (
+                      <button
+                        type="button"
+                        onClick={() => similarCarousel.handleScroll('left')}
+                        className={CAROUSEL_LEFT_ARROW_CLASS}
+                        aria-label="Rolar filmes similares para a esquerda"
+                      >
+                        <FaChevronLeft size={14} />
+                      </button>
+                    ) : null}
+
+                    <div
+                      ref={similarCarousel.carouselRef}
+                      className="flex overflow-x-auto gap-3 md:gap-4 pb-4 scrollbar-hide cursor-grab active:cursor-grabbing"
+                      style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
+                      onMouseDown={similarCarousel.handleMouseDown}
+                      onClickCapture={similarCarousel.handleClickCapture}
+                    >
+                      {similarMovies.map((relatedMovie) => renderRelatedMovieCard(relatedMovie))}
+                    </div>
+
+                    {similarCarousel.canScrollRight ? (
+                      <button
+                        type="button"
+                        onClick={() => similarCarousel.handleScroll('right')}
+                        className={CAROUSEL_RIGHT_ARROW_CLASS}
+                        aria-label="Rolar filmes similares para a direita"
+                      >
+                        <FaChevronRight size={14} />
+                      </button>
+                    ) : null}
+                  </div>
+                ) : (
+                  <p className="text-gray-400 text-center py-8">Nenhum filme similar disponível.</p>
+                )}
+              </div>
+
+              <div className={SECTION_CARD_CLASS}>
+                <h2 className="mb-4 text-xl font-bold text-white md:mb-6 md:text-2xl lg:text-3xl">Filmes recomendados</h2>
+                {isRecommendedMoviesLoading ? (
+                  <p className="text-sm text-gray-400">Buscando filmes recomendados...</p>
+                ) : recommendedMovies.length > 0 ? (
+                  <div className="relative">
+                    {recommendedCarousel.canScrollLeft ? (
+                      <button
+                        type="button"
+                        onClick={() => recommendedCarousel.handleScroll('left')}
+                        className={CAROUSEL_LEFT_ARROW_CLASS}
+                        aria-label="Rolar filmes recomendados para a esquerda"
+                      >
+                        <FaChevronLeft size={14} />
+                      </button>
+                    ) : null}
+
+                    <div
+                      ref={recommendedCarousel.carouselRef}
+                      className="flex overflow-x-auto gap-3 md:gap-4 pb-4 scrollbar-hide cursor-grab active:cursor-grabbing"
+                      style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
+                      onMouseDown={recommendedCarousel.handleMouseDown}
+                      onClickCapture={recommendedCarousel.handleClickCapture}
+                    >
+                      {recommendedMovies.map((relatedMovie) => renderRelatedMovieCard(relatedMovie))}
+                    </div>
+
+                    {recommendedCarousel.canScrollRight ? (
+                      <button
+                        type="button"
+                        onClick={() => recommendedCarousel.handleScroll('right')}
+                        className={CAROUSEL_RIGHT_ARROW_CLASS}
+                        aria-label="Rolar filmes recomendados para a direita"
+                      >
+                        <FaChevronRight size={14} />
+                      </button>
+                    ) : null}
+                  </div>
+                ) : (
+                  <p className="text-gray-400 text-center py-8">Nenhum filme recomendado disponível.</p>
                 )}
               </div>
 
@@ -730,8 +1029,24 @@ const MovieDetails = () => {
                   onClick={handleBackNavigation}
                   className={NAV_PRIMARY_BUTTON_CLASS}
                 >
-                  <FaChevronLeft size={12} />
-                  Voltar
+                  <svg
+                    className="h-4 w-0 -mr-1 -translate-x-1 text-gray-100 opacity-0 transition-all duration-200 group-hover:mr-0 group-hover:w-4 group-hover:translate-x-0 group-hover:opacity-100 group-hover:text-red-500 group-focus-visible:mr-0 group-focus-visible:w-4 group-focus-visible:translate-x-0 group-focus-visible:opacity-100 group-focus-visible:text-red-500"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    xmlns="http://www.w3.org/2000/svg"
+                    aria-hidden="true"
+                  >
+                    <path
+                      d="M19 12H5M5 12L12 5M5 12L12 19"
+                      stroke="currentColor"
+                      strokeWidth="1.8"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                    />
+                  </svg>
+                  <span className="text-gray-100 transition-colors duration-200 group-hover:text-red-500 group-focus-visible:text-red-500">
+                    Voltar
+                  </span>
                 </button>
 
                 <Link

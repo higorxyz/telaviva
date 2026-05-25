@@ -38,6 +38,11 @@ describe('MovieDetails', () => {
     });
     expect(primeProviderLink).toHaveAttribute('href', 'https://www.themoviedb.org/movie/1/watch');
 
+    const categoryLink = await screen.findByRole('link', {
+      name: /abrir categoria genre 28/i,
+    });
+    expect(categoryLink).toHaveAttribute('href', '/category/28');
+
     const addWatchedButton = screen.getByRole('button', { name: /adicionar aos assistidos/i });
 
     await user.click(addWatchedButton);
@@ -48,6 +53,23 @@ describe('MovieDetails', () => {
     await user.click(addToWatchButton);
     expect(await screen.findByText('Keanu Reeves')).toBeInTheDocument();
     expect(await screen.findByText('Carrie-Anne Moss')).toBeInTheDocument();
+
+    const personProfileLink = await screen.findByRole('link', {
+      name: /abrir perfil de keanu reeves/i,
+    });
+    expect(personProfileLink).toHaveAttribute('href', '/person/100');
+
+    expect(screen.getByRole('heading', { name: /filmes similares/i })).toBeInTheDocument();
+    const similarMovieLink = await screen.findByRole('link', {
+      name: /abrir detalhes de john wick/i,
+    });
+    expect(similarMovieLink).toHaveAttribute('href', '/movie/21');
+
+    expect(screen.getByRole('heading', { name: /filmes recomendados/i })).toBeInTheDocument();
+    const recommendedMovieLink = await screen.findByRole('link', {
+      name: /abrir detalhes de blade runner 2049/i,
+    });
+    expect(recommendedMovieLink).toHaveAttribute('href', '/movie/22');
   });
 
   it('exibe mensagem de erro quando o filme não existe', async () => {
