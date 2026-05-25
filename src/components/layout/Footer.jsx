@@ -1,7 +1,7 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import Logo from '../logo/Logo';
-import { FaGithub, FaLinkedin, FaHeart } from 'react-icons/fa';
+import { FaGithub, FaLinkedin} from 'react-icons/fa';
 
 const Footer = () => {
   const currentYear = new Date().getFullYear();
@@ -100,16 +100,14 @@ const Footer = () => {
           </p>
           
           <div className="flex items-center gap-2 text-xs text-gray-500">
-            <span>Desenvolvido com</span>
-            <FaHeart className="text-tv-accent animate-pulse" size={11} />
-            <span>por</span>
+            <span>Desenvolvido por</span>
             <a 
               href="https://github.com/higorxyz" 
               target="_blank" 
               rel="noopener noreferrer"
               className="font-semibold text-gray-400 hover:text-tv-accent transition-colors"
             >
-              Higor Batista
+             Higor Batista 💻
             </a>
           </div>
         </div>

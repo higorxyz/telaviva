@@ -83,11 +83,6 @@ const WatchedMovies = () => {
             <h1 className="text-3xl md:text-4xl lg:text-5xl font-bold mb-2">
               Assistidos
             </h1>
-            {watchedMovies.length > 0 && (
-              <p className="text-sm md:text-base text-gray-400">
-                {watchedMovies.length.toLocaleString('pt-BR')} {watchedMovies.length === 1 ? 'filme assistido' : 'filmes assistidos'}
-              </p>
-            )}
           </div>
 
           {watchedMovies.length === 0 ? (
@@ -125,7 +120,7 @@ const WatchedMovies = () => {
                 <div className="flex flex-col items-center py-12">
                   <div className="w-16 h-1 bg-gradient-to-r from-transparent via-tv-accent to-transparent rounded-full mb-4" />
                   <p className="text-sm md:text-base text-gray-400 text-center">
-                    Você visualizou todos os {watchedMovies.length} filmes assistidos
+                    Você visualizou todos os filmes assistidos
                   </p>
                 </div>
               )}

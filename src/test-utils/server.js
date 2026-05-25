@@ -62,6 +62,28 @@ const defaultHandlers = [
         runtime: 148,
         genres: movie.genre_ids?.map((genreId) => ({ id: genreId, name: `Genre ${genreId}` })) ?? [],
         translations: { translations: [] },
+        release_dates: {
+          results: [
+            {
+              iso_3166_1: 'US',
+              release_dates: [
+                {
+                  release_date: '2021-12-22T00:00:00.000Z',
+                  type: 3,
+                },
+              ],
+            },
+            {
+              iso_3166_1: 'BR',
+              release_dates: [
+                {
+                  release_date: '2022-01-13T00:00:00.000Z',
+                  type: 3,
+                },
+              ],
+            },
+          ],
+        },
       })
     );
   }),
@@ -115,6 +137,72 @@ const defaultHandlers = [
             name: 'Carrie-Anne Moss',
             character: 'Trinity',
             profile_path: null,
+          },
+        ],
+      })
+    );
+  }),
+
+  rest.get(`${API_BASE_URL}/movie/:movieId/watch/providers`, (req, res, ctx) => {
+    const { movieId } = req.params;
+    const movie = sampleMovies.find((item) => item.id === Number(movieId));
+
+    if (!movie) {
+      return res(ctx.status(200), ctx.json({ id: Number(movieId), results: {} }));
+    }
+
+    return res(
+      ctx.status(200),
+      ctx.json({
+        id: movie.id,
+        results: {
+          BR: {
+            link: 'https://www.themoviedb.org/movie/1/watch',
+            flatrate: [
+              {
+                provider_id: 8,
+                provider_name: 'Netflix',
+                logo_path: '/t2yyOv40HZeVlLjYsCsPHnWLk4W.jpg',
+              },
+            ],
+            rent: [
+              {
+                provider_id: 307,
+                provider_name: 'Amazon Prime Video',
+                logo_path: '/seGSXajazLMCKGB5hnRCidtjay1.jpg',
+              },
+            ],
+            buy: [],
+            ads: [],
+            free: [],
+          },
+        },
+      })
+    );
+  }),
+
+  rest.get(`${API_BASE_URL}/watch/providers/movie`, (req, res, ctx) => {
+    return res(
+      ctx.status(200),
+      ctx.json({
+        results: [
+          {
+            provider_id: 8,
+            provider_name: 'Netflix',
+            logo_path: '/t2yyOv40HZeVlLjYsCsPHnWLk4W.jpg',
+            display_priority: 0,
+          },
+          {
+            provider_id: 9,
+            provider_name: 'Prime Video',
+            logo_path: '/seGSXajazLMCKGB5hnRCidtjay1.jpg',
+            display_priority: 1,
+          },
+          {
+            provider_id: 337,
+            provider_name: 'Disney Plus',
+            logo_path: '/7rwgEs15tFwyR9NPQ5vpzxTj19Q.jpg',
+            display_priority: 2,
           },
         ],
       })

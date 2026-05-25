@@ -30,7 +30,7 @@ export const trackEvent = (name, payload = {}) => {
     return;
   }
 
-  if (process.env.NODE_ENV !== 'production') {
+  if (process.env.NODE_ENV === 'development') {
     console.info('[Telemetry] Evento:', name, payload);
   }
 
@@ -54,7 +54,7 @@ export const trackError = (error, context = {}) => {
     return;
   }
 
-  if (process.env.NODE_ENV !== 'production') {
+  if (process.env.NODE_ENV === 'development') {
     console.error('[Telemetry] Erro capturado:', metadata);
   }
 

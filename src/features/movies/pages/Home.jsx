@@ -1,10 +1,17 @@
 import React, { useContext, useEffect, useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
+import { Link } from 'react-router-dom';
 import {
+  fetchBlockbusterMovies,
+  fetchHiddenGemMovies,
   fetchPopularMovies,
+  fetchShortRuntimeMovies,
+  fetchStreamingMovies,
   fetchTopRatedMovies,
   fetchNowPlayingMovies,
+  fetchTrendingNowMovies,
   fetchUpcomingMovies,
+  fetchTrendingMovies,
   fetchRecommendedMovies,
 } from '../api';
 import MovieSection from '../components/MovieSection';
@@ -14,6 +21,42 @@ import PageSEO from '../../../components/seo/PageSEO';
 import { MovieContext } from '../context/MovieContext';
 import { trackEvent } from '../../../lib/telemetry/logger';
 import Hero from '../components/Hero';
+import LibraryInsights from '../components/LibraryInsights';
+
+const SECTION_SIZE = 12;
+const CURRENT_YEAR = new Date().getFullYear();
+
+const QUERY_DEFAULTS = {
+  staleTime: 1000 * 60 * 8,
+  gcTime: 1000 * 60 * 40,
+};
+
+const QUICK_ACTIONS = [
+  {
+    title: 'Noite curta',
+    description: 'Filmes de até 100 minutos para maratonar sem cansar.',
+    cta: 'Ver curadoria',
+    to: '/discover?maxRuntime=100&sortBy=popularity.desc&minVotes=120',
+  },
+  {
+    title: 'Nota alta validada',
+    description: 'Apenas títulos muito bem avaliados com base robusta de votos.',
+    cta: 'Abrir filtro',
+    to: '/discover?minRating=8&minVotes=1000&sortBy=vote_average.desc',
+  },
+  {
+    title: 'Streaming no Brasil',
+    description: 'Descubra filmes com disponibilidade de streaming em BR.',
+    cta: 'Explorar streaming',
+    to: '/discover?region=BR&sortBy=popularity.desc',
+  },
+  {
+    title: `Lançamentos ${CURRENT_YEAR}`,
+    description: 'Recorte rápido dos títulos mais comentados do ano atual.',
+    cta: 'Ver lançamentos',
+    to: `/discover?year=${CURRENT_YEAR}&sortBy=popularity.desc`,
+  },
+];
 
 const Home = () => {
   const [recommendedMovies, setRecommendedMovies] = useState([]);
@@ -26,45 +69,92 @@ const Home = () => {
   } = useQuery({
     queryKey: ['movies', 'popular', 1],
     queryFn: () => fetchPopularMovies(1),
-    staleTime: 1000 * 60 * 5,
-    gcTime: 1000 * 60 * 30,
+    ...QUERY_DEFAULTS,
   });
 
   const {
     data: topRatedData,
-    isLoading: topRatedLoading,
     error: topRatedError,
   } = useQuery({
     queryKey: ['movies', 'top-rated', 1],
     queryFn: () => fetchTopRatedMovies(1),
-    staleTime: 1000 * 60 * 5,
-    gcTime: 1000 * 60 * 30,
+    ...QUERY_DEFAULTS,
   });
 
   const {
     data: nowPlayingData,
-    isLoading: nowPlayingLoading,
     error: nowPlayingError,
   } = useQuery({
     queryKey: ['movies', 'now-playing', 1],
     queryFn: () => fetchNowPlayingMovies(1),
-    staleTime: 1000 * 60 * 5,
-    gcTime: 1000 * 60 * 30,
+    ...QUERY_DEFAULTS,
   });
 
   const {
     data: upcomingData,
-    isLoading: upcomingLoading,
     error: upcomingError,
   } = useQuery({
-    queryKey: ['movies', 'upcoming', 1],
+    queryKey: ['movies', 'upcoming', 'strict-future', 1],
     queryFn: () => fetchUpcomingMovies(1),
-    staleTime: 1000 * 60 * 5,
-    gcTime: 1000 * 60 * 30,
+    ...QUERY_DEFAULTS,
   });
 
-  const loading = popularLoading || topRatedLoading || nowPlayingLoading || upcomingLoading;
-  const error = popularError || topRatedError || nowPlayingError || upcomingError;
+  const {
+    data: trendingNowData,
+    isLoading: trendingNowLoading,
+    error: trendingNowError,
+  } = useQuery({
+    queryKey: ['movies', 'trending', 'day', 1],
+    queryFn: () => fetchTrendingNowMovies(1),
+    ...QUERY_DEFAULTS,
+  });
+
+  const {
+    data: trendingData,
+    isLoading: trendingWeekLoading,
+    error: trendingWeekError,
+  } = useQuery({
+    queryKey: ['movies', 'trending', 'week', 1],
+    queryFn: () => fetchTrendingMovies('week', 1),
+    ...QUERY_DEFAULTS,
+  });
+
+  const { data: hiddenGemData } = useQuery({
+    queryKey: ['movies', 'hidden-gems', 1],
+    queryFn: () => fetchHiddenGemMovies(1),
+    ...QUERY_DEFAULTS,
+  });
+
+  const { data: blockbusterData } = useQuery({
+    queryKey: ['movies', 'blockbusters', 1],
+    queryFn: () => fetchBlockbusterMovies(1),
+    ...QUERY_DEFAULTS,
+  });
+
+  const { data: shortRuntimeData } = useQuery({
+    queryKey: ['movies', 'short-runtime', 1],
+    queryFn: () => fetchShortRuntimeMovies(1),
+    ...QUERY_DEFAULTS,
+  });
+
+  const { data: streamingData } = useQuery({
+    queryKey: ['movies', 'streaming', 'BR', 1],
+    queryFn: () => fetchStreamingMovies(1, 'BR'),
+    ...QUERY_DEFAULTS,
+  });
+
+  const isFirstPaintLoading =
+    (popularLoading && !popularData) ||
+    (trendingNowLoading && !trendingNowData) ||
+    (trendingWeekLoading && !trendingData);
+
+  const firstPaintError =
+    (popularError && !popularData) ||
+    (trendingNowError && !trendingNowData) ||
+    (trendingWeekError && !trendingData) ||
+    (topRatedError && !topRatedData) ||
+    (nowPlayingError && !nowPlayingData) ||
+    (upcomingError && !upcomingData);
 
   useEffect(() => {
     const fetchRecommendations = async () => {
@@ -86,39 +176,167 @@ const Home = () => {
     fetchRecommendations();
   }, [toWatchMovies, watchedMovies]);
 
-  if (loading) {
+  if (isFirstPaintLoading) {
     return <Loading />;
   }
 
-  if (error) {
+  if (firstPaintError) {
     return <ErrorMessage message="Erro ao carregar os filmes." />;
   }
 
-  const displayedPopularMovies = popularData?.results?.slice(0, 12) ?? [];
-  const displayedTopRatedMovies = topRatedData?.results?.slice(0, 12) ?? [];
-  const displayedNowPlayingMovies = nowPlayingData?.results?.slice(0, 12) ?? [];
-  const displayedUpcomingMovies = upcomingData?.results?.slice(0, 12) ?? [];
+  const displayedPopularMovies = popularData?.results?.slice(0, SECTION_SIZE) ?? [];
+  const displayedTopRatedMovies = topRatedData?.results?.slice(0, SECTION_SIZE) ?? [];
+  const displayedNowPlayingMovies = nowPlayingData?.results?.slice(0, SECTION_SIZE) ?? [];
+  const displayedUpcomingMovies = upcomingData?.results?.slice(0, SECTION_SIZE) ?? [];
+  const displayedTrendingWeekMovies = trendingData?.results?.slice(0, SECTION_SIZE) ?? [];
+  const displayedTrendingNowMovies = trendingNowData?.results?.slice(0, SECTION_SIZE) ?? [];
+  const displayedHiddenGemMovies = hiddenGemData?.results?.slice(0, SECTION_SIZE) ?? [];
+  const displayedBlockbusterMovies = blockbusterData?.results?.slice(0, SECTION_SIZE) ?? [];
+  const displayedShortRuntimeMovies = shortRuntimeData?.results?.slice(0, SECTION_SIZE) ?? [];
+  const displayedStreamingMovies = streamingData?.results?.slice(0, SECTION_SIZE) ?? [];
+
+  const orderedSections = [
+    recommendedMovies.length > 0
+      ? {
+          id: 'recommended',
+          title: 'Recomendados para você',
+          movies: recommendedMovies,
+          showViewAll: false,
+        }
+      : null,
+    {
+      id: 'trending-now',
+      title: 'Bombando hoje',
+      movies: displayedTrendingNowMovies,
+      linkTo: '/trending-movies',
+    },
+    {
+      id: 'now-playing',
+      title: 'Em cartaz agora',
+      movies: displayedNowPlayingMovies,
+      linkTo: '/now-playing-movies',
+    },
+    {
+      id: 'streaming-br',
+      title: 'Streaming em alta no Brasil',
+      movies: displayedStreamingMovies,
+      linkTo: '/discover?region=BR&sortBy=popularity.desc',
+    },
+    {
+      id: 'hidden-gems',
+      title: 'Joias escondidas',
+      movies: displayedHiddenGemMovies,
+      linkTo: '/discover?minRating=7.2&minVotes=120&sortBy=vote_average.desc',
+    },
+    {
+      id: 'blockbusters',
+      title: 'Blockbusters de bilheteria',
+      movies: displayedBlockbusterMovies,
+      linkTo: '/discover?sortBy=revenue.desc&minVotes=1000',
+    },
+    {
+      id: 'top-rated',
+      title: 'Mais bem avaliados',
+      movies: displayedTopRatedMovies,
+      linkTo: '/top-rated-movies',
+    },
+    {
+      id: 'short-runtime',
+      title: 'Curtos para hoje',
+      movies: displayedShortRuntimeMovies,
+      linkTo: '/discover?maxRuntime=100&sortBy=popularity.desc',
+    },
+    {
+      id: 'upcoming',
+      title: 'Próximos lançamentos',
+      movies: displayedUpcomingMovies,
+      linkTo: '/upcoming-movies',
+    },
+    {
+      id: 'trending-week',
+      title: 'Tendências da semana',
+      movies: displayedTrendingWeekMovies,
+      linkTo: '/trending-movies',
+    },
+    {
+      id: 'popular',
+      title: 'Populares no momento',
+      movies: displayedPopularMovies,
+      linkTo: '/popular-movies',
+    },
+  ].filter((section) => section && section.movies.length > 0);
 
   return (
     <div className="text-body">
       <PageSEO
         title="TelaViva"
-        description="Descubra lançamentos, filmes populares e recomendações personalizadas na TelaViva."
+        description="Home editorial da TelaViva com tendências diárias, streaming no Brasil, curadorias inteligentes e recomendações personalizadas."
         url="/"
       />
       <Hero />
+
       <div className="pt-12 md:pt-16 px-4 md:px-6 lg:px-8 xl:px-10">
-        <MovieSection title="Em Cartaz" movies={displayedNowPlayingMovies} linkTo="/now-playing-movies" />
+        {orderedSections.map((section) => (
+          <MovieSection
+            key={section.id}
+            title={section.title}
+            movies={section.movies}
+            linkTo={section.linkTo}
+            showViewAll={section.showViewAll ?? true}
+          />
+        ))}
 
-        {recommendedMovies.length > 0 ? (
-          <MovieSection title="Recomendados para Você" movies={recommendedMovies} showViewAll={false} />
-        ) : null}
+        <section className="relative mb-6 mt-8 overflow-hidden rounded-[2rem] border border-neutral-800 bg-gradient-to-br from-neutral-950 via-black to-neutral-950 px-4 py-6 md:px-6 md:py-8 lg:px-8">
+          <div className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-tv-accent/60 to-transparent" />
+          <div className="pointer-events-none absolute -top-16 right-1/4 h-44 w-44 rounded-full bg-tv-accent/20 blur-3xl" />
+          <div className="pointer-events-none absolute -bottom-20 left-10 h-52 w-52 rounded-full bg-red-700/15 blur-3xl" />
 
-        <MovieSection title="Maiores Avaliações" movies={displayedTopRatedMovies} linkTo="/top-rated-movies" />
+          <div className="relative">
+            <section className="mb-8">
+              <div className="mb-5 flex flex-wrap items-end justify-between gap-3">
+                <div>
+                  <p className="text-xs font-semibold uppercase tracking-wide text-tv-accent">Area pessoal</p>
+                  <h2 className="mt-1 text-2xl font-bold text-white md:text-3xl">Seu espaco de curadoria</h2>
+                  <p className="mt-1 text-sm text-gray-400">
+                    Atalhos para descobrir mais rápido e manter sua próxima sessão organizada.
+                  </p>
+                </div>
+                <Link
+                  to="/discover"
+                  className="rounded-lg border border-neutral-700 px-4 py-2 text-sm font-semibold text-gray-100 transition-colors hover:border-tv-accent"
+                >
+                  Abrir descoberta completa
+                </Link>
+              </div>
 
-        <MovieSection title="Populares" movies={displayedPopularMovies} linkTo="/popular-movies" />
+              <div className="grid grid-cols-1 gap-3 md:grid-cols-2 xl:grid-cols-4">
+                {QUICK_ACTIONS.map((action, index) => (
+                  <Link
+                    key={action.title}
+                    to={action.to}
+                    className="group rounded-2xl border border-neutral-800 bg-neutral-900/40 p-4 transition-all duration-200 hover:-translate-y-0.5 hover:border-tv-accent/60 hover:bg-neutral-900/70"
+                  >
+                    <span className="text-[10px] font-semibold uppercase tracking-wide text-gray-500">
+                      Rota rápida {index + 1}
+                    </span>
+                    <h3 className="mt-1 text-lg font-semibold text-white">{action.title}</h3>
+                    <p className="mt-2 min-h-[44px] text-sm text-gray-400">{action.description}</p>
+                    <span className="mt-3 inline-flex text-sm font-semibold text-tv-accent group-hover:underline">
+                      {action.cta}
+                    </span>
+                  </Link>
+                ))}
+              </div>
+            </section>
 
-        <MovieSection title="Lançamentos" movies={displayedUpcomingMovies} linkTo="/upcoming-movies" />
+            <LibraryInsights
+              watchedMovies={watchedMovies}
+              toWatchMovies={toWatchMovies}
+              className="mt-2"
+              cardClassName="bg-black/40 backdrop-blur-sm"
+            />
+          </div>
+        </section>
       </div>
     </div>
   );

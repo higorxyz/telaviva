@@ -5,11 +5,13 @@ import Genres from '../../features/movies/pages/Genres';
 import Category from '../../features/movies/pages/Category';
 import PopularMovies from '../../features/movies/pages/PopularMovies';
 import TopRatedMovies from '../../features/movies/pages/TopRatedMovies';
+import TrendingMovies from '../../features/movies/pages/TrendingMovies';
 import NowPlayingMovies from '../../features/movies/pages/NowPlayingMovies';
 import UpcomingMovies from '../../features/movies/pages/UpcomingMovies';
 import WatchedMovies from '../../features/movies/pages/WatchedMovies';
 import ToWatchMovies from '../../features/movies/pages/ToWatchMovies';
 import SearchResults from '../../features/movies/pages/SearchResults';
+import DiscoverMovies from '../../features/movies/pages/DiscoverMovies';
 import PageNotFound from '../../pages/system/PageNotFound';
 import PageContainer from '../../components/layout/PageContainer';
 
@@ -23,7 +25,9 @@ export const routesConfig = [
   { path: '/', element: withPageContainer(Home) },
   { path: '/movie/:id', element: <MovieDetails /> },
   { path: '/genres', element: withPageContainer(Genres) },
+  { path: '/discover', element: withPageContainer(DiscoverMovies) },
   { path: '/category/:category', element: withPageContainer(Category) },
+  { path: '/trending-movies', element: withPageContainer(TrendingMovies) },
   { path: '/popular-movies', element: withPageContainer(PopularMovies) },
   { path: '/top-rated-movies', element: withPageContainer(TopRatedMovies) },
   { path: '/now-playing-movies', element: withPageContainer(NowPlayingMovies) },

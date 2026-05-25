@@ -8,7 +8,6 @@ const Navbar = () => {
   const [menuOpen, setMenuOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [searchResults, setSearchResults] = useState([]);
-  const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
   const location = useLocation();
   const searchInputRef = useRef(null);
@@ -38,14 +37,11 @@ const Navbar = () => {
       return;
     }
 
-    setLoading(true);
     try {
       const results = await fetchMoviesBySearch(query);
       setSearchResults(results);
     } catch (error) {
       console.error('Error fetching search results:', error);
-    } finally {
-      setLoading(false);
     }
   };
 

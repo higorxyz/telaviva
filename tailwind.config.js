@@ -8,7 +8,8 @@ module.exports = {
   theme: {
     extend: {
       fontFamily: {
-        sans: ['Poppins', ...fontFamily.sans],
+        sans: ['"DM Sans"', ...fontFamily.sans],
+        display: ['"Bebas Neue"', ...fontFamily.sans],
       },
       colors: {
         primary: "#101010",
@@ -42,7 +43,7 @@ module.exports = {
       },
     },
   },
-  plugins: [require('@tailwindcss/line-clamp')],
+  plugins: [],
 };
 
 

@@ -7,7 +7,7 @@ const ErrorMessage = ({ message, retryLabel, onRetry }) => (
       <button
         type="button"
         onClick={onRetry}
-        className="bg-tv-accent text-white py-2 px-4 rounded hover:bg-tv-accent-hover transition-colors focus-visible:outline-tv-accent"
+        className="btn-minimal-rect rounded-lg px-4 py-2 text-sm font-semibold"
       >
         {retryLabel ?? 'Tentar novamente'}
       </button>

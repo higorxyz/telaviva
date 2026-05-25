@@ -1,19 +1,114 @@
 import React, { useContext, useRef, useState, useEffect, useMemo } from 'react';
-import { Link, useParams } from 'react-router-dom';
+import { Link, useNavigate, useParams } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import {
   fetchMovieDetails,
   fetchMovieTrailer,
   fetchMovieCast,
+  fetchMovieWatchProviders,
 } from '../api';
 import Loading from '../../../components/feedback/Loading';
 import ErrorMessage from '../../../components/feedback/ErrorMessage';
 import { MovieContext } from '../context/MovieContext';
 import PageSEO from '../../../components/seo/PageSEO';
-import { FaCheck, FaPlus, FaClock, FaStar, FaCalendar, FaChevronLeft, FaChevronRight } from 'react-icons/fa';
+import {
+  FaCheck,
+  FaPlus,
+  FaClock,
+  FaStar,
+  FaCalendar,
+  FaChevronLeft,
+  FaChevronRight,
+  FaExternalLinkAlt,
+} from 'react-icons/fa';
+
+const PROVIDER_CATEGORY_LABELS = {
+  flatrate: 'Streaming',
+  free: 'Grátis',
+  ads: 'Com anúncios',
+  rent: 'Aluguel',
+  buy: 'Compra',
+};
+
+const PROVIDER_DISPLAY_ORDER = ['flatrate', 'free', 'ads', 'rent', 'buy'];
+const BRAZIL_REGION_CODE = 'BR';
+const BRAZIL_RELEASE_TYPES = new Set([2, 3]);
+
+const normalizeDateValue = (rawDate) => {
+  if (!rawDate || typeof rawDate !== 'string') {
+    return null;
+  }
+
+  if (/^\d{4}-\d{2}-\d{2}/.test(rawDate)) {
+    return rawDate.slice(0, 10);
+  }
+
+  const parsedDate = new Date(rawDate);
+  if (Number.isNaN(parsedDate.getTime())) {
+    return null;
+  }
+
+  return parsedDate.toISOString().slice(0, 10);
+};
+
+const formatDateForDisplay = (rawDate) => {
+  const normalizedDate = normalizeDateValue(rawDate);
+
+  if (!normalizedDate) {
+    return 'Data não disponível';
+  }
+
+  return new Date(`${normalizedDate}T00:00:00`).toLocaleDateString('pt-BR');
+};
+
+const getRegionReleaseDate = (releaseDatesPayload, regionCode) => {
+  const results = Array.isArray(releaseDatesPayload?.results) ? releaseDatesPayload.results : [];
+
+  const regionData = results.find((item) => item?.iso_3166_1 === regionCode);
+  if (!regionData) {
+    return null;
+  }
+
+  const releaseDates = Array.isArray(regionData.release_dates)
+    ? regionData.release_dates
+        .map((item) => ({
+          type: Number(item?.type),
+          date: normalizeDateValue(item?.release_date),
+        }))
+        .filter((item) => item.date)
+    : [];
+
+  if (releaseDates.length === 0) {
+    return null;
+  }
+
+  const theatricalDates = releaseDates.filter((item) => BRAZIL_RELEASE_TYPES.has(item.type));
+  const selectedDates = theatricalDates.length > 0 ? theatricalDates : releaseDates;
+
+  selectedDates.sort((firstItem, secondItem) => firstItem.date.localeCompare(secondItem.date));
+
+  return selectedDates[0]?.date ?? null;
+};
+
+const detectRegionByLocale = () => {
+  if (typeof navigator === 'undefined') {
+    return 'BR';
+  }
+
+  const locale = navigator.languages?.[0] || navigator.language || '';
+  const localeParts = locale.split(/[-_]/);
+  const region = localeParts[1];
+
+  if (region && region.length === 2) {
+    return region.toUpperCase();
+  }
+
+  return 'BR';
+};
 
 const MovieDetails = () => {
   const { id } = useParams();
+  const navigate = useNavigate();
   const {
     addToWatched,
     addToToWatch,
@@ -23,6 +118,7 @@ const MovieDetails = () => {
     removeFromToWatch,
   } = useContext(MovieContext);
   const castRef = useRef(null);
+  const providerRegion = useMemo(() => detectRegionByLocale(), []);
 
   const {
     data: movie,
@@ -52,9 +148,32 @@ const MovieDetails = () => {
     gcTime: 1000 * 60 * 30,
   });
 
+  const { data: watchProvidersData, isLoading: isWatchProvidersLoading } = useQuery({
+    queryKey: ['movie', id, 'watch-providers', providerRegion],
+    queryFn: () => fetchMovieWatchProviders(id, providerRegion),
+    enabled: Boolean(id),
+    staleTime: 1000 * 60 * 60,
+    gcTime: 1000 * 60 * 60 * 6,
+  });
+
   const cast = useMemo(() => Array.isArray(castData) ? castData : [], [castData]);
   const loading = isMovieLoading || isTrailerLoading || isCastLoading;
   const error = movieError;
+  const watchProviderSections = useMemo(() => {
+    const providers = watchProvidersData?.providers;
+
+    if (!providers) {
+      return [];
+    }
+
+    return PROVIDER_DISPLAY_ORDER
+      .map((category) => ({
+        category,
+        label: PROVIDER_CATEGORY_LABELS[category],
+        providers: Array.isArray(providers[category]) ? providers[category] : [],
+      }))
+      .filter((section) => section.providers.length > 0);
+  }, [watchProvidersData]);
   
   const [canScrollLeft, setCanScrollLeft] = useState(false);
   const [canScrollRight, setCanScrollRight] = useState(false);
@@ -122,10 +241,20 @@ const MovieDetails = () => {
   if (error) return <ErrorMessage message={error.message || 'Erro ao carregar os detalhes do filme.'} />;
   if (!movie) return null;
 
-  const releaseDate = movie.release_date
-    ? new Date(movie.release_date).toLocaleDateString('pt-BR')
-    : 'Data não disponível';
-  const releaseYear = movie.release_date ? new Date(movie.release_date).getFullYear() : null;
+  const officialReleaseDateValue = normalizeDateValue(movie.release_date);
+  const brazilReleaseDateValue = getRegionReleaseDate(movie.release_dates, BRAZIL_REGION_CODE);
+  const primaryReleaseDateValue = brazilReleaseDateValue || officialReleaseDateValue;
+  const releaseDate = formatDateForDisplay(primaryReleaseDateValue);
+  const officialReleaseDate = formatDateForDisplay(officialReleaseDateValue);
+  const hasDifferentBrazilReleaseDate = Boolean(
+    brazilReleaseDateValue &&
+    officialReleaseDateValue &&
+    brazilReleaseDateValue !== officialReleaseDateValue
+  );
+  const primaryReleaseLabel = brazilReleaseDateValue ? 'Lançamento no Brasil' : 'Lançamento oficial';
+  const releaseYear = primaryReleaseDateValue
+    ? new Date(`${primaryReleaseDateValue}T00:00:00`).getFullYear()
+    : null;
   const hasVoteAverage = Number.isFinite(Number(movie.vote_average)) && Number(movie.vote_average) > 0;
   const voteAverage = hasVoteAverage ? Number(movie.vote_average).toFixed(1) : 'N/A';
   const runtime = movie.runtime ? `${Math.floor(movie.runtime / 60)}h ${movie.runtime % 60}min` : null;
@@ -144,7 +273,7 @@ const MovieDetails = () => {
     name: movie.title,
     description: seoDescription,
     image: seoImage,
-    datePublished: movie.release_date || undefined,
+    datePublished: officialReleaseDateValue || undefined,
     genre: movie.genres?.map((genre) => genre.name) || undefined,
   };
 
@@ -163,7 +292,7 @@ const MovieDetails = () => {
       name: `${movie.title} Trailer`,
       embedUrl: `https://www.youtube.com/embed/${trailer.key}`,
       description: `Trailer oficial de ${movie.title}`,
-      uploadDate: movie.release_date || undefined,
+      uploadDate: officialReleaseDateValue || undefined,
     };
   }
 
@@ -184,6 +313,15 @@ const MovieDetails = () => {
     } else {
       addToToWatch(movie);
     }
+  };
+
+  const handleBackNavigation = () => {
+    if (typeof window !== 'undefined' && window.history.length > 1) {
+      navigate(-1);
+      return;
+    }
+
+    navigate('/');
   };
 
   return (
@@ -215,7 +353,7 @@ const MovieDetails = () => {
           
           <div className="absolute bottom-0 left-0 right-0 p-4 md:p-6 lg:p-8">
             <div className="max-w-7xl mx-auto">
-              <h1 className="text-2xl md:text-5xl lg:text-6xl font-bold mb-2 md:mb-3 drop-shadow-2xl leading-tight">
+              <h1 className="font-display text-4xl md:text-6xl lg:text-7xl uppercase tracking-[0.03em] mb-2 md:mb-3 drop-shadow-2xl leading-[0.92]">
                 {movie.title}
               </h1>
               
@@ -249,10 +387,15 @@ const MovieDetails = () => {
             <button
               type="button"
               onClick={handleToggleWatched}
+              aria-label={
+                isWatched
+                  ? 'Marcar como não assistido no mobile'
+                  : 'Marcar como assistido no mobile'
+              }
               className={`flex-1 py-3 px-4 rounded-lg font-semibold transition-all duration-200 flex items-center justify-center gap-2 text-sm ${
                 isWatched
                   ? 'bg-white text-black hover:bg-gray-200'
-                  : 'bg-tv-accent text-white hover:bg-tv-accent-hover shadow-lg shadow-tv-accent/30'
+                  : 'btn-minimal-rect text-white'
               }`}
             >
               {isWatched ? <FaCheck size={14} /> : <FaPlus size={14} />}
@@ -262,6 +405,11 @@ const MovieDetails = () => {
             <button
               type="button"
               onClick={handleToggleToWatch}
+              aria-label={
+                isToWatch
+                  ? 'Remover da lista para assistir no mobile'
+                  : 'Adicionar a lista para assistir no mobile'
+              }
               className={`flex-1 py-3 px-4 rounded-lg font-semibold transition-all duration-200 flex items-center justify-center gap-2 text-sm ${
                 isToWatch
                   ? 'bg-neutral-700 text-white hover:bg-neutral-600 border-2 border-white'
@@ -293,10 +441,13 @@ const MovieDetails = () => {
                   <button
                     type="button"
                     onClick={handleToggleWatched}
+                    aria-label={
+                      isWatched ? 'Remover dos assistidos' : 'Adicionar aos assistidos'
+                    }
                     className={`w-full py-3 px-4 rounded-lg font-semibold transition-all duration-200 flex items-center justify-center gap-2 ${
                       isWatched
                         ? 'bg-white text-black hover:bg-gray-200'
-                        : 'bg-tv-accent text-white hover:bg-tv-accent-hover shadow-lg shadow-tv-accent/30'
+                        : 'btn-minimal-rect text-white'
                     }`}
                   >
                     {isWatched ? <FaCheck size={16} /> : <FaPlus size={16} />}
@@ -306,6 +457,11 @@ const MovieDetails = () => {
                   <button
                     type="button"
                     onClick={handleToggleToWatch}
+                    aria-label={
+                      isToWatch
+                        ? 'Remover da lista para assistir'
+                        : 'Adicionar à lista para assistir'
+                    }
                     className={`w-full py-3 px-4 rounded-lg font-semibold transition-all duration-200 flex items-center justify-center gap-2 ${
                       isToWatch
                         ? 'bg-neutral-700 text-white hover:bg-neutral-600 border-2 border-white'
@@ -354,11 +510,18 @@ const MovieDetails = () => {
                 </p>
               </div>
 
-              <div className="grid grid-cols-3 gap-2 md:gap-4">
+              <div className="grid grid-cols-2 gap-2 md:grid-cols-4 md:gap-4">
                 <div className="bg-neutral-900/50 backdrop-blur-sm rounded-lg md:rounded-xl p-3 md:p-4 border border-neutral-800 text-center">
-                  <p className="text-gray-400 text-xs md:text-sm mb-1">Lançamento</p>
+                  <p className="text-gray-400 text-xs md:text-sm mb-1">{primaryReleaseLabel}</p>
                   <p className="text-white font-semibold text-xs md:text-base">{releaseDate}</p>
                 </div>
+
+                {hasDifferentBrazilReleaseDate && (
+                  <div className="bg-neutral-900/50 backdrop-blur-sm rounded-lg md:rounded-xl p-3 md:p-4 border border-neutral-800 text-center">
+                    <p className="text-gray-400 text-xs md:text-sm mb-1">Lançamento oficial</p>
+                    <p className="text-white font-semibold text-xs md:text-base">{officialReleaseDate}</p>
+                  </div>
+                )}
                 
                 {hasVoteAverage && (
                   <div className="bg-neutral-900/50 backdrop-blur-sm rounded-lg md:rounded-xl p-3 md:p-4 border border-neutral-800 text-center">
@@ -375,6 +538,58 @@ const MovieDetails = () => {
                     <p className="text-gray-400 text-xs md:text-sm mb-1">Duração</p>
                     <p className="text-white font-semibold text-xs md:text-base">{runtime}</p>
                   </div>
+                )}
+              </div>
+
+              <div className="bg-neutral-900/50 backdrop-blur-sm rounded-lg md:rounded-xl p-4 md:p-6 lg:p-8 border border-neutral-800">
+                <div className="mb-4 md:mb-6 flex flex-wrap items-center justify-between gap-3">
+                  <h2 className="text-xl md:text-2xl lg:text-3xl font-bold text-tv-accent">Onde Assistir</h2>
+                  {watchProvidersData?.link ? (
+                    <a
+                      href={watchProvidersData.link}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="inline-flex items-center gap-2 rounded-md border border-neutral-700 bg-neutral-800 px-3 py-2 text-xs font-semibold text-white transition-colors hover:bg-neutral-700 md:text-sm"
+                    >
+                      Ver no TMDB
+                      <FaExternalLinkAlt size={10} />
+                    </a>
+                  ) : null}
+                </div>
+
+                {isWatchProvidersLoading ? (
+                  <p className="text-sm text-gray-400">Buscando provedores de streaming...</p>
+                ) : watchProviderSections.length > 0 ? (
+                  <div className="space-y-4">
+                    {watchProviderSections.map((section) => (
+                      <div key={section.category}>
+                        <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-gray-400 md:text-sm">
+                          {section.label}
+                        </p>
+                        <div className="flex flex-wrap gap-2 md:gap-3">
+                          {section.providers.map((provider) => (
+                            <span
+                              key={provider.provider_id}
+                              className="inline-flex items-center gap-2 rounded-full border border-neutral-700 bg-neutral-800 px-3 py-1.5 text-xs font-medium text-white md:text-sm"
+                            >
+                              {provider.logo_path ? (
+                                <img
+                                  src={`https://image.tmdb.org/t/p/w92${provider.logo_path}`}
+                                  alt={provider.provider_name}
+                                  className="h-5 w-5 rounded-full object-cover"
+                                />
+                              ) : null}
+                              {provider.provider_name}
+                            </span>
+                          ))}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <p className="text-sm text-gray-400 md:text-base">
+                    Nenhum provedor disponível para a região {watchProvidersData?.region || providerRegion}.
+                  </p>
                 )}
               </div>
 
@@ -447,13 +662,21 @@ const MovieDetails = () => {
                 )}
               </div>
 
-              <div className="flex justify-center pt-2 md:pt-4">
+              <div className="flex flex-wrap justify-center gap-3 pt-2 md:pt-4">
+                <button
+                  type="button"
+                  onClick={handleBackNavigation}
+                  className="inline-flex items-center gap-2 bg-tv-accent hover:bg-tv-accent-hover text-white py-2.5 md:py-3 px-6 md:px-8 rounded-lg transition-all duration-200 font-medium border border-tv-accent/40 text-sm md:text-base"
+                >
+                  <FaChevronLeft size={12} />
+                  Voltar
+                </button>
+
                 <Link
                   to="/"
                   className="inline-flex items-center gap-2 bg-neutral-800 hover:bg-neutral-700 text-white py-2.5 md:py-3 px-6 md:px-8 rounded-lg transition-all duration-200 font-medium border border-neutral-700 hover:border-neutral-600 text-sm md:text-base"
                 >
-                  <FaChevronLeft size={12} />
-                  Voltar para Início
+                  Ir para Início
                 </Link>
               </div>
             </div>

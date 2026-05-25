@@ -10,7 +10,7 @@ const UpcomingMovies = () => (
       description="Fique por dentro dos próximos lançamentos e prepare sua lista de filmes para assistir em breve."
       url="/upcoming-movies"
     />
-    <MovieList title="Em Breve" fetchFunction={fetchUpcomingMovies} queryKey="upcoming" />
+    <MovieList title="Em Breve" fetchFunction={fetchUpcomingMovies} queryKey="upcoming-strict-future" />
   </>
 );
 

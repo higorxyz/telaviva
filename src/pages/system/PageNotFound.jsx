@@ -1,10 +1,27 @@
-import React, { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
-import { FaHome, FaFilm, FaChevronRight } from 'react-icons/fa';
+import React, { useEffect, useMemo, useState } from 'react';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
+import { FaArrowLeft, FaChevronRight, FaFilm, FaHome } from 'react-icons/fa';
 import PageSEO from '../../components/seo/PageSEO';
+
+const QUICK_LINKS = [
+  {
+    to: '/discover',
+    label: 'Descobrir filmes',
+  },
+  {
+    to: '/trending-movies',
+    label: 'Tendências da semana',
+  },
+  {
+    to: '/popular-movies',
+    label: 'Filmes populares',
+  },
+];
 
 const PageNotFound = () => {
   const [glitchActive, setGlitchActive] = useState(false);
+  const location = useLocation();
+  const navigate = useNavigate();
 
   useEffect(() => {
     const glitchInterval = setInterval(() => {
@@ -14,6 +31,30 @@ const PageNotFound = () => {
 
     return () => clearInterval(glitchInterval);
   }, []);
+
+  const requestedPath = useMemo(() => {
+    const rawPath = `${location.pathname || ''}${location.search || ''}${location.hash || ''}`;
+
+    if (!rawPath) {
+      return '/';
+    }
+
+    try {
+      return decodeURIComponent(rawPath);
+    } catch {
+      return rawPath;
+    }
+  }, [location.hash, location.pathname, location.search]);
+
+  const handleGoBack = () => {
+    if (typeof window !== 'undefined' && window.history.length > 1) {
+      navigate(-1);
+      return;
+    }
+
+    navigate('/');
+  };
+
 
   return (
     <>
@@ -51,16 +92,16 @@ const PageNotFound = () => {
           </div>
         </div>
 
-        <div className="relative z-10 flex flex-col items-center justify-center px-4 py-16 md:py-20 max-w-4xl mx-auto text-center">
-          
-          <div className="relative mb-10 md:mb-14">
+        <div className="relative z-10 flex flex-col items-center justify-center px-4 py-10 md:py-12 max-w-4xl mx-auto text-center">
+
+          <div className="relative mb-5 md:mb-6">
             <div className="absolute inset-0 blur-xl opacity-20 animate-pulse" style={{
               background: 'radial-gradient(circle, rgba(229, 9, 20, 0.2) 0%, transparent 70%)',
               transform: 'scale(1.0)',
             }} />
-            
-            <div className="relative text-[8rem] sm:text-[11rem] md:text-[14rem] lg:text-[17rem] font-black leading-none select-none">
-              <span 
+
+            <div className="relative text-[5.5rem] sm:text-[7.5rem] md:text-[9.5rem] lg:text-[11rem] font-black leading-none select-none">
+              <span
                 className="inline-block transition-all duration-300 hover:scale-105"
                 style={{
                   background: 'linear-gradient(180deg, #ff3838 0%, #E50914 40%, #b30710 100%)',
@@ -73,11 +114,11 @@ const PageNotFound = () => {
                 404
               </span>
             </div>
-            
+
             {glitchActive && (
               <>
-                <div 
-                  className="absolute inset-0 text-[8rem] sm:text-[11rem] md:text-[14rem] lg:text-[17rem] font-black leading-none select-none pointer-events-none"
+                <div
+                  className="absolute inset-0 text-[5.5rem] sm:text-[7.5rem] md:text-[9.5rem] lg:text-[11rem] font-black leading-none select-none pointer-events-none"
                   style={{
                     color: '#00ffff',
                     opacity: 0.25,
@@ -88,8 +129,8 @@ const PageNotFound = () => {
                 >
                   404
                 </div>
-                <div 
-                  className="absolute inset-0 text-[8rem] sm:text-[11rem] md:text-[14rem] lg:text-[17rem] font-black leading-none select-none pointer-events-none"
+                <div
+                  className="absolute inset-0 text-[5.5rem] sm:text-[7.5rem] md:text-[9.5rem] lg:text-[11rem] font-black leading-none select-none pointer-events-none"
                   style={{
                     color: '#ff00ff',
                     opacity: 0.25,
@@ -104,45 +145,65 @@ const PageNotFound = () => {
             )}
           </div>
 
-          <div className="mb-6 relative">
+          <div className="mb-4 relative">
             <div className="absolute inset-0 blur-2xl bg-tv-accent/30 rounded-full animate-pulse" style={{ animationDuration: '3s' }} />
-            <div className="relative bg-neutral-900/90 backdrop-blur-sm p-5 rounded-full border-2 border-tv-accent/40 shadow-2xl shadow-tv-accent/30 transition-all duration-300 hover:scale-10 hover:border-tv-accent/60">
-              <FaFilm className="text-tv-accent text-6xl md:text-7xl" />
+            <div className="relative bg-neutral-900/90 backdrop-blur-sm p-4 rounded-full border-2 border-tv-accent/40 shadow-2xl shadow-tv-accent/30 transition-all duration-300 hover:scale-10 hover:border-tv-accent/60">
+              <FaFilm className="text-tv-accent text-5xl md:text-6xl" />
             </div>
           </div>
 
-          <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold mb-6 text-white drop-shadow-2xl tracking-tight">
+          <h1 className="text-3xl md:text-4xl lg:text-5xl font-bold mb-4 text-white drop-shadow-2xl tracking-tight">
             Cena Não Encontrada
           </h1>
-          
-          <p className="text-lg md:text-xl text-gray-300 mb-4 max-w-2xl leading-relaxed font-medium px-4">
+
+          <p className="text-base md:text-lg text-gray-300 mb-2 max-w-2xl leading-relaxed font-medium px-4">
             Parece que este filme não está em nossa biblioteca.
           </p>
-          
-          <p className="text-base md:text-lg text-gray-500 mb-14 max-w-xl leading-relaxed px-4">
+
+          <p className="text-sm md:text-base text-gray-500 mb-2 max-w-xl leading-relaxed px-4">
             A página que você procura foi movida, deletada ou nunca existiu neste universo cinematográfico.
           </p>
 
-          <div className="flex flex-col sm:flex-row gap-4 items-center justify-center w-full max-w-md">
+          <p className="mb-7 max-w-2xl break-all px-4 text-[11px] text-gray-600 md:text-xs">
+            URL acessada: <span className="font-mono text-gray-500">{requestedPath}</span>
+          </p>
+
+          <div className="flex flex-col sm:flex-row gap-3 items-center justify-center w-full max-w-lg">
+            <button
+              type="button"
+              onClick={handleGoBack}
+              className="group w-full sm:w-auto inline-flex items-center justify-center gap-2 bg-neutral-800/80 backdrop-blur-sm hover:bg-neutral-700 text-white font-semibold px-7 py-3 rounded-xl transition-all duration-300 border-2 border-neutral-700 hover:border-neutral-600 hover:scale-105"
+            >
+              <FaArrowLeft className="text-sm group-hover:-translate-x-0.5 transition-transform" />
+              <span>Voltar</span>
+            </button>
+
             <Link
               to="/"
-              className="group relative w-full sm:w-auto inline-flex items-center justify-center gap-3 bg-tv-accent hover:bg-tv-accent-hover text-white font-semibold px-8 py-4 rounded-xl transition-all duration-300 shadow-lg shadow-tv-accent/30 hover:shadow-tv-accent/50 hover:scale-105 overflow-hidden"
+              className="group btn-minimal-rect w-full sm:w-auto inline-flex items-center justify-center gap-3 rounded-xl px-7 py-3 font-semibold text-white"
             >
-              <span className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-700" />
-              <FaHome className="text-xl relative z-10" />
-              <span className="relative z-10">Voltar ao Início</span>
-            </Link>
-            
-            <Link
-              to="/popular-movies"
-              className="group w-full sm:w-auto inline-flex items-center justify-center gap-2 bg-neutral-800/80 backdrop-blur-sm hover:bg-neutral-700 text-white font-semibold px-8 py-4 rounded-xl transition-all duration-300 border-2 border-neutral-700 hover:border-neutral-600 hover:scale-105"
-            >
-              <span>Explorar Filmes</span>
-              <FaChevronRight className="text-sm group-hover:translate-x-1 transition-transform" />
+              <FaHome className="text-xl transition-transform duration-300 group-hover:-translate-y-0.5" />
+              <span>Voltar ao Início</span>
             </Link>
           </div>
 
-          <div className="mt-16 flex items-center gap-4 text-sm text-gray-600 font-medium">
+          <div className="mt-4 flex flex-col items-center gap-1.5 px-4">
+            <p className="text-[10px] uppercase tracking-[0.28em] text-gray-600">Atalhos rápidos</p>
+            <div className="flex flex-wrap items-center justify-center gap-x-4 gap-y-1.5">
+              {QUICK_LINKS.map((link) => (
+                <Link
+                  key={link.to}
+                  to={link.to}
+                  className="group inline-flex items-center gap-1 text-xs md:text-sm text-gray-400 transition-colors duration-300 hover:text-tv-accent"
+                >
+                  <span>{link.label}</span>
+                  <FaChevronRight className="text-[10px] transition-transform duration-300 group-hover:translate-x-0.5" />
+                </Link>
+              ))}
+            </div>
+          </div>
+
+          <div className="mt-7 flex items-center gap-3 text-xs text-gray-600 font-medium">
             <div className="h-px w-20 bg-gradient-to-r from-transparent via-tv-accent/30 to-neutral-800" />
             <span className="uppercase tracking-[0.3em]">Erro 404</span>
             <div className="h-px w-20 bg-gradient-to-l from-transparent via-tv-accent/30 to-neutral-800" />

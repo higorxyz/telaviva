@@ -19,7 +19,7 @@ const GenreCard = ({ genre, index }) => {
   return (
     <Link
       to={`/category/${genre.id}`}
-      className="relative block aspect-[3/4] rounded-xl overflow-hidden group shadow-xl hover:shadow-2xl hover:shadow-tv-accent/20 transition-all duration-300"
+      className="relative block h-[200px] rounded-xl overflow-hidden group shadow-xl hover:shadow-2xl hover:shadow-tv-accent/20 transition-all duration-300"
     >
       {isLoading ? (
         <div className="absolute inset-0 bg-gradient-to-br from-neutral-800 to-neutral-900 animate-pulse" />

@@ -8,10 +8,14 @@ const useIntersectionObserver = ({
   rootMargin = '0px',
   freezeOnceVisible = false,
 } = {}) => {
-  const targetRef = useRef(null);
+  const [targetNode, setTargetNode] = useState(null);
   const observerRef = useRef(null);
   const [entry, setEntry] = useState(null);
   const frozenRef = useRef(false);
+
+  const targetRef = useCallback((node) => {
+    setTargetNode(node);
+  }, []);
 
   const handleIntersection = useCallback((entries) => {
     const [observedEntry] = entries;
@@ -28,39 +32,40 @@ const useIntersectionObserver = ({
   }, [freezeOnceVisible]);
 
   useEffect(() => {
-    const node = targetRef.current;
-
-    if (!isBrowser || !node) {
+    if (!isBrowser || !targetNode) {
       return;
     }
 
     if (typeof IntersectionObserver === 'undefined') {
-      setEntry({ isIntersecting: true, target: node });
+      setEntry({ isIntersecting: true, target: targetNode });
       return;
     }
 
-    if (!observerRef.current) {
-      observerRef.current = new IntersectionObserver(handleIntersection, {
-        threshold,
-        root,
-        rootMargin,
-      });
-    }
+    const observer = new IntersectionObserver(handleIntersection, {
+      threshold,
+      root,
+      rootMargin,
+    });
 
-    observerRef.current.observe(node);
+    observerRef.current = observer;
+    observer.observe(targetNode);
 
     return () => {
-      if (observerRef.current) {
-        observerRef.current.disconnect();
+      observer.disconnect();
+
+      if (observerRef.current === observer) {
+        observerRef.current = null;
       }
     };
-  }, [handleIntersection, root, rootMargin, threshold]);
+  }, [handleIntersection, root, rootMargin, targetNode, threshold]);
 
   useEffect(() => {
-    return () => {
-      frozenRef.current = false;
-    };
-  }, []);
+    if (!targetNode) {
+      setEntry(null);
+    }
+
+    frozenRef.current = false;
+  }, [freezeOnceVisible, targetNode]);
 
   const isVisible = entry?.isIntersecting ?? false;
 

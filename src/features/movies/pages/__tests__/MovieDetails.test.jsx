@@ -16,6 +16,7 @@ const renderMovieDetails = (movieId = '1') =>
 
 describe('MovieDetails', () => {
   it('apresenta detalhes do filme e alterna listas com sucesso', async () => {
+    const user = userEvent.setup();
     renderMovieDetails();
 
     const title = await screen.findByRole('heading', { name: 'Matrix Resurrections' });
@@ -24,14 +25,17 @@ describe('MovieDetails', () => {
     const trailer = await screen.findByTitle('Trailer');
     expect(trailer).toHaveAttribute('src', expect.stringContaining('dQw4w9WgXcQ'));
 
+    expect(await screen.findByText(/lançamento no brasil/i)).toBeInTheDocument();
+    expect(await screen.findByText(/lançamento oficial/i)).toBeInTheDocument();
+
     const addWatchedButton = screen.getByRole('button', { name: /adicionar aos assistidos/i });
 
-    await userEvent.click(addWatchedButton);
+    await user.click(addWatchedButton);
     expect(screen.getByRole('button', { name: /remover dos assistidos/i })).toBeInTheDocument();
 
     const addToWatchButton = screen.getByRole('button', { name: /adicionar à lista para assistir/i });
 
-    await userEvent.click(addToWatchButton);
+    await user.click(addToWatchButton);
     expect(await screen.findByText('Keanu Reeves')).toBeInTheDocument();
     expect(await screen.findByText('Carrie-Anne Moss')).toBeInTheDocument();
   });

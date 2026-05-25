@@ -52,13 +52,13 @@ const MovieSection = ({ title, movies, linkTo, showViewAll = true }) => {
   return (
     <div className="mb-12">
       <div className="flex justify-between items-center mb-6 px-4 md:px-6 lg:px-8">
-        <h2 className="text-2xl md:text-3xl lg:text-4xl font-bold text-white">
+        <h2 className="font-display text-4xl md:text-5xl lg:text-6xl uppercase tracking-[0.03em] leading-[0.92] text-white">
           {title}
         </h2>
         {showViewAll && linkTo ? (
           <Link
             to={linkTo}
-            className="bg-tv-accent text-white py-2 px-4 md:py-2 md:px-6 rounded-lg text-sm md:text-base font-medium hover:bg-tv-accent-hover transition-colors"
+            className="btn-minimal-rect rounded-lg px-4 py-2 text-sm font-medium md:px-6 md:text-base"
           >
             Ver Todos
           </Link>
