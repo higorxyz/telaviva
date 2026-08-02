@@ -12,6 +12,7 @@ import WatchedMovies from '../../features/movies/pages/WatchedMovies';
 import ToWatchMovies from '../../features/movies/pages/ToWatchMovies';
 import SearchResults from '../../features/movies/pages/SearchResults';
 import DiscoverMovies from '../../features/movies/pages/DiscoverMovies';
+import PersonProfile from '../../features/movies/pages/PersonProfile';
 import PageNotFound from '../../pages/system/PageNotFound';
 import PageContainer from '../../components/layout/PageContainer';
 
@@ -24,6 +25,7 @@ const withPageContainer = (Component) => (
 export const routesConfig = [
   { path: '/', element: withPageContainer(Home) },
   { path: '/movie/:id', element: <MovieDetails /> },
+  { path: '/person/:id', element: withPageContainer(PersonProfile) },
   { path: '/genres', element: withPageContainer(Genres) },
   { path: '/discover', element: withPageContainer(DiscoverMovies) },
   { path: '/category/:category', element: withPageContainer(Category) },

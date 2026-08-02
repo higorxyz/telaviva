@@ -10,7 +10,7 @@ const PopularMovies = () => (
       description="Veja os filmes mais populares do momento e descubra o que está chamando a atenção do público."
       url="/popular-movies"
     />
-    <MovieList title="Filmes Populares" fetchFunction={fetchPopularMovies} queryKey="popular" />
+    <MovieList title="Filmes populares" fetchFunction={fetchPopularMovies} queryKey="popular" />
   </>
 );
 

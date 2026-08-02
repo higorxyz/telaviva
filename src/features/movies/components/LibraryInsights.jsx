@@ -91,39 +91,84 @@ const LibraryInsights = ({ watchedMovies, toWatchMovies, className = '', cardCla
         <div className="flex flex-wrap gap-2">
           <Link
             to="/watched-movies"
-            className="rounded-full border border-neutral-700 px-4 py-2 text-xs font-medium text-gray-100 transition-colors hover:border-tv-accent"
+            className="link-underline-action text-xs font-medium"
           >
             Assistidos
+            <svg
+              className="link-underline-action__icon"
+              viewBox="0 0 24 24"
+              fill="none"
+              xmlns="http://www.w3.org/2000/svg"
+              aria-hidden="true"
+            >
+              <path
+                d="M5 12H19M19 12L12 5M19 12L12 19"
+                stroke="currentColor"
+                strokeWidth="1.8"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              />
+            </svg>
           </Link>
           <Link
             to="/to-watch-movies"
-            className="rounded-full border border-neutral-700 px-4 py-2 text-xs font-medium text-gray-100 transition-colors hover:border-tv-accent"
+            className="link-underline-action text-xs font-medium"
           >
             Ver depois
+            <svg
+              className="link-underline-action__icon"
+              viewBox="0 0 24 24"
+              fill="none"
+              xmlns="http://www.w3.org/2000/svg"
+              aria-hidden="true"
+            >
+              <path
+                d="M5 12H19M19 12L12 5M19 12L12 19"
+                stroke="currentColor"
+                strokeWidth="1.8"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              />
+            </svg>
           </Link>
           <Link
             to="/discover?sortBy=vote_average.desc&minVotes=500"
-            className="rounded-full bg-tv-accent px-4 py-2 text-xs font-semibold text-white transition-colors hover:bg-tv-accent-hover"
+            className="link-underline-action text-xs font-semibold"
           >
             Descobrir melhores notas
+            <svg
+              className="link-underline-action__icon"
+              viewBox="0 0 24 24"
+              fill="none"
+              xmlns="http://www.w3.org/2000/svg"
+              aria-hidden="true"
+            >
+              <path
+                d="M5 12H19M19 12L12 5M19 12L12 19"
+                stroke="currentColor"
+                strokeWidth="1.8"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              />
+            </svg>
           </Link>
         </div>
       </div>
 
       <div className="mt-5 grid grid-cols-1 gap-3 md:grid-cols-2 xl:grid-cols-4">
-        <div className={`rounded-2xl border border-neutral-800 p-4 ${cardClassName}`}>
+        <div className={`rounded-2xl p-4 ${cardClassName}`}>
           <p className="text-xs uppercase tracking-wide text-gray-400">Total acompanhado</p>
           <p className="mt-2 text-3xl font-bold text-white">{trackedMovies}</p>
           <p className="mt-1 text-sm text-gray-400">{watchedCompletion}% já concluído</p>
         </div>
 
-        <div className={`rounded-2xl border border-neutral-800 p-4 ${cardClassName}`}>
+        <div className={`rounded-2xl p-4 ${cardClassName}`}>
           <p className="text-xs uppercase tracking-wide text-gray-400">Média dos assistidos</p>
           <p className="mt-2 text-3xl font-bold text-white">{averageWatchedRating ? `${averageWatchedRating}/10` : '-'}</p>
           <p className="mt-1 text-sm text-gray-400">Com base em {watchedMovies.length} títulos</p>
         </div>
 
-        <div className={`rounded-2xl border border-neutral-800 p-4 ${cardClassName}`}>
+        <div className={`rounded-2xl p-4 ${cardClassName}`}>
           <p className="text-xs uppercase tracking-wide text-gray-400">Melhor nota da lista</p>
           <p className="mt-2 line-clamp-2 text-lg font-semibold text-white">
             {favoriteMovie ? favoriteMovie.title : 'Adicione filmes assistidos'}
@@ -133,7 +178,7 @@ const LibraryInsights = ({ watchedMovies, toWatchMovies, className = '', cardCla
           </p>
         </div>
 
-        <div className={`rounded-2xl border border-neutral-800 p-4 ${cardClassName}`}>
+        <div className={`rounded-2xl p-4 ${cardClassName}`}>
           <p className="text-xs uppercase tracking-wide text-gray-400">Gêneros em destaque</p>
           {topGenres.length === 0 ? (
             <p className="mt-2 text-sm text-gray-400">Comece a salvar filmes para gerar insights.</p>

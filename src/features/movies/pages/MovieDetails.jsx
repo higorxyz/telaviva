@@ -5,6 +5,7 @@ import {
   fetchMovieDetails,
   fetchMovieTrailer,
   fetchMovieCast,
+  fetchMovieRecommendations,
   fetchMovieWatchProviders,
 } from '../api';
 import Loading from '../../../components/feedback/Loading';
@@ -16,10 +17,12 @@ import {
   FaPlus,
   FaClock,
   FaStar,
+  FaStarHalfAlt,
+  FaRegStar,
   FaCalendar,
+  FaHome,
   FaChevronLeft,
   FaChevronRight,
-  FaExternalLinkAlt,
 } from 'react-icons/fa';
 
 const PROVIDER_CATEGORY_LABELS = {
@@ -33,6 +36,30 @@ const PROVIDER_CATEGORY_LABELS = {
 const PROVIDER_DISPLAY_ORDER = ['flatrate', 'free', 'ads', 'rent', 'buy'];
 const BRAZIL_REGION_CODE = 'BR';
 const BRAZIL_RELEASE_TYPES = new Set([2, 3]);
+const SECTION_CARD_CLASS =
+  'py-1 md:py-2';
+const STAT_CARD_CLASS =
+  'relative overflow-hidden rounded-xl border border-neutral-800/80 bg-gradient-to-br from-neutral-900/80 to-neutral-950/80 p-3 md:p-4 text-center';
+const ACTION_BUTTON_BASE_CLASS =
+  'inline-flex items-center justify-center gap-2 rounded-xl px-4 py-3 text-sm font-semibold transition-all duration-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-offset-black';
+const ACTION_BUTTON_PRIMARY_CLASS =
+  `${ACTION_BUTTON_BASE_CLASS} border border-neutral-700 bg-gradient-to-r from-tv-accent via-red-600 to-red-500 text-white shadow-[0_18px_34px_-20px_rgba(229,9,20,0.95)] hover:-translate-y-0.5 hover:border-neutral-500 hover:from-red-600 hover:to-tv-accent hover:shadow-[0_24px_40px_-20px_rgba(229,9,20,0.95)] focus-visible:ring-tv-accent/60`;
+const ACTION_BUTTON_NEUTRAL_CLASS =
+  `${ACTION_BUTTON_BASE_CLASS} border border-neutral-700/90 bg-gradient-to-b from-neutral-900 to-neutral-950 text-gray-100 shadow-[0_18px_34px_-24px_rgba(0,0,0,0.88)] hover:-translate-y-0.5 hover:border-tv-accent/35 hover:text-white hover:shadow-[0_24px_40px_-26px_rgba(229,9,20,0.35)] focus-visible:ring-tv-accent/35`;
+const ACTION_BUTTON_SUCCESS_CLASS =
+  `${ACTION_BUTTON_BASE_CLASS} border border-neutral-300/65 bg-neutral-100 text-neutral-900 shadow-[0_18px_34px_-24px_rgba(255,255,255,0.55)] hover:-translate-y-0.5 hover:border-white hover:bg-white focus-visible:ring-neutral-300/70`;
+const ACTION_BUTTON_ACTIVE_CLASS =
+  `${ACTION_BUTTON_BASE_CLASS} border border-neutral-700 bg-black text-white shadow-[0_18px_34px_-24px_rgba(0,0,0,0.9)] hover:-translate-y-0.5 hover:border-neutral-500 hover:bg-neutral-950 focus-visible:ring-neutral-500/60`;
+const NAV_BUTTON_BASE_CLASS =
+  'inline-flex items-center gap-2 rounded-xl px-6 py-2.5 text-sm font-semibold transition-all duration-300 md:px-8 md:py-3 md:text-base focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-offset-black';
+const NAV_PRIMARY_BUTTON_CLASS =
+  `${NAV_BUTTON_BASE_CLASS} group border border-neutral-700 bg-black text-gray-100 shadow-[0_18px_34px_-24px_rgba(0,0,0,0.85)] hover:bg-black focus-visible:ring-tv-accent/45`;
+const NAV_SECONDARY_BUTTON_CLASS =
+  `${NAV_BUTTON_BASE_CLASS} border border-neutral-700 bg-neutral-900/85 text-gray-100 shadow-[0_18px_34px_-24px_rgba(0,0,0,0.85)] hover:border-neutral-500 hover:bg-neutral-800/90 focus-visible:ring-neutral-500/60`;
+const CAROUSEL_ARROW_BASE_CLASS =
+  'hidden md:flex absolute top-1/2 -translate-y-1/2 z-10 h-10 w-10 items-center justify-center rounded-full border border-neutral-700/80 bg-black/75 text-gray-200 shadow-lg backdrop-blur-sm transition-colors duration-200 hover:border-neutral-500 hover:bg-neutral-900 hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-neutral-500/60';
+const CAROUSEL_LEFT_ARROW_CLASS = `${CAROUSEL_ARROW_BASE_CLASS} left-0 -translate-x-4`;
+const CAROUSEL_RIGHT_ARROW_CLASS = `${CAROUSEL_ARROW_BASE_CLASS} right-0 translate-x-4`;
 
 const normalizeDateValue = (rawDate) => {
   if (!rawDate || typeof rawDate !== 'string') {
@@ -106,6 +133,173 @@ const detectRegionByLocale = () => {
   return 'BR';
 };
 
+const dedupeRelatedMovies = (movies = [], currentMovieId) => {
+  if (!Array.isArray(movies)) {
+    return [];
+  }
+
+  const dedupedMovies = new Map();
+  const normalizedCurrentMovieId = String(currentMovieId ?? '');
+
+  movies.forEach((relatedMovie) => {
+    const relatedMovieId = relatedMovie?.id;
+
+    if (relatedMovieId == null) {
+      return;
+    }
+
+    if (String(relatedMovieId) === normalizedCurrentMovieId) {
+      return;
+    }
+
+    if (!dedupedMovies.has(relatedMovieId)) {
+      dedupedMovies.set(relatedMovieId, relatedMovie);
+    }
+  });
+
+  return Array.from(dedupedMovies.values());
+};
+
+const StarRating = ({ voteAverage }) => {
+  const normalized = Number(voteAverage);
+  if (!Number.isFinite(normalized) || normalized <= 0) {
+    return <span className="text-xs text-gray-300">Avaliação indisponível</span>;
+  }
+
+  const rating = normalized / 2;
+  const fullStars = Math.floor(rating);
+  const hasHalfStar = rating - fullStars >= 0.25 && rating - fullStars < 0.75;
+  const emptyStars = 5 - fullStars - (hasHalfStar ? 1 : 0);
+
+  return (
+    <div className="flex items-center gap-0.5" aria-label={`Avaliação ${rating.toFixed(1)} de 5`}>
+      {Array.from({ length: fullStars }, (_, index) => (
+        <FaStar key={`full-${index}`} className="text-yellow-400" size={12} />
+      ))}
+
+      {hasHalfStar ? <FaStarHalfAlt className="text-yellow-400" size={12} /> : null}
+
+      {Array.from({ length: emptyStars }, (_, index) => (
+        <FaRegStar key={`empty-${index}`} className="text-yellow-400" size={12} />
+      ))}
+
+      <span className="ml-1 text-xs font-semibold text-white">{rating.toFixed(1)}</span>
+    </div>
+  );
+};
+
+const useHorizontalCarousel = (items = []) => {
+  const carouselRef = useRef(null);
+  const [canScrollLeft, setCanScrollLeft] = useState(false);
+  const [canScrollRight, setCanScrollRight] = useState(false);
+  const dragStartXRef = useRef(0);
+  const dragDistanceRef = useRef(0);
+  const shouldSuppressClickRef = useRef(false);
+
+  useEffect(() => {
+    const carouselElement = carouselRef.current;
+    if (!carouselElement) {
+      return undefined;
+    }
+
+    const updateScrollState = () => {
+      const { scrollLeft, scrollWidth, clientWidth } = carouselElement;
+      setCanScrollLeft(scrollLeft > 0);
+      setCanScrollRight(scrollLeft < scrollWidth - clientWidth - 10);
+    };
+
+    updateScrollState();
+    carouselElement.addEventListener('scroll', updateScrollState);
+    window.addEventListener('resize', updateScrollState);
+
+    return () => {
+      carouselElement.removeEventListener('scroll', updateScrollState);
+      window.removeEventListener('resize', updateScrollState);
+    };
+  }, [items]);
+
+  const handleScroll = (direction) => {
+    const carouselElement = carouselRef.current;
+    if (!carouselElement) {
+      return;
+    }
+
+    carouselElement.scrollBy({
+      left: direction === 'left' ? -300 : 300,
+      behavior: 'smooth',
+    });
+  };
+
+  const handleMouseDown = (event) => {
+    if (event.button !== 0) {
+      return;
+    }
+
+    event.preventDefault();
+    dragStartXRef.current = event.clientX;
+    dragDistanceRef.current = 0;
+    shouldSuppressClickRef.current = false;
+
+    const currentRef = carouselRef.current;
+    if (!currentRef) {
+      return;
+    }
+
+    const initialScrollLeft = currentRef.scrollLeft;
+
+    const handleMouseMove = (moveEvent) => {
+      const x = moveEvent.clientX - dragStartXRef.current;
+      const movement = Math.abs(x);
+
+      if (movement > dragDistanceRef.current) {
+        dragDistanceRef.current = movement;
+      }
+
+      if (dragDistanceRef.current > 6) {
+        shouldSuppressClickRef.current = true;
+      }
+
+      if (carouselRef.current) {
+        carouselRef.current.scrollLeft = initialScrollLeft - x;
+      }
+    };
+
+    const handleMouseUp = () => {
+      window.removeEventListener('mousemove', handleMouseMove);
+      window.removeEventListener('mouseup', handleMouseUp);
+      if (carouselRef.current) {
+        carouselRef.current.style.cursor = 'grab';
+      }
+
+      window.setTimeout(() => {
+        shouldSuppressClickRef.current = false;
+      }, 0);
+    };
+
+    window.addEventListener('mousemove', handleMouseMove);
+    window.addEventListener('mouseup', handleMouseUp);
+    currentRef.style.cursor = 'grabbing';
+  };
+
+  const handleClickCapture = (event) => {
+    if (!shouldSuppressClickRef.current) {
+      return;
+    }
+
+    event.preventDefault();
+    event.stopPropagation();
+  };
+
+  return {
+    carouselRef,
+    canScrollLeft,
+    canScrollRight,
+    handleScroll,
+    handleMouseDown,
+    handleClickCapture,
+  };
+};
+
 const MovieDetails = () => {
   const { id } = useParams();
   const navigate = useNavigate();
@@ -117,7 +311,6 @@ const MovieDetails = () => {
     removeFromWatched,
     removeFromToWatch,
   } = useContext(MovieContext);
-  const castRef = useRef(null);
   const providerRegion = useMemo(() => detectRegionByLocale(), []);
 
   const {
@@ -156,7 +349,25 @@ const MovieDetails = () => {
     gcTime: 1000 * 60 * 60 * 6,
   });
 
+  const { data: recommendedMoviesData = [], isLoading: isRecommendedMoviesLoading } = useQuery({
+    queryKey: ['movie', id, 'recommendations'],
+    queryFn: async () => {
+      try {
+        return await fetchMovieRecommendations(id);
+      } catch {
+        return [];
+      }
+    },
+    enabled: Boolean(id),
+    staleTime: 1000 * 60 * 10,
+    gcTime: 1000 * 60 * 60,
+  });
+
   const cast = useMemo(() => Array.isArray(castData) ? castData : [], [castData]);
+  const recommendedMovies = useMemo(
+    () => dedupeRelatedMovies(recommendedMoviesData, id).slice(0, 20),
+    [recommendedMoviesData, id]
+  );
   const loading = isMovieLoading || isTrailerLoading || isCastLoading;
   const error = movieError;
   const watchProviderSections = useMemo(() => {
@@ -174,68 +385,10 @@ const MovieDetails = () => {
       }))
       .filter((section) => section.providers.length > 0);
   }, [watchProvidersData]);
-  
-  const [canScrollLeft, setCanScrollLeft] = useState(false);
-  const [canScrollRight, setCanScrollRight] = useState(false);
-  
-  useEffect(() => {
-    const checkScroll = () => {
-      if (castRef.current) {
-        const { scrollLeft, scrollWidth, clientWidth } = castRef.current;
-        setCanScrollLeft(scrollLeft > 0);
-        setCanScrollRight(scrollLeft < scrollWidth - clientWidth - 10);
-      }
-    };
-    
-    const element = castRef.current;
-    if (element) {
-      checkScroll();
-      element.addEventListener('scroll', checkScroll);
-      window.addEventListener('resize', checkScroll);
-      return () => {
-        element.removeEventListener('scroll', checkScroll);
-        window.removeEventListener('resize', checkScroll);
-      };
-    }
-  }, [cast]);
+  const watchProvidersLink = watchProvidersData?.link ?? null;
 
-  const handleScroll = (direction) => {
-    const element = castRef.current;
-    if (!element) return;
-    element.scrollBy({
-      left: direction === 'left' ? -300 : 300,
-      behavior: 'smooth',
-    });
-  };
-
-  const handleMouseDown = (event) => {
-    if (event.button !== 0) return;
-    event.preventDefault();
-
-    const startX = event.clientX;
-    const currentRef = castRef.current;
-    if (!currentRef) return;
-    const initialScrollLeft = currentRef.scrollLeft;
-
-    const handleMouseMove = (moveEvent) => {
-      const x = moveEvent.clientX - startX;
-      if (castRef.current) {
-        castRef.current.scrollLeft = initialScrollLeft - x;
-      }
-    };
-
-    const handleMouseUp = () => {
-      window.removeEventListener('mousemove', handleMouseMove);
-      window.removeEventListener('mouseup', handleMouseUp);
-      if (castRef.current) {
-        castRef.current.style.cursor = 'grab';
-      }
-    };
-
-    window.addEventListener('mousemove', handleMouseMove);
-    window.addEventListener('mouseup', handleMouseUp);
-    currentRef.style.cursor = 'grabbing';
-  };
+  const castCarousel = useHorizontalCarousel(cast);
+  const recommendedCarousel = useHorizontalCarousel(recommendedMovies);
 
   if (loading) return <Loading />;
   if (error) return <ErrorMessage message={error.message || 'Erro ao carregar os detalhes do filme.'} />;
@@ -324,6 +477,45 @@ const MovieDetails = () => {
     navigate('/');
   };
 
+  const renderRelatedMovieCard = (relatedMovie) => {
+    const relatedMovieTitle = relatedMovie?.title || 'Filme sem título';
+
+    return (
+      <div key={relatedMovie.id} className="flex-shrink-0 w-28 md:w-32 lg:w-40">
+        <Link
+          to={`/movie/${relatedMovie.id}`}
+          aria-label={`Abrir detalhes de ${relatedMovieTitle}`}
+          className="relative block group rounded-lg shadow-lg overflow-hidden aspect-[2/3] bg-neutral-800 transition-all duration-300 hover:shadow-2xl hover:shadow-tv-accent/20"
+        >
+          {relatedMovie.poster_path ? (
+            <img
+              src={`https://image.tmdb.org/t/p/w500${relatedMovie.poster_path}`}
+              alt={relatedMovieTitle}
+              className="w-full h-full object-cover transition-transform duration-300 ease-in-out group-hover:scale-110"
+              onMouseDown={(event) => event.preventDefault()}
+            />
+          ) : (
+            <div className="w-full h-full bg-neutral-700 flex items-center justify-center text-center px-4">
+              <span className="text-sm text-gray-300">Poster não disponível</span>
+            </div>
+          )}
+
+          <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black via-black/60 to-transparent pb-1.5 pt-5 px-1.5 md:hidden">
+            <p className="text-white text-[10px] font-semibold leading-tight line-clamp-2">{relatedMovieTitle}</p>
+          </div>
+          <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/50 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 ease-in-out hidden md:flex flex-col justify-end p-4">
+            <h3 className="text-white text-xl font-semibold line-clamp-2 mb-2 transform translate-y-4 group-hover:translate-y-0 transition-transform duration-300 ease-in-out">
+              {relatedMovieTitle}
+            </h3>
+            <div className="transform translate-y-4 group-hover:translate-y-0 transition-transform duration-300 ease-in-out delay-100">
+              <StarRating voteAverage={relatedMovie.vote_average} />
+            </div>
+          </div>
+        </Link>
+      </div>
+    );
+  };
+
   return (
     <>
       <PageSEO
@@ -346,6 +538,8 @@ const MovieDetails = () => {
               />
               <div className="absolute inset-0 bg-gradient-to-t from-black via-black/60 to-transparent" />
               <div className="absolute inset-0 bg-gradient-to-r from-black/80 via-transparent to-transparent hidden md:block" />
+              <div className="pointer-events-none absolute -left-10 bottom-10 h-36 w-36 rounded-full bg-tv-accent/20 blur-3xl" />
+              <div className="pointer-events-none absolute right-16 top-10 h-44 w-44 rounded-full bg-red-900/25 blur-3xl" />
             </>
           ) : (
             <div className="w-full h-full bg-gradient-to-br from-neutral-900 to-black" />
@@ -357,26 +551,32 @@ const MovieDetails = () => {
                 {movie.title}
               </h1>
               
-              <div className="flex flex-wrap items-center gap-2 md:gap-4 text-xs md:text-base text-gray-200">
+              <div className="flex flex-wrap items-center gap-2 md:gap-3 text-xs md:text-sm text-gray-200">
                 {releaseYear && (
-                  <span className="flex items-center gap-1 md:gap-1.5 bg-black/40 backdrop-blur-sm px-2 py-1 rounded-md md:bg-transparent md:backdrop-blur-none md:px-0 md:py-0">
-                    <FaCalendar className="text-tv-accent" size={12} />
+                  <span className="flex items-center gap-1.5">
+                    <FaCalendar className="text-tv-accent" size={11} />
                     {releaseYear}
                   </span>
                 )}
                 {runtime && (
-                  <span className="flex items-center gap-1 md:gap-1.5 bg-black/40 backdrop-blur-sm px-2 py-1 rounded-md md:bg-transparent md:backdrop-blur-none md:px-0 md:py-0">
-                    <FaClock className="text-tv-accent" size={12} />
+                  <span className="flex items-center gap-1.5">
+                    <FaClock className="text-tv-accent" size={11} />
                     {runtime}
                   </span>
                 )}
                 {hasVoteAverage && (
-                  <span className="flex items-center gap-1 md:gap-1.5 bg-black/40 backdrop-blur-sm px-2 py-1 rounded-md md:bg-transparent md:backdrop-blur-none md:px-0 md:py-0">
-                    <FaStar className="text-yellow-500" size={12} />
+                  <span className="flex items-center gap-1.5">
+                    <FaStar className="text-yellow-500" size={11} />
                     {voteAverage}
                   </span>
                 )}
               </div>
+
+              {movie.tagline ? (
+                <p className="mt-3 max-w-2xl text-sm italic text-gray-200/90 md:text-base">
+                  "{movie.tagline}"
+                </p>
+              ) : null}
             </div>
           </div>
         </div>
@@ -392,14 +592,14 @@ const MovieDetails = () => {
                   ? 'Marcar como não assistido no mobile'
                   : 'Marcar como assistido no mobile'
               }
-              className={`flex-1 py-3 px-4 rounded-lg font-semibold transition-all duration-200 flex items-center justify-center gap-2 text-sm ${
+              className={`flex-1 ${
                 isWatched
-                  ? 'bg-white text-black hover:bg-gray-200'
-                  : 'btn-minimal-rect text-white'
+                  ? ACTION_BUTTON_SUCCESS_CLASS
+                  : ACTION_BUTTON_PRIMARY_CLASS
               }`}
             >
               {isWatched ? <FaCheck size={14} /> : <FaPlus size={14} />}
-              {isWatched ? 'Assistido' : 'Assistido'}
+              {isWatched ? 'Assistido' : 'Marcar'}
             </button>
             
             <button
@@ -410,10 +610,10 @@ const MovieDetails = () => {
                   ? 'Remover da lista para assistir no mobile'
                   : 'Adicionar a lista para assistir no mobile'
               }
-              className={`flex-1 py-3 px-4 rounded-lg font-semibold transition-all duration-200 flex items-center justify-center gap-2 text-sm ${
+              className={`flex-1 ${
                 isToWatch
-                  ? 'bg-neutral-700 text-white hover:bg-neutral-600 border-2 border-white'
-                  : 'bg-neutral-800 text-white hover:bg-neutral-700 border-2 border-neutral-700'
+                  ? ACTION_BUTTON_ACTIVE_CLASS
+                  : ACTION_BUTTON_NEUTRAL_CLASS
               }`}
             >
               {isToWatch ? <FaCheck size={14} /> : <FaPlus size={14} />}
@@ -429,13 +629,25 @@ const MovieDetails = () => {
                   <img
                     src={`https://image.tmdb.org/t/p/w500${movie.poster_path}`}
                     alt={movie.title}
-                    className="w-full rounded-xl shadow-2xl shadow-black/50 mb-4"
+                    className="mb-4 w-full rounded-2xl shadow-2xl shadow-black/55"
                   />
                 ) : (
-                  <div className="w-full aspect-[2/3] bg-neutral-800 rounded-xl flex items-center justify-center mb-4">
+                  <div className="mb-4 flex w-full aspect-[2/3] items-center justify-center rounded-2xl bg-neutral-800">
                     <span className="text-gray-400 text-sm">Sem poster</span>
                   </div>
                 )}
+
+                <div className="mb-4 flex flex-wrap gap-2">
+                  <span
+                    className={`rounded-full border px-2.5 py-1 text-[11px] font-semibold uppercase tracking-wide ${
+                      isWatched
+                        ? 'border-neutral-300/60 bg-neutral-100 text-neutral-900'
+                        : 'border-neutral-700 bg-neutral-900/80 text-gray-300'
+                    }`}
+                  >
+                    {isWatched ? 'Assistido' : 'Não assistido'}
+                  </span>
+                </div>
                 
                 <div className="space-y-3">
                   <button
@@ -444,10 +656,10 @@ const MovieDetails = () => {
                     aria-label={
                       isWatched ? 'Remover dos assistidos' : 'Adicionar aos assistidos'
                     }
-                    className={`w-full py-3 px-4 rounded-lg font-semibold transition-all duration-200 flex items-center justify-center gap-2 ${
+                    className={`w-full ${
                       isWatched
-                        ? 'bg-white text-black hover:bg-gray-200'
-                        : 'btn-minimal-rect text-white'
+                        ? ACTION_BUTTON_SUCCESS_CLASS
+                        : ACTION_BUTTON_PRIMARY_CLASS
                     }`}
                   >
                     {isWatched ? <FaCheck size={16} /> : <FaPlus size={16} />}
@@ -462,10 +674,10 @@ const MovieDetails = () => {
                         ? 'Remover da lista para assistir'
                         : 'Adicionar à lista para assistir'
                     }
-                    className={`w-full py-3 px-4 rounded-lg font-semibold transition-all duration-200 flex items-center justify-center gap-2 ${
+                    className={`w-full ${
                       isToWatch
-                        ? 'bg-neutral-700 text-white hover:bg-neutral-600 border-2 border-white'
-                        : 'bg-neutral-800 text-white hover:bg-neutral-700 border-2 border-neutral-700'
+                        ? ACTION_BUTTON_ACTIVE_CLASS
+                        : ACTION_BUTTON_NEUTRAL_CLASS
                     }`}
                   >
                     {isToWatch ? <FaCheck size={16} /> : <FaPlus size={16} />}
@@ -478,8 +690,8 @@ const MovieDetails = () => {
             <div className="lg:col-span-9 space-y-4 md:space-y-6">
               
               {trailer && (
-                <div className="relative group">
-                  <div className="aspect-video w-full overflow-hidden rounded-lg md:rounded-xl shadow-2xl shadow-black/50">
+                <div className="relative">
+                  <div className="aspect-video w-full overflow-hidden rounded-2xl shadow-2xl shadow-black/60">
                     <iframe
                       className="w-full h-full"
                       src={`https://www.youtube.com/embed/${trailer.key}`}
@@ -493,38 +705,40 @@ const MovieDetails = () => {
               {movie.genres && movie.genres.length > 0 && (
                 <div className="flex flex-wrap gap-2">
                   {movie.genres.map((genre) => (
-                    <span
+                    <Link
                       key={genre.id}
-                      className="px-3 md:px-4 py-1 md:py-1.5 bg-neutral-800/80 backdrop-blur-sm border border-neutral-700 hover:border-tv-accent text-white rounded-full text-xs md:text-sm font-medium transition-colors"
+                      to={`/category/${genre.id}`}
+                      aria-label={`Abrir categoria ${genre.name}`}
+                      className="rounded-full border border-neutral-700 bg-neutral-900/85 px-3 py-1.5 text-xs font-medium text-gray-200 transition-colors duration-200 hover:border-tv-accent/70 hover:bg-neutral-800 hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-tv-accent/45 md:px-4 md:text-sm"
                     >
                       {genre.name}
-                    </span>
+                    </Link>
                   ))}
                 </div>
               )}
 
-              <div className="bg-neutral-900/50 backdrop-blur-sm rounded-lg md:rounded-xl p-4 md:p-6 lg:p-8 border border-neutral-800">
-                <h2 className="text-xl md:text-2xl lg:text-3xl font-bold mb-3 md:mb-4 text-tv-accent">Sinopse</h2>
+              <div className={SECTION_CARD_CLASS}>
+                <h2 className="mb-3 text-xl font-bold text-white md:mb-4 md:text-2xl lg:text-3xl">Sinopse</h2>
                 <p className="text-gray-300 leading-relaxed text-sm md:text-base lg:text-lg">
                   {movie.overview || 'Sinopse não disponível.'}
                 </p>
               </div>
 
               <div className="grid grid-cols-2 gap-2 md:grid-cols-4 md:gap-4">
-                <div className="bg-neutral-900/50 backdrop-blur-sm rounded-lg md:rounded-xl p-3 md:p-4 border border-neutral-800 text-center">
+                <div className={STAT_CARD_CLASS}>
                   <p className="text-gray-400 text-xs md:text-sm mb-1">{primaryReleaseLabel}</p>
                   <p className="text-white font-semibold text-xs md:text-base">{releaseDate}</p>
                 </div>
 
                 {hasDifferentBrazilReleaseDate && (
-                  <div className="bg-neutral-900/50 backdrop-blur-sm rounded-lg md:rounded-xl p-3 md:p-4 border border-neutral-800 text-center">
+                  <div className={STAT_CARD_CLASS}>
                     <p className="text-gray-400 text-xs md:text-sm mb-1">Lançamento oficial</p>
                     <p className="text-white font-semibold text-xs md:text-base">{officialReleaseDate}</p>
                   </div>
                 )}
                 
                 {hasVoteAverage && (
-                  <div className="bg-neutral-900/50 backdrop-blur-sm rounded-lg md:rounded-xl p-3 md:p-4 border border-neutral-800 text-center">
+                  <div className={STAT_CARD_CLASS}>
                     <p className="text-gray-400 text-xs md:text-sm mb-1">Avaliação</p>
                     <div className="flex items-center justify-center gap-1 md:gap-2">
                       <FaStar className="text-yellow-500" size={14} />
@@ -534,28 +748,25 @@ const MovieDetails = () => {
                 )}
 
                 {runtime && (
-                  <div className="bg-neutral-900/50 backdrop-blur-sm rounded-lg md:rounded-xl p-3 md:p-4 border border-neutral-800 text-center">
+                  <div className={STAT_CARD_CLASS}>
                     <p className="text-gray-400 text-xs md:text-sm mb-1">Duração</p>
                     <p className="text-white font-semibold text-xs md:text-base">{runtime}</p>
                   </div>
                 )}
               </div>
 
-              <div className="bg-neutral-900/50 backdrop-blur-sm rounded-lg md:rounded-xl p-4 md:p-6 lg:p-8 border border-neutral-800">
+              <div className={SECTION_CARD_CLASS}>
                 <div className="mb-4 md:mb-6 flex flex-wrap items-center justify-between gap-3">
-                  <h2 className="text-xl md:text-2xl lg:text-3xl font-bold text-tv-accent">Onde Assistir</h2>
-                  {watchProvidersData?.link ? (
-                    <a
-                      href={watchProvidersData.link}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="inline-flex items-center gap-2 rounded-md border border-neutral-700 bg-neutral-800 px-3 py-2 text-xs font-semibold text-white transition-colors hover:bg-neutral-700 md:text-sm"
-                    >
-                      Ver no TMDB
-                      <FaExternalLinkAlt size={10} />
-                    </a>
-                  ) : null}
+                  <div>
+                    <h2 className="text-xl md:text-2xl lg:text-3xl font-bold text-white">Onde Assistir</h2>
+                  </div>
                 </div>
+
+                {watchProvidersLink ? (
+                  <p className="mb-4 text-xs text-gray-400 md:text-sm">
+                    Clique em uma plataforma para abrir os links oficiais de exibição no TMDB.
+                  </p>
+                ) : null}
 
                 {isWatchProvidersLoading ? (
                   <p className="text-sm text-gray-400">Buscando provedores de streaming...</p>
@@ -567,21 +778,45 @@ const MovieDetails = () => {
                           {section.label}
                         </p>
                         <div className="flex flex-wrap gap-2 md:gap-3">
-                          {section.providers.map((provider) => (
-                            <span
-                              key={provider.provider_id}
-                              className="inline-flex items-center gap-2 rounded-full border border-neutral-700 bg-neutral-800 px-3 py-1.5 text-xs font-medium text-white md:text-sm"
-                            >
-                              {provider.logo_path ? (
-                                <img
-                                  src={`https://image.tmdb.org/t/p/w92${provider.logo_path}`}
-                                  alt={provider.provider_name}
-                                  className="h-5 w-5 rounded-full object-cover"
-                                />
-                              ) : null}
-                              {provider.provider_name}
-                            </span>
-                          ))}
+                          {section.providers.map((provider) => {
+                            if (watchProvidersLink) {
+                              return (
+                                <a
+                                  key={provider.provider_id}
+                                  href={watchProvidersLink}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  aria-label={`Abrir ${provider.provider_name} para assistir no TMDB`}
+                                  className="inline-flex items-center gap-2 rounded-full border border-neutral-800 bg-neutral-900/55 px-3 py-1.5 text-xs font-medium text-gray-300 transition-colors duration-200 hover:border-neutral-700 hover:bg-neutral-800/65 hover:text-gray-200 md:text-sm"
+                                >
+                                  {provider.logo_path ? (
+                                    <img
+                                      src={`https://image.tmdb.org/t/p/w92${provider.logo_path}`}
+                                      alt={provider.provider_name}
+                                      className="h-5 w-5 rounded-full object-cover"
+                                    />
+                                  ) : null}
+                                  {provider.provider_name}
+                                </a>
+                              );
+                            }
+
+                            return (
+                              <span
+                                key={provider.provider_id}
+                                className="inline-flex items-center gap-2 rounded-full border border-neutral-800 bg-neutral-900/55 px-3 py-1.5 text-xs font-medium text-gray-300 md:text-sm"
+                              >
+                                {provider.logo_path ? (
+                                  <img
+                                    src={`https://image.tmdb.org/t/p/w92${provider.logo_path}`}
+                                    alt={provider.provider_name}
+                                    className="h-5 w-5 rounded-full object-cover"
+                                  />
+                                ) : null}
+                                {provider.provider_name}
+                              </span>
+                            );
+                          })}
                         </div>
                       </div>
                     ))}
@@ -593,67 +828,90 @@ const MovieDetails = () => {
                 )}
               </div>
 
-              <div className="bg-neutral-900/50 backdrop-blur-sm rounded-lg md:rounded-xl p-4 md:p-6 lg:p-8 border border-neutral-800">
-                <h2 className="text-xl md:text-2xl lg:text-3xl font-bold mb-4 md:mb-6 text-tv-accent">Elenco Principal</h2>
+              <div className={SECTION_CARD_CLASS}>
+                <h2 className="mb-4 text-xl font-bold text-white md:mb-6 md:text-2xl lg:text-3xl">Elenco Principal</h2>
                 {cast.length > 0 ? (
                   <div className="relative">
-                    {canScrollLeft && (
+                    {castCarousel.canScrollLeft && (
                       <button
                         type="button"
-                        onClick={() => handleScroll('left')}
-                        className="hidden md:flex absolute left-0 top-1/2 -translate-y-1/2 -translate-x-6 z-10 w-12 h-12 items-center justify-center bg-tv-accent text-white rounded-full hover:bg-tv-accent-hover shadow-xl transition-all duration-200"
+                        onClick={() => castCarousel.handleScroll('left')}
+                        className={CAROUSEL_LEFT_ARROW_CLASS}
                         aria-label="Scroll para a esquerda"
                       >
-                        <FaChevronLeft size={18} />
+                        <FaChevronLeft size={14} />
                       </button>
                     )}
                     
                     <div
-                      ref={castRef}
+                      ref={castCarousel.carouselRef}
                       className="flex overflow-x-auto gap-3 md:gap-4 pb-4 scrollbar-hide cursor-grab active:cursor-grabbing"
                       style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
-                      onMouseDown={handleMouseDown}
+                      onMouseDown={castCarousel.handleMouseDown}
+                      onClickCapture={castCarousel.handleClickCapture}
                     >
-                      {cast.map((actor) => (
-                        <div 
-                          key={actor.id} 
-                          className="flex-shrink-0 w-28 md:w-32 lg:w-40 group"
-                        >
-                          <div className="relative overflow-hidden rounded-lg mb-2 md:mb-3 shadow-lg transition-transform duration-200 group-hover:scale-105">
-                            {actor.profile_path ? (
-                              <img
-                                src={`https://image.tmdb.org/t/p/w185${actor.profile_path}`}
-                                alt={actor.name}
-                                className="w-full aspect-[2/3] object-cover"
-                                onMouseDown={(event) => event.preventDefault()}
-                              />
-                            ) : (
-                              <div className="w-full aspect-[2/3] bg-neutral-800 flex items-center justify-center">
-                                <span className="text-3xl md:text-4xl">👤</span>
-                              </div>
-                            )}
-                            <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
-                          </div>
-                          <p className="text-xs md:text-sm font-semibold line-clamp-2 text-center mb-0.5 md:mb-1">
-                            {actor.name}
-                          </p>
-                          {actor.character && (
-                            <p className="text-[10px] md:text-xs text-gray-400 line-clamp-1 text-center">
-                              {actor.character}
+                      {cast.map((actor) => {
+                        const actorName = actor.name || 'Perfil de elenco';
+                        const actorCardContent = (
+                          <>
+                            <div className="relative overflow-hidden rounded-lg mb-2 md:mb-3 shadow-lg transition-transform duration-200 group-hover:scale-105">
+                              {actor.profile_path ? (
+                                <img
+                                  src={`https://image.tmdb.org/t/p/w185${actor.profile_path}`}
+                                  alt={actorName}
+                                  className="w-full aspect-[2/3] object-cover"
+                                  onMouseDown={(event) => event.preventDefault()}
+                                />
+                              ) : (
+                                <div className="w-full aspect-[2/3] bg-neutral-800 flex items-center justify-center">
+                                  <span className="text-3xl md:text-4xl">👤</span>
+                                </div>
+                              )}
+                              <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
+                            </div>
+                            <p className="text-xs md:text-sm font-semibold line-clamp-2 text-center mb-0.5 md:mb-1">
+                              {actorName}
                             </p>
-                          )}
-                        </div>
-                      ))}
+                            {actor.character && (
+                              <p className="text-[10px] md:text-xs text-gray-400 line-clamp-1 text-center">
+                                {actor.character}
+                              </p>
+                            )}
+                          </>
+                        );
+
+                        if (actor.id == null) {
+                          return (
+                            <div
+                              key={`${actorName}-no-id`}
+                              className="flex-shrink-0 w-28 md:w-32 lg:w-40 group"
+                            >
+                              {actorCardContent}
+                            </div>
+                          );
+                        }
+
+                        return (
+                          <Link
+                            key={actor.id}
+                            to={`/person/${actor.id}`}
+                            aria-label={`Abrir perfil de ${actorName}`}
+                            className="flex-shrink-0 w-28 md:w-32 lg:w-40 group"
+                          >
+                            {actorCardContent}
+                          </Link>
+                        );
+                      })}
                     </div>
                     
-                    {canScrollRight && (
+                    {castCarousel.canScrollRight && (
                       <button
                         type="button"
-                        onClick={() => handleScroll('right')}
-                        className="hidden md:flex absolute right-0 top-1/2 -translate-y-1/2 translate-x-6 z-10 w-12 h-12 items-center justify-center bg-tv-accent text-white rounded-full hover:bg-tv-accent-hover shadow-xl transition-all duration-200"
+                        onClick={() => castCarousel.handleScroll('right')}
+                        className={CAROUSEL_RIGHT_ARROW_CLASS}
                         aria-label="Scroll para a direita"
                       >
-                        <FaChevronRight size={18} />
+                        <FaChevronRight size={14} />
                       </button>
                     )}
                   </div>
@@ -662,20 +920,80 @@ const MovieDetails = () => {
                 )}
               </div>
 
+              <div className={SECTION_CARD_CLASS}>
+                <h2 className="mb-4 text-xl font-bold text-white md:mb-6 md:text-2xl lg:text-3xl">Você tambem pode gostar</h2>
+                {isRecommendedMoviesLoading ? (
+                  <p className="text-sm text-gray-400">Buscando filmes recomendados...</p>
+                ) : recommendedMovies.length > 0 ? (
+                  <div className="relative">
+                    {recommendedCarousel.canScrollLeft ? (
+                      <button
+                        type="button"
+                        onClick={() => recommendedCarousel.handleScroll('left')}
+                        className={CAROUSEL_LEFT_ARROW_CLASS}
+                        aria-label="Rolar filmes recomendados para a esquerda"
+                      >
+                        <FaChevronLeft size={14} />
+                      </button>
+                    ) : null}
+
+                    <div
+                      ref={recommendedCarousel.carouselRef}
+                      className="flex overflow-x-auto gap-3 md:gap-4 pb-4 scrollbar-hide cursor-grab active:cursor-grabbing"
+                      style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
+                      onMouseDown={recommendedCarousel.handleMouseDown}
+                      onClickCapture={recommendedCarousel.handleClickCapture}
+                    >
+                      {recommendedMovies.map((relatedMovie) => renderRelatedMovieCard(relatedMovie))}
+                    </div>
+
+                    {recommendedCarousel.canScrollRight ? (
+                      <button
+                        type="button"
+                        onClick={() => recommendedCarousel.handleScroll('right')}
+                        className={CAROUSEL_RIGHT_ARROW_CLASS}
+                        aria-label="Rolar filmes recomendados para a direita"
+                      >
+                        <FaChevronRight size={14} />
+                      </button>
+                    ) : null}
+                  </div>
+                ) : (
+                  <p className="text-gray-400 text-center py-8">Nenhum filme recomendado disponível.</p>
+                )}
+              </div>
+
               <div className="flex flex-wrap justify-center gap-3 pt-2 md:pt-4">
                 <button
                   type="button"
                   onClick={handleBackNavigation}
-                  className="inline-flex items-center gap-2 bg-tv-accent hover:bg-tv-accent-hover text-white py-2.5 md:py-3 px-6 md:px-8 rounded-lg transition-all duration-200 font-medium border border-tv-accent/40 text-sm md:text-base"
+                  className={NAV_PRIMARY_BUTTON_CLASS}
                 >
-                  <FaChevronLeft size={12} />
-                  Voltar
+                  <svg
+                    className="h-4 w-0 -mr-1 -translate-x-1 text-gray-100 opacity-0 transition-all duration-200 group-hover:mr-0 group-hover:w-4 group-hover:translate-x-0 group-hover:opacity-100 group-hover:text-red-500 group-focus-visible:mr-0 group-focus-visible:w-4 group-focus-visible:translate-x-0 group-focus-visible:opacity-100 group-focus-visible:text-red-500"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    xmlns="http://www.w3.org/2000/svg"
+                    aria-hidden="true"
+                  >
+                    <path
+                      d="M19 12H5M5 12L12 5M5 12L12 19"
+                      stroke="currentColor"
+                      strokeWidth="1.8"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                    />
+                  </svg>
+                  <span className="text-gray-100 transition-colors duration-200 group-hover:text-red-500 group-focus-visible:text-red-500">
+                    Voltar
+                  </span>
                 </button>
 
                 <Link
                   to="/"
-                  className="inline-flex items-center gap-2 bg-neutral-800 hover:bg-neutral-700 text-white py-2.5 md:py-3 px-6 md:px-8 rounded-lg transition-all duration-200 font-medium border border-neutral-700 hover:border-neutral-600 text-sm md:text-base"
+                  className={NAV_SECONDARY_BUTTON_CLASS}
                 >
+                  <FaHome size={12} />
                   Ir para Início
                 </Link>
               </div>
