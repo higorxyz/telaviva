@@ -81,7 +81,7 @@ const ToWatchMovies = () => {
         <div className="max-w-[2000px] mx-auto">
           <div className="px-4 md:px-6 lg:px-8 xl:px-10 mb-8">
             <h1 className="text-3xl md:text-4xl lg:text-5xl font-bold mb-2">
-              Ver Depois
+              Ver depois
             </h1>
           </div>
 

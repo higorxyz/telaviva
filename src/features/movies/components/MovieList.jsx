@@ -1,10 +1,12 @@
-import React, { useEffect, useMemo } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { useInfiniteQuery } from '@tanstack/react-query';
 import ErrorMessage from '../../../components/feedback/ErrorMessage';
 import Loading from '../../../components/feedback/Loading';
 import useIntersectionObserver from '../../../hooks/useIntersectionObserver';
 import MovieCard from './MovieCard';
 import MovieCardSkeleton from './MovieCardSkeleton';
+
+const MOVIE_BATCH_SIZE = 24;
 
 const MovieList = ({
   title,
@@ -18,9 +20,17 @@ const MovieList = ({
   showResultCount = false,
   disableInfiniteScroll = false,
 }) => {
+  const [visibleCount, setVisibleCount] = useState(MOVIE_BATCH_SIZE);
+
   const { targetRef: sentinelRef, isVisible } = useIntersectionObserver({
     rootMargin: '200px 0px',
   });
+
+  const queryScopeKey = useMemo(() => JSON.stringify(queryKey || title), [queryKey, title]);
+
+  useEffect(() => {
+    setVisibleCount(MOVIE_BATCH_SIZE);
+  }, [queryScopeKey]);
 
   const { data, status, error, fetchNextPage, hasNextPage, isFetchingNextPage } = useInfiniteQuery({
     queryKey: ['movies-list', queryKey || title],
@@ -71,13 +81,64 @@ const MovieList = ({
     return transformMovies(movies);
   }, [movies, transformMovies]);
 
-  const canLoadMore = Boolean(hasNextPage) && !disableInfiniteScroll;
+  const displayedMovies = useMemo(
+    () => visibleMovies.slice(0, visibleCount),
+    [visibleCount, visibleMovies]
+  );
+
+  const hasHiddenLoadedMovies = displayedMovies.length < visibleMovies.length;
+  const canFetchMoreFromApi = Boolean(hasNextPage) && !disableInfiniteScroll;
+  const shouldRenderSentinel = !disableInfiniteScroll && (hasHiddenLoadedMovies || Boolean(hasNextPage));
 
   useEffect(() => {
-    if (isVisible && canLoadMore && !isFetchingNextPage) {
+    if (disableInfiniteScroll || status !== 'success') {
+      return;
+    }
+
+    if (visibleMovies.length >= MOVIE_BATCH_SIZE) {
+      return;
+    }
+
+    if (hasNextPage && !isFetchingNextPage) {
       fetchNextPage();
     }
-  }, [canLoadMore, fetchNextPage, isFetchingNextPage, isVisible]);
+  }, [
+    disableInfiniteScroll,
+    fetchNextPage,
+    hasNextPage,
+    isFetchingNextPage,
+    status,
+    visibleMovies.length,
+  ]);
+
+  useEffect(() => {
+    if (!isVisible || disableInfiniteScroll) {
+      return;
+    }
+
+    if (displayedMovies.length < MOVIE_BATCH_SIZE && hasNextPage) {
+      return;
+    }
+
+    const remainingLoaded = visibleMovies.length - displayedMovies.length;
+
+    if (remainingLoaded >= MOVIE_BATCH_SIZE || (!hasNextPage && remainingLoaded > 0)) {
+      setVisibleCount((previousCount) => Math.min(previousCount + MOVIE_BATCH_SIZE, visibleMovies.length));
+      return;
+    }
+
+    if (hasNextPage && !isFetchingNextPage) {
+      fetchNextPage();
+    }
+  }, [
+    disableInfiniteScroll,
+    displayedMovies.length,
+    fetchNextPage,
+    hasNextPage,
+    isFetchingNextPage,
+    isVisible,
+    visibleMovies.length,
+  ]);
 
   if (status === 'pending') {
     return (
@@ -137,9 +198,9 @@ const MovieList = ({
           {headerContent ? <div className="mt-5">{headerContent}</div> : null}
         </div>
 
-        {visibleMovies.length > 0 ? (
+        {displayedMovies.length > 0 ? (
           <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 xl:grid-cols-7 2xl:grid-cols-8 gap-3 md:gap-4 lg:gap-6 px-4 md:px-6 lg:px-8 xl:px-10">
-            {visibleMovies.map((movie) => (
+            {displayedMovies.map((movie) => (
               <MovieCard key={movie.id} movie={movie} />
             ))}
           </div>
@@ -148,7 +209,7 @@ const MovieList = ({
             <div className="rounded-2xl border border-neutral-800 bg-neutral-900/50 p-6 text-center">
               <h2 className="text-xl font-semibold text-white">Nenhum filme corresponde aos filtros selecionados</h2>
               <p className="mt-2 text-sm text-gray-400">
-                {canLoadMore
+                {canFetchMoreFromApi
                   ? 'Ajuste os filtros para ampliar os resultados ou continue navegando para ver mais filmes.'
                   : 'Ajuste os filtros para ampliar os resultados.'}
               </p>
@@ -156,7 +217,7 @@ const MovieList = ({
           </div>
         )}
 
-        {canLoadMore ? <div ref={sentinelRef} className="h-20" aria-hidden="true" /> : null}
+        {shouldRenderSentinel ? <div ref={sentinelRef} className="h-20" aria-hidden="true" /> : null}
 
         {isFetchingNextPage && !disableInfiniteScroll && (
           <div className="flex justify-center items-center py-8">
@@ -167,7 +228,7 @@ const MovieList = ({
           </div>
         )}
 
-        {!hasNextPage && visibleMovies.length > 0 && (
+        {!hasNextPage && displayedMovies.length > 0 && displayedMovies.length >= visibleMovies.length && (
           <div className="flex flex-col items-center py-12">
             <div className="w-16 h-1 bg-gradient-to-r from-transparent via-tv-accent to-transparent rounded-full mb-4" />
             <p className="text-sm md:text-base text-gray-400 text-center">

@@ -6,12 +6,12 @@ import PageSEO from '../../../components/seo/PageSEO';
 const TIME_WINDOWS = {
   day: {
     label: 'Hoje',
-    title: 'Em Tendência Hoje',
+    title: 'Tendências de hoje',
     seoDescription: 'Veja os filmes em maior destaque hoje no TMDB.',
   },
   week: {
-    label: 'Esta Semana',
-    title: 'Em Tendência na Semana',
+    label: 'Esta semana',
+    title: 'Tendências da semana',
     seoDescription: 'Veja os filmes em maior destaque da semana no TMDB.',
   },
 };
@@ -29,7 +29,7 @@ const TrendingMovies = () => {
   const queryKey = useMemo(() => ['trending', timeWindow], [timeWindow]);
 
   const headerContent = (
-    <div className="inline-flex rounded-xl border border-neutral-700 bg-neutral-900/80 p-1">
+    <div className="inline-flex items-center gap-5 md:gap-6">
       {Object.entries(TIME_WINDOWS).map(([windowKey, config]) => {
         const isActive = timeWindow === windowKey;
 
@@ -38,14 +38,20 @@ const TrendingMovies = () => {
             key={windowKey}
             type="button"
             onClick={() => setTimeWindow(windowKey)}
-            className={`rounded-lg px-4 py-2 text-sm font-semibold md:text-base ${
-              isActive
-                ? 'btn-minimal-rect btn-minimal-rect--active'
-                : 'text-gray-300 transition-colors hover:bg-neutral-800 hover:text-white'
+            className={`group relative pb-1 text-sm font-semibold transition-colors duration-300 md:text-base ${
+              isActive ? 'text-tv-accent' : 'text-gray-300 hover:text-tv-accent'
             }`}
             aria-pressed={isActive}
           >
             {config.label}
+            <span
+              aria-hidden="true"
+              className={`pointer-events-none absolute inset-x-0 -bottom-0.5 h-px origin-left transform transition-all duration-300 ${
+                isActive
+                  ? 'scale-x-100 bg-tv-accent opacity-100'
+                  : 'scale-x-90 bg-gray-500/70 opacity-70 group-hover:scale-x-100 group-hover:bg-tv-accent group-hover:opacity-100'
+              }`}
+            />
           </button>
         );
       })}
