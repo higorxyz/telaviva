@@ -1,6 +1,6 @@
 import { Hero, HERO_HEIGHT } from '@/features/catalog/Hero';
 import { Rail } from '@/features/catalog/Rail';
-import { buildHomeRails } from '@/features/catalog/rails';
+import { dedupeRails, loadHomeRails, PER_RAIL } from '@/features/catalog/rails';
 import { cn } from '@/lib/cn';
 import { Skeleton } from '@/ui/Skeleton';
 import { getCurrentYear, getFeatured } from './data';
@@ -10,7 +10,7 @@ const EDITORIAL_AFTER = 6;
 
 export async function HeroSection() {
   const featured = await getFeatured();
-  return featured ? <Hero item={featured.item} /> : <div className="h-24" />;
+  return featured ? <Hero item={featured.item} /> : <h1 className="sr-only">TelaViva — filmes e séries</h1>;
 }
 
 export function HeroSkeleton() {
@@ -18,17 +18,16 @@ export function HeroSkeleton() {
 }
 
 export async function HomeRails() {
-  const featured = await getFeatured();
-  const [rails, year] = await Promise.all([
-    buildHomeRails(featured ? [featured.key] : []),
-    getCurrentYear(),
-  ]);
+  // Sources load in parallel with the featured pick; dedupe against it afterwards.
+  const [featured, rails, year] = await Promise.all([getFeatured(), loadHomeRails(), getCurrentYear()]);
+  const exclude = featured ? [featured.key] : [];
+  const deduped = dedupeRails(rails, { perRail: PER_RAIL, exclude });
   return (
     <>
-      {rails.map((rail, i) => (
+      {deduped.map((rail, i) => (
         <div key={rail.id} className="space-y-12 md:space-y-14">
           <Rail {...rail} priorityCount={i === 0 ? 2 : 0} />
-          {i === Math.min(EDITORIAL_AFTER, rails.length) - 1 ? <QuickActions year={year} /> : null}
+          {i === Math.min(EDITORIAL_AFTER, deduped.length) - 1 ? <QuickActions year={year} /> : null}
         </div>
       ))}
     </>

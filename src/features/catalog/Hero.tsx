@@ -51,10 +51,11 @@ export function Hero({ item }: { item: HeroItem }) {
           <AccentTitle as="h1" text={item.title} className="mt-3 text-5xl leading-[1.02] md:text-7xl" />
           <div className="mt-4 flex flex-wrap items-center gap-x-3 gap-y-2 font-sans text-sm text-ivory-muted">
             <RatingRing value={item.voteAverage} size="md" />
-            {meta.map((part) => (
+            {meta.map((part, i) => (
               <span key={part} className="flex items-center gap-3">
-                <span aria-hidden="true">·</span>
                 {part}
+                {/* Separator trails its item, so a wrapped line never starts with it. */}
+                {i < meta.length - 1 ? <span aria-hidden="true">·</span> : null}
               </span>
             ))}
           </div>

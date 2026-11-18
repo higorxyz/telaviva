@@ -1,5 +1,6 @@
 import { cacheLife, cacheTag } from 'next/cache';
-import { pickHero, mediaKey } from '@/features/catalog/hero-pick';
+import { pickHero } from '@/features/catalog/hero-pick';
+import { mediaKey } from '@/features/catalog/media-key';
 import type { HeroItem } from '@/features/catalog/Hero';
 import { getMovieDetails, getMovieList, getTrending } from '@/features/tmdb/movies';
 import { getTvDetails } from '@/features/tmdb/tv';
@@ -14,9 +15,9 @@ async function sources() {
   const items = (r: PromiseSettledResult<{ results: MediaSummary[] }>) =>
     r.status === 'fulfilled' ? r.value.results : [];
   return [
-    { items: items(trending), sourceBoost: 22 },
-    { items: items(popular), sourceBoost: 15 },
-    { items: items(topRated), sourceBoost: 10 },
+    { items: items(trending), sourceBoost: 22, rankBoost: 13 },
+    { items: items(popular), sourceBoost: 15, rankBoost: 11 },
+    { items: items(topRated), sourceBoost: 10, rankBoost: 9 },
   ];
 }
 
@@ -44,7 +45,7 @@ export async function getFeatured(): Promise<{ item: HeroItem; key: string } | n
 /** Current year on the Sao Paulo calendar, computed inside a cache scope. */
 export async function getCurrentYear(): Promise<number> {
   'use cache';
-  cacheLife('tmdbStatic');
+  cacheLife('tmdbHot');
   return Number(
     new Intl.DateTimeFormat('en-CA', { timeZone: 'America/Sao_Paulo', year: 'numeric' }).format(Date.now()),
   );

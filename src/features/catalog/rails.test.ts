@@ -26,6 +26,12 @@ describe('dedupeRails', () => {
     expect(dedupeRails([rail('a', ten)], { perRail: 14, exclude: ['movie:1'] })[0].items).toHaveLength(9);
     expect(dedupeRails([rail('a', many(1, 20))], { perRail: 14 })[0].items).toHaveLength(14);
   });
+  it('keeps titles of a dropped rail available to later rails', () => {
+    const shared = many(1, 3);
+    const out = dedupeRails([rail('a', shared), rail('b', [...shared, ...many(50, 5)])], { perRail: 14 });
+    expect(out.map((o) => o.id)).toEqual(['b']);
+    expect(out[0].items).toHaveLength(8);
+  });
   it('does not collide a movie and a series with the same id', () => {
     const out = dedupeRails([rail('a', [...many(1, 6)]), rail('b', many(1, 6, tv))], { perRail: 14 });
     expect(out).toHaveLength(2);
@@ -60,7 +66,13 @@ describe('buildHomeRails', () => {
     const rails = await buildHomeRails();
     expect(rails.length).toBeGreaterThan(0);
     expect(rails.map((r) => r.id)).not.toContain('em-cartaz');
-    expect(errorSpy).toHaveBeenCalled();
+    expect(errorSpy).toHaveBeenCalledWith(expect.stringContaining('em-cartaz'), expect.anything());
+  });
+
+  it('includes em-cartaz when no source fails', async () => {
+    const rails = await buildHomeRails();
+    expect(rails.map((r) => r.id)).toContain('em-cartaz');
+    expect(errorSpy).not.toHaveBeenCalled();
   });
 
   it('never repeats a title across rails and honours exclude', async () => {

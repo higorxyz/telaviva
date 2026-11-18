@@ -9,11 +9,11 @@ const MAX_SHIFT = 40;
 export function ParallaxBackdrop({ children }: { children: ReactNode }) {
   const reduce = useReducedMotion();
   const { scrollY } = useScroll();
-  const y = useTransform(scrollY, [0, 700], [0, MAX_SHIFT]);
+  const y = useTransform(scrollY, [0, 700], [0, reduce ? 0 : MAX_SHIFT]);
   return (
     <motion.div
       aria-hidden="true"
-      style={reduce ? undefined : { y }}
+      style={{ y }}
       className="absolute inset-x-0 -top-10 -bottom-2"
     >
       {children}

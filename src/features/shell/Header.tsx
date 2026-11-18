@@ -5,6 +5,7 @@ import { usePathname } from 'next/navigation';
 import { Search } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { cn } from '@/lib/cn';
+import { PAGE_CONTAINER } from '@/ui/container';
 import { isActive, NAV_ITEMS } from './nav';
 import { Wordmark } from './Wordmark';
 
@@ -26,7 +27,7 @@ export function Header() {
         scrolled ? 'bg-ink-950/85 backdrop-blur' : 'bg-transparent',
       )}
     >
-      <div className="mx-auto flex h-16 max-w-7xl items-center gap-8 px-4 md:px-8">
+      <div className={cn(PAGE_CONTAINER, 'flex h-16 items-center gap-8')}>
         <Link href="/" aria-label="TelaViva, página inicial" className="rounded-sm">
           <Wordmark />
         </Link>

@@ -1,9 +1,9 @@
 import type { MediaSummary } from '@/features/tmdb/types';
+import { mediaKey } from './media-key';
 
 const YEAR_MS = 365.25 * 86_400_000;
 const PER_SOURCE = 18;
 
-export const mediaKey = (m: Pick<MediaSummary, 'mediaType' | 'id'>) => `${m.mediaType}:${m.id}`;
 
 function recencyBonus(releaseDate: string | null, now: number): number {
   const t = releaseDate ? Date.parse(releaseDate) : NaN;
@@ -24,11 +24,14 @@ function overviewBonus(overview: string): number {
   return -8;
 }
 
-/** Port of the v1 hero score. `rank` (0-based position in its source) only breaks ties. */
+/**
+ * Port of the v1 hero score. `sourceBoost` and `rankBonus` are summed across every source that
+ * lists the title; rankBonus is the sum of max(rankBoost - index, 0).
+ */
 export function scoreHeroCandidate(c: {
   item: MediaSummary;
   sourceBoost: number;
-  rank: number;
+  rankBonus: number;
   sourceCount: number;
   now?: number;
 }): number {
@@ -38,31 +41,32 @@ export function scoreHeroCandidate(c: {
   const popularity = Math.min(item.popularity, 180) / 10;
   return (
     c.sourceBoost +
+    c.rankBonus +
     quality +
     confidence +
     popularity +
     recencyBonus(item.releaseDate, c.now ?? Date.now()) +
     overviewBonus(item.overview) +
-    (c.sourceCount - 1) * 5 -
-    c.rank * 0.1
+    (c.sourceCount - 1) * 5
   );
 }
 
 export function pickHero(
-  sources: Array<{ items: MediaSummary[]; sourceBoost: number }>,
+  sources: Array<{ items: MediaSummary[]; sourceBoost: number; rankBoost: number }>,
   now: number = Date.now(),
 ): MediaSummary | null {
-  const found = new Map<string, { item: MediaSummary; boost: number; rank: number; count: number }>();
-  for (const { items, sourceBoost } of sources) {
-    items.slice(0, PER_SOURCE).forEach((item, rank) => {
+  const found = new Map<string, { item: MediaSummary; boost: number; rankBonus: number; count: number }>();
+  for (const { items, sourceBoost, rankBoost } of sources) {
+    items.slice(0, PER_SOURCE).forEach((item, index) => {
       if (!item.backdropPath) return;
       const key = mediaKey(item);
+      const rankBonus = Math.max(rankBoost - index, 0);
       const prev = found.get(key);
-      if (!prev) found.set(key, { item, boost: sourceBoost, rank, count: 1 });
+      if (!prev) found.set(key, { item, boost: sourceBoost, rankBonus, count: 1 });
       else {
         prev.count += 1;
-        prev.boost = Math.max(prev.boost, sourceBoost);
-        prev.rank = Math.min(prev.rank, rank);
+        prev.boost += sourceBoost;
+        prev.rankBonus += rankBonus;
       }
     });
   }
@@ -72,7 +76,7 @@ export function pickHero(
     const score = scoreHeroCandidate({
       item: c.item,
       sourceBoost: c.boost,
-      rank: c.rank,
+      rankBonus: c.rankBonus,
       sourceCount: c.count,
       now,
     });

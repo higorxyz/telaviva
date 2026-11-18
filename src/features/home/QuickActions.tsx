@@ -3,7 +3,7 @@ import Link from 'next/link';
 export function QuickActions({ year }: { year: number }) {
   const actions = [
     { title: 'Noite curta', text: 'Filmes de até 100 minutos que valem a sessão.', href: '/descobrir?duracao=100&votos=100' },
-    { title: 'Nota alta validada', text: 'Nota 8+ com mais de mil votos.', href: '/descobrir?nota=8&votos=1000&ordem=nota' },
+    { title: 'Nota alta validada', text: 'Nota 8 ou mais, com 1.000 votos ou mais.', href: '/descobrir?nota=8&votos=1000&ordem=nota' },
     { title: 'Streaming no Brasil', text: 'O que dá para ver agora, sem sair de casa.', href: '/filmes/no-streaming' },
     { title: `Lançamentos ${year}`, text: 'Tudo o que estreou neste ano.', href: `/descobrir?de=${year}&ate=${year}` },
   ];

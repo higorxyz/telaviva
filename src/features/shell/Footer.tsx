@@ -1,4 +1,6 @@
 import Link from 'next/link';
+import { cn } from '@/lib/cn';
+import { PAGE_CONTAINER } from '@/ui/container';
 import { NAV_ITEMS } from './nav';
 import { Wordmark } from './Wordmark';
 
@@ -7,7 +9,7 @@ const external = { target: '_blank', rel: 'noopener noreferrer' } as const;
 export function Footer() {
   return (
     <footer className="mt-24 border-t border-ink-600 bg-ink-900">
-      <div className="mx-auto grid max-w-7xl gap-10 px-4 py-12 md:grid-cols-[1fr_auto_auto] md:px-8">
+      <div className={cn(PAGE_CONTAINER, 'grid gap-10 py-12 md:grid-cols-[1fr_auto_auto]')}>
         <div className="space-y-3">
           <Wordmark />
           <p className="max-w-xs text-sm text-ivory-muted">Descubra filmes e séries, com onde assistir no Brasil.</p>
@@ -40,8 +42,7 @@ export function Footer() {
         </div>
       </div>
       <div className="border-t border-ink-700">
-        <div className="mx-auto flex max-w-7xl flex-col gap-4 px-4 py-6 text-xs text-ivory-muted md:flex-row md:items-center md:px-8">
-          {/* eslint-disable-next-line @next/next/no-img-element -- official SVG, served as-is */}
+        <div className={cn(PAGE_CONTAINER, 'flex flex-col gap-4 py-6 text-xs text-ivory-muted md:flex-row md:items-center')}>
           <img src="/brand/tmdb.svg" alt="TMDB" width={137} height={18} className="h-4.5 w-auto" />
           <p>Este produto usa a API do TMDB, mas não é endossado ou certificado pelo TMDB.</p>
         </div>

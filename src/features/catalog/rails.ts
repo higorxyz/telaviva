@@ -1,7 +1,7 @@
 import { getMovieList, getTrending } from '@/features/tmdb/movies';
 import { getTvList } from '@/features/tmdb/tv';
 import type { MediaSummary, Paginated } from '@/features/tmdb/types';
-import { mediaKey } from './hero-pick';
+import { mediaKey } from './media-key';
 
 export interface RailInput {
   id: string;
@@ -23,14 +23,18 @@ export function dedupeRails(
   const out: RailOutput[] = [];
   for (const rail of rails) {
     const items: MediaSummary[] = [];
+    const taken = new Set<string>();
     for (const item of rail.items) {
       const key = mediaKey(item);
-      if (seen.has(key)) continue;
-      seen.add(key);
+      if (seen.has(key) || taken.has(key)) continue;
+      taken.add(key);
       items.push(item);
       if (items.length === opts.perRail) break;
     }
-    if (items.length >= MIN_ITEMS) out.push({ ...rail, items });
+    // Titles of a dropped rail stay available to later rails.
+    if (items.length < MIN_ITEMS) continue;
+    taken.forEach((k) => seen.add(k));
+    out.push({ ...rail, items });
   }
   return out;
 }
@@ -57,8 +61,8 @@ const SOURCES: Source[] = [
   { id: 'em-breve', title: { lead: 'Em', accent: 'breve' }, href: '/filmes/em-breve', fetch: () => getMovieList('upcoming') },
 ];
 
-/** A rejected source drops only its own rail. Not cached itself: the sources are. */
-export async function buildHomeRails(exclude: string[] = []): Promise<RailOutput[]> {
+/** Loads every rail source; a rejected source drops only its own rail. Sources are cached, this is not. */
+export async function loadHomeRails(): Promise<RailInput[]> {
   const settled = await Promise.allSettled(SOURCES.map((s) => s.fetch()));
   const rails: RailInput[] = [];
   settled.forEach((result, i) => {
@@ -69,5 +73,9 @@ export async function buildHomeRails(exclude: string[] = []): Promise<RailOutput
     }
     rails.push({ id: source.id, title: source.title, href: source.href, items: result.value.results });
   });
-  return dedupeRails(rails, { perRail: PER_RAIL, exclude });
+  return rails;
+}
+
+export async function buildHomeRails(exclude: string[] = []): Promise<RailOutput[]> {
+  return dedupeRails(await loadHomeRails(), { perRail: PER_RAIL, exclude });
 }
