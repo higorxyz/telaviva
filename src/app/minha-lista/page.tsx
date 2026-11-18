@@ -1,7 +1,12 @@
 import type { Metadata } from 'next';
+import { pageMeta } from '@/features/share/page-meta';
 import { EmptyState } from '@/ui/EmptyState';
 
-export const metadata: Metadata = { title: 'Minha lista' };
+export const metadata: Metadata = pageMeta({
+  title: 'Minha lista',
+  description: 'Sua lista de filmes e séries para assistir, em breve no TelaViva.',
+  path: '/minha-lista',
+});
 
 export default function MinhaListaPage() {
   return (

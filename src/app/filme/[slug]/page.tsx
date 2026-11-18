@@ -5,7 +5,6 @@ import { MovieMeta } from '@/features/detail/MovieMeta';
 import { DetailSections } from '@/features/detail/DetailSections';
 import { movieFacts } from '@/features/detail/facts';
 import { truncateSummary } from '@/features/detail/summary';
-import { tmdbImage } from '@/features/tmdb/images';
 import { getMovieDetails } from '@/features/tmdb/movies';
 import { mediaHref } from '@/lib/slug';
 import { PAGE_CONTAINER } from '@/ui/container';
@@ -22,7 +21,6 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const movie = await loadByIdSlug(slug, 'filme', getMovieDetails);
   const canonical = mediaHref(movie);
   const description = truncateSummary(movie.overview) || undefined;
-  const image = tmdbImage(movie.backdropPath ?? movie.posterPath, 'w780');
   return {
     title: movie.title,
     description,
@@ -32,7 +30,6 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
       title: movie.title,
       description,
       url: canonical,
-      images: image ? [image] : undefined,
     },
   };
 }

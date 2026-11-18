@@ -1,4 +1,5 @@
 import type { Metadata } from 'next';
+import { pageMeta } from '@/features/share/page-meta';
 import { notFound } from 'next/navigation';
 import { ListPage, listIdsOf, listMeta } from '@/features/catalog/ListPage';
 
@@ -11,7 +12,7 @@ export async function generateMetadata({ params }: PageProps<'/series/[lista]'>)
   const meta = listMeta('series', lista);
   if (!meta) notFound();
   const title = [meta.title.lead, meta.title.accent].filter(Boolean).join(' ');
-  return { title, description: meta.description, alternates: { canonical: `/series/${lista}` } };
+  return pageMeta({ title, description: meta.description, path: `/series/${lista}` });
 }
 
 export default async function Page({ params }: PageProps<'/series/[lista]'>) {

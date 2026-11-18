@@ -1,14 +1,15 @@
 import type { Metadata } from 'next';
+import { pageMeta } from '@/features/share/page-meta';
 import { Suspense } from 'react';
 import { HubRails, HubSkeleton } from '@/features/catalog/HubRails';
 import { PageHeader } from '@/features/catalog/PageHeader';
 import { PAGE_CONTAINER } from '@/ui/container';
 
-export const metadata: Metadata = {
+export const metadata: Metadata = pageMeta({
   title: 'Séries',
   description: 'Séries em alta, no ar e as mais bem avaliadas, com onde assistir no Brasil.',
-  alternates: { canonical: '/series' },
-};
+  path: '/series',
+});
 
 export default function SeriesPage() {
   return (

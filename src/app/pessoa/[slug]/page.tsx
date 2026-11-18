@@ -10,7 +10,6 @@ import { loadByIdSlug, loadCanonicalPage } from '@/features/detail/load-canonica
 import { age, knownFor, toFilmRows } from '@/features/detail/person';
 import { PersonHero } from '@/features/detail/PersonHero';
 import { truncateSummary } from '@/features/detail/summary';
-import { tmdbImage } from '@/features/tmdb/images';
 import { getPerson } from '@/features/tmdb/people';
 import { personHref } from '@/lib/slug';
 import { saoPauloIsoDate } from '@/features/tmdb/dates';
@@ -28,7 +27,6 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const person = await loadByIdSlug(slug, 'pessoa', getPerson);
   const canonical = personHref(person);
   const description = truncateSummary(person.biography) || undefined;
-  const image = tmdbImage(person.profilePath, 'w500');
   return {
     title: person.name,
     description,
@@ -38,7 +36,6 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
       title: person.name,
       description,
       url: canonical,
-      images: image ? [image] : undefined,
     },
   };
 }

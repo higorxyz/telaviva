@@ -1,13 +1,16 @@
 import type { Metadata } from 'next';
+import { pageMeta } from '@/features/share/page-meta';
 import { Suspense } from 'react';
 import { SearchView } from '@/features/search/SearchView';
 import { PAGE_CONTAINER } from '@/ui/container';
 import { Skeleton } from '@/ui/Skeleton';
 
-export const metadata: Metadata = {
+export const metadata: Metadata = pageMeta({
   title: 'Buscar',
-  robots: { index: false },
-};
+  description: 'Busque filmes, séries e pessoas no TelaViva.',
+  path: '/buscar',
+  noindex: true,
+});
 
 export default function BuscarPage() {
   return (

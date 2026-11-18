@@ -1,6 +1,12 @@
+import type { Metadata } from 'next';
 import Link from 'next/link';
 import { AccentTitle } from '@/ui/AccentTitle';
 import { ButtonLink } from '@/ui/Button';
+
+export const metadata: Metadata = {
+  title: 'Página não encontrada',
+  description: 'Não encontramos o que você procurava no TelaViva.',
+};
 
 export default function NotFound() {
   return (

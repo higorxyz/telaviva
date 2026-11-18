@@ -1,4 +1,5 @@
 import type { Metadata } from 'next';
+import { pageMeta } from '@/features/share/page-meta';
 import { Suspense } from 'react';
 import { PageHeader } from '@/features/catalog/PageHeader';
 import { DiscoverView } from '@/features/discover/DiscoverView';
@@ -6,10 +7,11 @@ import { getGenres, getWatchProviderCatalog } from '@/features/tmdb/genres';
 import { PAGE_CONTAINER } from '@/ui/container';
 import { Skeleton } from '@/ui/Skeleton';
 
-export const metadata: Metadata = {
+export const metadata: Metadata = pageMeta({
   title: 'Descobrir',
   description: 'Filtre filmes e séries por gênero, ano, nota, duração, idioma e onde assistir no Brasil.',
-};
+  path: '/descobrir',
+});
 
 function ViewSkeleton() {
   return (

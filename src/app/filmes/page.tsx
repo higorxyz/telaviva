@@ -1,14 +1,15 @@
 import type { Metadata } from 'next';
+import { pageMeta } from '@/features/share/page-meta';
 import { Suspense } from 'react';
 import { HubRails, HubSkeleton } from '@/features/catalog/HubRails';
 import { PageHeader } from '@/features/catalog/PageHeader';
 import { PAGE_CONTAINER } from '@/ui/container';
 
-export const metadata: Metadata = {
+export const metadata: Metadata = pageMeta({
   title: 'Filmes',
   description: 'Filmes em cartaz, em alta, joias escondidas e muito mais, com onde assistir no Brasil.',
-  alternates: { canonical: '/filmes' },
-};
+  path: '/filmes',
+});
 
 export default function FilmesPage() {
   return (

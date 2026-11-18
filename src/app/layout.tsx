@@ -27,6 +27,7 @@ export const metadata: Metadata = {
   metadataBase: new URL(env.SITE_URL),
   title: { default: 'TelaViva — filmes e séries', template: '%s · TelaViva' },
   description: 'Descubra filmes e séries, com onde assistir no Brasil.',
+  openGraph: { type: 'website', siteName: 'TelaViva', locale: 'pt_BR' },
 };
 
 export const viewport: Viewport = {

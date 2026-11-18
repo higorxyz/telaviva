@@ -7,7 +7,6 @@ import { NextEpisode } from '@/features/detail/NextEpisode';
 import { SeasonsSection } from '@/features/detail/SeasonsSection';
 import { SerieMeta } from '@/features/detail/SerieMeta';
 import { truncateSummary } from '@/features/detail/summary';
-import { tmdbImage } from '@/features/tmdb/images';
 import { getTvDetails } from '@/features/tmdb/tv';
 import { mediaHref } from '@/lib/slug';
 import { PAGE_CONTAINER } from '@/ui/container';
@@ -24,7 +23,6 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const tv = await loadByIdSlug(slug, 'serie', getTvDetails);
   const canonical = mediaHref(tv);
   const description = truncateSummary(tv.overview) || undefined;
-  const image = tmdbImage(tv.backdropPath ?? tv.posterPath, 'w780');
   return {
     title: tv.title,
     description,
@@ -34,7 +32,6 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
       title: tv.title,
       description,
       url: canonical,
-      images: image ? [image] : undefined,
     },
   };
 }

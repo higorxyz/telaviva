@@ -1,13 +1,15 @@
 import type { Metadata } from 'next';
+import { pageMeta } from '@/features/share/page-meta';
 import { Suspense } from 'react';
 import { HeroSection, HeroSkeleton, HomeRails, RailsSkeleton } from '@/features/home/HomeSections';
 import { PAGE_CONTAINER } from '@/ui/container';
 import { cn } from '@/lib/cn';
 
-export const metadata: Metadata = {
+export const metadata: Metadata = pageMeta({
   title: { absolute: 'TelaViva — filmes e séries' },
   description: 'Descubra filmes e séries, com onde assistir no Brasil.',
-};
+  path: '/',
+});
 
 export default function Home() {
   return (

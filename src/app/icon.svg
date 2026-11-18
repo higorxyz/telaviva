@@ -1,0 +1,5 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
+  <!-- Colors copied from src/ui/tokens.ts (SVG files cannot import): ink-950 and amber. -->
+  <rect width="64" height="64" rx="12" fill="#0c0a08"/>
+  <path d="M14 14h36v8h-2c-.4-3-1.6-4-4.6-4H35v26c0 3.2 1 4 4 4.2V50H25v-1.8c3-.2 4-1 4-4.2V18h-8.4c-3 0-4.2 1-4.6 4h-2z" fill="#e8b25a"/>
+</svg>
