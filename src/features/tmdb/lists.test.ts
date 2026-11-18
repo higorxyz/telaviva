@@ -27,7 +27,7 @@ function respond(path: string, body: unknown) {
 }
 
 describe('getMovieList', () => {
-  // 2026-11-18T01:30Z = 2026-11-17 22:30 em São Paulo: UTC e São Paulo divergem.
+  // 2026-11-18T01:30Z = 2026-11-17 22:30 em Sao Paulo: UTC e Sao Paulo divergem.
   beforeEach(() => {
     vi.useFakeTimers({ toFake: ['Date'] });
     vi.setSystemTime(new Date('2026-11-18T01:30:00Z'));
