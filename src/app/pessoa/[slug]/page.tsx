@@ -13,6 +13,7 @@ import { truncateSummary } from '@/features/detail/summary';
 import { getPerson } from '@/features/tmdb/people';
 import { personHref } from '@/lib/slug';
 import { saoPauloIsoDate } from '@/features/tmdb/dates';
+import { OG_BASE } from '@/features/share/page-meta';
 import { PAGE_CONTAINER } from '@/ui/container';
 
 type Props = PageProps<'/pessoa/[slug]'>;
@@ -32,6 +33,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     description,
     alternates: { canonical },
     openGraph: {
+      ...OG_BASE,
       type: 'profile',
       title: person.name,
       description,

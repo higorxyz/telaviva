@@ -7,6 +7,7 @@ import { discoverEndpoint } from '@/features/genres/genres';
 import { loadCanonicalGenre, resolveGenre } from '@/features/genres/load-genre';
 import { discover } from '@/features/tmdb/discover';
 import { getGenres } from '@/features/tmdb/genres';
+import { OG_BASE } from '@/features/share/page-meta';
 import { genreHref } from '@/lib/slug';
 import { PAGE_CONTAINER } from '@/ui/container';
 import { Skeleton } from '@/ui/Skeleton';
@@ -32,7 +33,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     title,
     description,
     alternates: { canonical: href },
-    openGraph: { type: 'website', title, description, url: href },
+    openGraph: { type: 'website', ...OG_BASE, title, description, url: href },
   };
 }
 

@@ -1,4 +1,5 @@
 import type { ImageResponse } from 'next/og';
+import sharp from 'sharp';
 import { resolveCanonical, type CanonicalKind } from '@/features/detail/canonical';
 import { tmdbImage } from '@/features/tmdb/images';
 import { getMovieDetails } from '@/features/tmdb/movies';
@@ -50,16 +51,33 @@ const loaders: Record<CanonicalKind, (id: number) => Promise<OgCardProps>> = {
   },
 };
 
-/** Share image for a detail slug. Never throws: any failure (bad id, TMDb 404/5xx, image CDN) yields the brand card. */
-export async function shareImage(slug: string, kind: CanonicalKind): Promise<ImageResponse> {
+const FULL_CACHE = 'public, max-age=86400, stale-while-revalidate=604800';
+const DEGRADED_CACHE = 'public, max-age=300';
+
+/** `next/og` only emits PNG; photographic cards are ~1 MB, so re-encode to JPEG to stay under WhatsApp's preview limit. */
+async function toJpeg(image: ImageResponse, cacheControl: string): Promise<Response> {
+  const png = Buffer.from(await image.arrayBuffer());
+  const jpeg = await sharp(png).jpeg({ quality: 80, progressive: true, mozjpeg: true }).toBuffer();
+  return new Response(new Uint8Array(jpeg), {
+    headers: { 'content-type': 'image/jpeg', 'cache-control': cacheControl },
+  });
+}
+
+/**
+ * Share image for a detail slug, as JPEG. Never throws: any failure (bad id, TMDb 404/5xx, image CDN) yields the
+ * brand card. Explicit cache headers: a full card is cached for a day; a degraded card (missing images) or the
+ * brand fallback only for 5 minutes, so a transient failure is not frozen.
+ */
+export async function shareImage(slug: string, kind: CanonicalKind): Promise<Response> {
   try {
     const resolved = resolveCanonical({ slug }, kind);
-    if (resolved === 'not-found') return brandCard();
+    if (resolved === 'not-found') return await toJpeg(brandCard(), DEGRADED_CACHE);
     const card = await loaders[kind](resolved.id);
     const [backdrop, poster] = await Promise.all([toDataUri(card.backdrop), toDataUri(card.poster)]);
-    return ogCard({ ...card, backdrop, poster });
+    const complete = (!card.backdrop || backdrop) && (!card.poster || poster);
+    return await toJpeg(ogCard({ ...card, backdrop, poster }), complete ? FULL_CACHE : DEGRADED_CACHE);
   } catch (error) {
     console.error(`[og] ${kind} ${slug} fell back to the brand card`, error);
-    return brandCard();
+    return toJpeg(brandCard(), DEGRADED_CACHE);
   }
 }

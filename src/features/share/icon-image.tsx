@@ -28,6 +28,6 @@ export function iconImage(px: number, maskable = false): ImageResponse {
         T
       </div>
     ),
-    { width: px, height: px, fonts: OG_FONTS.slice(0, 1) },
+    { width: px, height: px, fonts: OG_FONTS.filter((f) => f.name === 'Instrument Serif' && f.style === 'normal') },
   );
 }

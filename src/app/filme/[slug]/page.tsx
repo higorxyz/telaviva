@@ -7,6 +7,7 @@ import { movieFacts } from '@/features/detail/facts';
 import { truncateSummary } from '@/features/detail/summary';
 import { getMovieDetails } from '@/features/tmdb/movies';
 import { mediaHref } from '@/lib/slug';
+import { OG_BASE } from '@/features/share/page-meta';
 import { PAGE_CONTAINER } from '@/ui/container';
 
 type Props = PageProps<'/filme/[slug]'>;
@@ -26,6 +27,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     description,
     alternates: { canonical },
     openGraph: {
+      ...OG_BASE,
       type: 'video.movie',
       title: movie.title,
       description,

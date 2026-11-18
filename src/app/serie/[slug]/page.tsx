@@ -9,6 +9,7 @@ import { SerieMeta } from '@/features/detail/SerieMeta';
 import { truncateSummary } from '@/features/detail/summary';
 import { getTvDetails } from '@/features/tmdb/tv';
 import { mediaHref } from '@/lib/slug';
+import { OG_BASE } from '@/features/share/page-meta';
 import { PAGE_CONTAINER } from '@/ui/container';
 
 type Props = PageProps<'/serie/[slug]'>;
@@ -28,6 +29,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     description,
     alternates: { canonical },
     openGraph: {
+      ...OG_BASE,
       type: 'video.tv_show',
       title: tv.title,
       description,

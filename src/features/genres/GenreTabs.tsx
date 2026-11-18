@@ -47,9 +47,10 @@ export function GenreTabs({ movie, tv }: { movie: GenreCardData[]; tv: GenreCard
   const data = { movie, tv };
 
   function onKeyDown(event: KeyboardEvent) {
-    if (event.key !== 'ArrowRight' && event.key !== 'ArrowLeft') return;
+    if (!['ArrowRight', 'ArrowLeft', 'Home', 'End'].includes(event.key)) return;
     event.preventDefault();
-    const next: Key = active === 'movie' ? 'tv' : 'movie';
+    const next: Key =
+      event.key === 'Home' ? 'movie' : event.key === 'End' ? 'tv' : active === 'movie' ? 'tv' : 'movie';
     setActive(next);
     refs.current[next]?.focus();
   }

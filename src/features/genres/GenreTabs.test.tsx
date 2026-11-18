@@ -28,5 +28,9 @@ describe('GenreTabs', () => {
     await user.keyboard('{ArrowRight}');
     expect(screen.getByRole('tab', { name: 'Séries' })).toHaveAttribute('aria-selected', 'true');
     expect(screen.getByRole('tab', { name: 'Séries' })).toHaveFocus();
+    await user.keyboard('{Home}');
+    expect(screen.getByRole('tab', { name: 'Filmes' })).toHaveFocus();
+    await user.keyboard('{End}');
+    expect(screen.getByRole('tab', { name: 'Séries' })).toHaveAttribute('aria-selected', 'true');
   });
 });

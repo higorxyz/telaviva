@@ -21,7 +21,7 @@ export const OG_FONTS = [
 export async function toDataUri(url: string | null): Promise<string | null> {
   if (!url) return null;
   try {
-    const res = await fetch(url, { signal: AbortSignal.timeout(4000) });
+    const res = await fetch(url, { signal: AbortSignal.timeout(6000) });
     if (!res.ok) return null;
     const type = res.headers.get('content-type') ?? 'image/jpeg';
     return `data:${type};base64,${Buffer.from(await res.arrayBuffer()).toString('base64')}`;

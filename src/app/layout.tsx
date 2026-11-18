@@ -4,6 +4,8 @@ import { env } from '@/lib/env';
 import { Footer } from '@/features/shell/Footer';
 import { Header } from '@/features/shell/Header';
 import { TabBar } from '@/features/shell/TabBar';
+import { OG_BASE } from '@/features/share/page-meta';
+import { TOKENS } from '@/ui/tokens';
 import { Grain } from '@/ui/Grain';
 import { Providers } from './providers';
 import './globals.css';
@@ -27,11 +29,11 @@ export const metadata: Metadata = {
   metadataBase: new URL(env.SITE_URL),
   title: { default: 'TelaViva — filmes e séries', template: '%s · TelaViva' },
   description: 'Descubra filmes e séries, com onde assistir no Brasil.',
-  openGraph: { type: 'website', siteName: 'TelaViva', locale: 'pt_BR' },
+  openGraph: { type: 'website', ...OG_BASE },
 };
 
 export const viewport: Viewport = {
-  themeColor: '#0c0a08',
+  themeColor: TOKENS.ink950,
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
