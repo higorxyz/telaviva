@@ -1,5 +1,5 @@
 import { http, HttpResponse } from 'msw';
-import { describe, expect, it } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import discoverMovies from '@/test/fixtures/discover-movie-popular.json';
 import genreMovies from '@/test/fixtures/genre-movie-list.json';
 import searchMatrix from '@/test/fixtures/search-multi-matrix.json';
@@ -26,16 +26,20 @@ function respond(path: string, body: unknown) {
   return captured;
 }
 
-const DAY_MS = 86_400_000;
-const daysFromNow = (iso: string) => Math.round((new Date(iso).getTime() - Date.now()) / DAY_MS);
-
 describe('getMovieList', () => {
+  // 2026-11-18T01:30Z = 2026-11-17 22:30 em São Paulo: UTC e São Paulo divergem.
+  beforeEach(() => {
+    vi.useFakeTimers({ toFake: ['Date'] });
+    vi.setSystemTime(new Date('2026-11-18T01:30:00Z'));
+  });
+  afterEach(() => vi.useRealTimers());
+
   it('now_playing: janela -120/+14 dias, votos >= 40, regiÃ£o BR, sem adultos', async () => {
     const req = respond('discover/movie', discoverMovies);
     await getMovieList('now_playing');
     const p = req.url!.searchParams;
-    expect(daysFromNow(p.get('release_date.gte')!)).toBe(-120);
-    expect(daysFromNow(p.get('release_date.lte')!)).toBe(14);
+    expect(p.get('release_date.gte')).toBe('2026-07-20');
+    expect(p.get('release_date.lte')).toBe('2026-12-01');
     expect(p.get('vote_count.gte')).toBe('40');
     expect(p.get('region')).toBe('BR');
     expect(p.get('include_adult')).toBe('false');
@@ -45,8 +49,8 @@ describe('getMovieList', () => {
     const req = respond('discover/movie', discoverMovies);
     await getMovieList('upcoming');
     const p = req.url!.searchParams;
-    expect(daysFromNow(p.get('release_date.gte')!)).toBe(1);
-    expect(daysFromNow(p.get('release_date.lte')!)).toBe(450);
+    expect(p.get('release_date.gte')).toBe('2026-11-18');
+    expect(p.get('release_date.lte')).toBe('2028-02-10');
     expect(p.get('with_release_type')).toBe('2|3');
   });
 

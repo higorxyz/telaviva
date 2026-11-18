@@ -2,6 +2,7 @@ import { cacheLife, cacheTag } from 'next/cache';
 import { z } from 'zod';
 import { refine, sortByWeightedRating } from '@/features/catalog/curation';
 import { tmdbFetch, type TmdbParams } from './client';
+import { saoPauloIsoDate } from './dates';
 import { toMovieDetails } from './detail-mappers';
 import { movieDetailSchema, overviewOnlySchema } from './detail-schemas';
 import { fetchDiscover } from './discover';
@@ -20,12 +21,6 @@ export type MovieListKey =
   | 'blockbusters'
   | 'streaming_br';
 
-const DAY_MS = 86_400_000;
-
-function isoDate(offsetDays: number): string {
-  return new Date(Date.now() + offsetDays * DAY_MS).toISOString().slice(0, 10);
-}
-
 /** Discover params per list; rules ported from v1. */
 function listParams(list: Exclude<MovieListKey, 'popular'>): TmdbParams {
   switch (list) {
@@ -33,8 +28,8 @@ function listParams(list: Exclude<MovieListKey, 'popular'>): TmdbParams {
       return {
         region: 'BR',
         with_release_type: '2|3',
-        'release_date.gte': isoDate(-120),
-        'release_date.lte': isoDate(14),
+        'release_date.gte': saoPauloIsoDate(-120),
+        'release_date.lte': saoPauloIsoDate(14),
         'vote_count.gte': 40,
         sort_by: 'popularity.desc',
       };
@@ -42,8 +37,8 @@ function listParams(list: Exclude<MovieListKey, 'popular'>): TmdbParams {
       return {
         region: 'BR',
         with_release_type: '2|3',
-        'release_date.gte': isoDate(1),
-        'release_date.lte': isoDate(450),
+        'release_date.gte': saoPauloIsoDate(1),
+        'release_date.lte': saoPauloIsoDate(450),
         sort_by: 'popularity.desc',
       };
     case 'top_rated':
