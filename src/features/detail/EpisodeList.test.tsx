@@ -22,7 +22,10 @@ describe('EpisodeList', () => {
     vi.useFakeTimers({ toFake: ['Date'] });
     vi.setSystemTime(new Date('2026-11-18T12:00:00-03:00'));
   });
-  afterEach(() => vi.useRealTimers());
+  afterEach(() => {
+    vi.useRealTimers();
+    vi.restoreAllMocks();
+  });
 
   it('mostra "Data a definir" quando falta a data', () => {
     render(<EpisodeList season={season([ep(1, '2026-01-01'), ep(2, null)])} />);
@@ -45,9 +48,11 @@ describe('EpisodeList', () => {
   });
 
   it('sinopse longa expande e recolhe com botão acessível', async () => {
+    vi.spyOn(HTMLElement.prototype, 'scrollHeight', 'get').mockReturnValue(90);
+    vi.spyOn(HTMLElement.prototype, 'clientHeight', 'get').mockReturnValue(60);
     const user = userEvent.setup();
     render(<EpisodeList season={season([ep(1, '2026-01-01', { overview: 'palavra '.repeat(60) })])} />);
-    const btn = screen.getByRole('button', { name: 'Ler mais' });
+    const btn = await screen.findByRole('button', { name: 'Ler mais' });
     expect(btn).toHaveAttribute('aria-expanded', 'false');
     await user.click(btn);
     expect(screen.getByRole('button', { name: 'Mostrar menos' })).toHaveAttribute('aria-expanded', 'true');

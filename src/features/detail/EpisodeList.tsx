@@ -23,6 +23,7 @@ function Still({ episode }: { episode: EpisodeSummary }) {
       ) : (
         <div
           data-testid="still-placeholder"
+          aria-hidden="true"
           className="grid size-full place-items-center font-display text-3xl text-ivory-muted"
         >
           E{episode.episodeNumber}

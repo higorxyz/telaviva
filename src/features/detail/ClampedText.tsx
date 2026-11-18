@@ -1,20 +1,35 @@
 'use client';
 
-import { useId, useState } from 'react';
+import { useEffect, useId, useRef, useState } from 'react';
 import { cn } from '@/lib/cn';
 
-const LONG = 200;
-
-/** Three-line synopsis with a toggle; short texts render without a button. */
+/** Three-line synopsis; the toggle appears only when the text is really clamped. */
 export function ClampedText({ text }: { text: string }) {
   const [open, setOpen] = useState(false);
+  const [overflowing, setOverflowing] = useState(false);
+  const ref = useRef<HTMLParagraphElement>(null);
   const id = useId();
+
+  useEffect(() => {
+    const el = ref.current;
+    if (!el) return;
+    // While expanded there is nothing to measure, so the last result stands.
+    const measure = () => {
+      if (!open) setOverflowing(el.scrollHeight > el.clientHeight);
+    };
+    measure();
+    if (typeof ResizeObserver === 'undefined') return;
+    const observer = new ResizeObserver(measure);
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, [text, open]);
+
   return (
     <div>
-      <p id={id} className={cn('text-sm leading-relaxed text-ivory/85', !open && 'line-clamp-3')}>
+      <p ref={ref} id={id} className={cn('text-sm leading-relaxed text-ivory/85', !open && 'line-clamp-3')}>
         {text}
       </p>
-      {text.length > LONG ? (
+      {overflowing ? (
         <button
           type="button"
           aria-expanded={open}

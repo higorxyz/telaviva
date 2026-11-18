@@ -99,6 +99,8 @@ describe('getTvDetails / getSeason', () => {
 });
 
 describe('404 de série e temporada', () => {
+  // next/cache is mocked here, so this cannot prove the 'use cache' boundary fix;
+  // the real 404 through the cache was verified in production with curl.
   it('getTvDetails e getSeason rejeitam com TmdbError 404 reconhecível', async () => {
     server.use(
       http.get(`${BASE}/tv/999999999`, () => HttpResponse.json({ status_message: 'nope' }, { status: 404 })),
