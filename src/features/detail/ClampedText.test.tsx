@@ -27,4 +27,10 @@ describe('ClampedText', () => {
     expect(screen.queryByRole('button')).toBeNull();
     expect(screen.getByText('Curta.')).toBeInTheDocument();
   });
+
+  it('aceita um limite de linhas maior', () => {
+    mockHeights(60, 60);
+    render(<ClampedText text="Biografia" lines={8} />);
+    expect(screen.getByText('Biografia')).toHaveClass('line-clamp-8');
+  });
 });

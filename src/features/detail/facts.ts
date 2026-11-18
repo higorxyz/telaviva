@@ -1,6 +1,7 @@
 import type { ReactNode } from 'react';
-import type { MovieDetails, TvDetails } from '@/features/tmdb/types';
+import type { MovieDetails, PersonDetails, TvDetails } from '@/features/tmdb/types';
 import { formatDate } from '@/lib/format';
+import { departmentLabel } from './person';
 import { statusLabel } from './seasons';
 
 const languageNames = new Intl.DisplayNames(['pt-BR'], { type: 'language' });
@@ -35,4 +36,21 @@ export function tvFacts(tv: TvDetails): Array<{ label: string; value: ReactNode 
     { label: 'Idioma original', value: tv.originalLanguage ? languageName(tv.originalLanguage) : null },
   ];
   return facts.filter((f): f is { label: string; value: ReactNode } => f.value !== null);
+}
+
+/** Ficha da pessoa; ages are computed by the caller. */
+export function personFacts(
+  person: PersonDetails,
+  ages: { now: number | null; atDeath: number | null },
+): Array<{ label: string; value: ReactNode }> {
+  const born = formatDate(person.birthday);
+  const died = formatDate(person.deathday);
+  const facts: Array<{ label: string; value: ReactNode | null }> = [
+    { label: 'Nascimento', value: born && (person.deathday || ages.now === null ? born : `${born} (${ages.now} anos)`) },
+    { label: 'Falecimento', value: died && (ages.atDeath === null ? died : `${died} (${ages.atDeath} anos)`) },
+    { label: 'Local de nascimento', value: person.placeOfBirth },
+    { label: 'Área', value: person.knownForDepartment ? departmentLabel(person.knownForDepartment) : null },
+    { label: 'Também conhecido como', value: person.alsoKnownAs.length ? person.alsoKnownAs.slice(0, 3).join(', ') : null },
+  ];
+  return facts.filter((f): f is { label: string; value: ReactNode } => f.value !== null && f.value !== '');
 }

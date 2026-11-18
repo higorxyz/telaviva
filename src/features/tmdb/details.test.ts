@@ -123,4 +123,40 @@ describe('getPerson', () => {
     expect(pops).toEqual([...pops].sort((a, b) => b - a));
     expect(p.images.length).toBeGreaterThan(0);
   });
+
+  it('404 do TMDb vira TmdbError reconhecível', async () => {
+    server.use(
+      http.get(`${BASE}/person/999999999`, () => HttpResponse.json({ status_message: 'nope' }, { status: 404 })),
+    );
+    expect(isTmdbNotFound(await getPerson(999999999).catch((e: unknown) => e))).toBe(true);
+  });
+
+  it('mantém a biografia pt-BR sem requisição extra', async () => {
+    let calls = 0;
+    server.use(
+      http.get(`${BASE}/person/287`, () => {
+        calls += 1;
+        return HttpResponse.json(person287);
+      }),
+    );
+    const p = await getPerson(287);
+    expect(p.biography).toBe(person287.biography);
+    expect(calls).toBe(1);
+  });
+
+  it('sem biografia em pt-BR usa a de en-US', async () => {
+    const langs: Array<string | null> = [];
+    server.use(
+      http.get(`${BASE}/person/287`, ({ request }) => {
+        const language = new URL(request.url).searchParams.get('language');
+        langs.push(language);
+        return HttpResponse.json(
+          language === 'en-US' ? { ...person287, biography: 'English bio' } : { ...person287, biography: '' },
+        );
+      }),
+    );
+    const p = await getPerson(287);
+    expect(p.biography).toBe('English bio');
+    expect(langs).toEqual(['pt-BR', 'en-US']);
+  });
 });

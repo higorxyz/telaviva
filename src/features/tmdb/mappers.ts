@@ -39,16 +39,24 @@ export function toPaginated<R, T>(raw: RawPage<R>, map: (r: R) => T): Paginated<
   };
 }
 
-/** Uses the en-US overview only when the pt-BR one is empty; a failing fallback keeps the original. */
-export async function withOverviewFallback<T extends { overview: string }>(
+/** Uses the en-US text of `field` only when the pt-BR one is empty; a failing fallback keeps the original. */
+export async function withTextFallback<K extends string, T extends Record<K, string>>(
   primary: T,
-  fallback: () => Promise<{ overview: string }>,
+  field: K,
+  fallback: () => Promise<Record<K, string>>,
 ): Promise<T> {
-  if (primary.overview.trim() !== '') return primary;
+  if (primary[field].trim() !== '') return primary;
   try {
-    const { overview } = await fallback();
-    return { ...primary, overview };
+    const fallbackText = (await fallback())[field];
+    return { ...primary, [field]: fallbackText };
   } catch {
     return primary;
   }
+}
+
+export function withOverviewFallback<T extends { overview: string }>(
+  primary: T,
+  fallback: () => Promise<{ overview: string }>,
+): Promise<T> {
+  return withTextFallback(primary, 'overview', fallback);
 }

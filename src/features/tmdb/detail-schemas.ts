@@ -140,6 +140,8 @@ export const tvDetailSchema = tvSchema.extend({
 
 export const overviewOnlySchema = z.object({ overview: str });
 
+export const biographyOnlySchema = z.object({ biography: str });
+
 export const personSchema = z.object({
   id: z.number(),
   name: z.string(),
