@@ -25,6 +25,13 @@ describe('Rail', () => {
     expect(screen.getAllByRole('listitem')).toHaveLength(5);
   });
 
+  it('only prioritizes the first priorityCount posters', () => {
+    const { rerender } = render(<Rail id="r" title={title} items={five} />);
+    expect(document.querySelectorAll('img[fetchpriority=high]')).toHaveLength(0);
+    rerender(<Rail id="r" title={title} items={five} priorityCount={2} />);
+    expect(document.querySelectorAll('img[fetchpriority=high]')).toHaveLength(2);
+  });
+
   describe('drag', () => {
     function dragPast(list: HTMLElement) {
       fireEvent.pointerDown(list, { pointerType: 'mouse', button: 0, clientX: 100 });

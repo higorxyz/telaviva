@@ -14,11 +14,14 @@ export function Rail({
   title,
   href,
   items,
+  priorityCount = 0,
 }: {
   id: string;
   title: { lead: string; accent?: string };
   href?: string;
   items: MediaSummary[];
+  /** Posters with index < priorityCount load eagerly (above-the-fold rail only). */
+  priorityCount?: number;
 }) {
   const label = [title.lead, title.accent].filter(Boolean).join(' ');
   const listRef = useRef<HTMLUListElement>(null);
@@ -136,7 +139,7 @@ export function Rail({
               key={`${item.mediaType}-${item.id}`}
               className="w-[38vw] max-w-44 shrink-0 snap-start sm:w-36 lg:w-40"
             >
-              <PosterCard item={item} sizes={CARD_SIZES} priority={i < 2} />
+              <PosterCard item={item} sizes={CARD_SIZES} priority={i < priorityCount} />
             </li>
           ))}
         </ul>
