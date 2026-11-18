@@ -46,7 +46,8 @@ export function groupResults(items: SearchItem[], idPrefix: string): PaletteGrou
     const options: PaletteOption[] = [];
     for (const item of items.filter((i) => i.mediaType === type)) {
       if (index >= MAX_OPTIONS) break;
-      options.push(toOption(item, `${idPrefix}-opt-${index++}`));
+      options.push(toOption(item, `${idPrefix}-${item.mediaType}-${item.id}`));
+      index++;
     }
     if (options.length > 0) groups.push({ label, options });
   }

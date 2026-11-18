@@ -8,7 +8,7 @@ import { server } from '@/test/server';
 import { useSearch } from './useSearch';
 
 const requests: string[] = [];
-const DEBOUNCE = 40;
+const DEBOUNCE = 150;
 const sleep = (ms: number) => act(() => new Promise<void>((r) => setTimeout(r, ms)));
 
 function wrapper({ children }: { children: ReactNode }) {
@@ -37,7 +37,7 @@ describe('useSearch', () => {
   it('debounces rapid typing into a single request for the last value', async () => {
     const { result, rerender } = run('ma');
     for (const q of ['mat', 'matr', 'matrix']) {
-      await sleep(DEBOUNCE / 4);
+      await sleep(10);
       rerender({ q });
     }
     expect(requests).toEqual([]);
@@ -45,6 +45,16 @@ describe('useSearch', () => {
     await sleep(DEBOUNCE * 2);
     expect(requests).toEqual(['?q=matrix&page=1']);
     expect(result.current.results).toHaveLength(1);
+  });
+
+  it('stays "loading" (not success) while the debounce is pending or placeholder data shows', async () => {
+    const { result, rerender } = run('matrix');
+    await waitFor(() => expect(result.current.status).toBe('success'));
+    rerender({ q: 'dune' });
+    expect(result.current.status).toBe('loading');
+    expect(result.current.results).toHaveLength(1);
+    await waitFor(() => expect(requests).toContain('?q=dune&page=1'));
+    await waitFor(() => expect(result.current.status).toBe('success'));
   });
 
   it('encodes special characters', async () => {

@@ -16,17 +16,19 @@ export function SearchPalette() {
   const opener = useRef<HTMLElement | null>(null);
 
   useEffect(() => {
-    const show = () => {
+    const show = (e?: Event) => {
       if (dialog.current?.open) return;
-      opener.current = document.activeElement instanceof HTMLElement ? document.activeElement : null;
+      const from = e instanceof CustomEvent ? (e.detail as HTMLElement | null) : null;
+      opener.current = from ?? (document.activeElement instanceof HTMLElement ? document.activeElement : null);
       setOpen(true);
     };
     const onKey = (e: KeyboardEvent) => {
-      if ((e.ctrlKey || e.metaKey) && !e.altKey && e.key.toLowerCase() === 'k') {
+      if ((e.ctrlKey || e.metaKey) && !e.altKey && !e.shiftKey && e.key.toLowerCase() === 'k') {
         e.preventDefault();
+        if (e.repeat) return;
         if (dialog.current?.open) setOpen(false);
         else show();
-      } else if (e.key === '/' && !e.ctrlKey && !e.metaKey && !e.altKey && !isEditable(e.target)) {
+      } else if (e.key === '/' && !e.repeat && !e.ctrlKey && !e.metaKey && !e.altKey && !isEditable(e.target)) {
         if (dialog.current?.open) return;
         e.preventDefault();
         show();

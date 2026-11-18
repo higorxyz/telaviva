@@ -80,6 +80,24 @@ describe('SearchPalette', () => {
     expect(combo()).toHaveAttribute('aria-activedescendant', last.id);
   });
 
+  it('scrolls the active option into view', async () => {
+    const scroll = vi.fn();
+    Element.prototype.scrollIntoView = scroll;
+    const user = setup();
+    await user.keyboard('{Control>}k{/Control}');
+    await user.type(combo(), 'matrix');
+    await screen.findByRole('listbox');
+    await user.keyboard('{ArrowUp}');
+    expect(scroll).toHaveBeenCalledWith({ block: 'nearest' });
+    expect(scroll.mock.contexts.at(-1)).toHaveAttribute('id', combo().getAttribute('aria-activedescendant'));
+  });
+
+  it('ignores Ctrl+Shift+K', async () => {
+    const user = setup();
+    await user.keyboard('{Control>}{Shift>}k{/Shift}{/Control}');
+    expect(document.querySelector('dialog')).not.toHaveAttribute('open');
+  });
+
   it('Enter without a selection goes to /buscar?q=', async () => {
     const user = setup();
     await user.keyboard('{Control>}k{/Control}');

@@ -43,10 +43,11 @@ describe('GET /api/search', () => {
     expect(searchMock).toHaveBeenCalledWith('a&b', 1);
   });
 
-  it('502 when TMDb fails', async () => {
+  it('502 when TMDb fails, logging the error', async () => {
     searchMock.mockRejectedValue(new Error('boom'));
     const res = await call('?q=matrix');
     expect(res.status).toBe(502);
     expect(await res.json()).toHaveProperty('error');
+    expect(console.error).toHaveBeenCalled();
   });
 });

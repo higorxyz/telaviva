@@ -1,10 +1,10 @@
 'use client';
 
 import { Search } from 'lucide-react';
-import { useRouter, useSearchParams } from 'next/navigation';
+import { useSearchParams } from 'next/navigation';
 import { useEffect, useRef, useState, type FormEvent } from 'react';
 import { cn } from '@/lib/cn';
-import { normalizeQuery } from './query';
+import { normalizeQuery, searchHref } from './query';
 import { clearRecent, saveRecent, useRecentSearches } from './recent';
 import { SearchResults, type SearchTab } from './SearchResults';
 
@@ -15,10 +15,7 @@ const TABS: { id: SearchTab; label: string }[] = [
   { id: 'person', label: 'Pessoas' },
 ];
 
-const hrefFor = (q: string) => (q ? `/buscar?q=${encodeURIComponent(q)}` : '/buscar');
-
 export function SearchView() {
-  const router = useRouter();
   const urlQuery = useSearchParams().get('q') ?? '';
   const [value, setValue] = useState(urlQuery);
   const [tab, setTab] = useState<SearchTab>('all');
@@ -45,10 +42,11 @@ export function SearchView() {
     if (next === pushed.current) return;
     const id = setTimeout(() => {
       pushed.current = next;
-      router.replace(hrefFor(next), { scroll: false });
+      // Next's App Router syncs useSearchParams with history.replaceState, without an RSC round trip.
+      window.history.replaceState(null, '', searchHref(next));
     }, 250);
     return () => clearTimeout(id);
-  }, [value, router]);
+  }, [value]);
 
   const query = normalizeQuery(urlQuery);
 
@@ -83,13 +81,12 @@ export function SearchView() {
 
       {query ? (
         <>
-          <div role="tablist" aria-label="Tipo de resultado" className="mt-6 mb-6 flex flex-wrap gap-2">
+          <div role="group" aria-label="Filtrar por tipo" className="mt-6 mb-6 flex flex-wrap gap-2">
             {TABS.map((t) => (
               <button
                 key={t.id}
                 type="button"
-                role="tab"
-                aria-selected={tab === t.id}
+                aria-pressed={tab === t.id}
                 onClick={() => setTab(t.id)}
                 className={cn(
                   'h-9 rounded-full border px-4 text-sm font-medium transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-amber motion-reduce:transition-none',

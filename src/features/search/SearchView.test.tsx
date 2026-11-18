@@ -2,17 +2,13 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { http, HttpResponse } from 'msw';
-import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { movie } from '@/test/media';
 import { server } from '@/test/server';
 import { SearchView } from './SearchView';
 
 let params = new URLSearchParams();
-const replace = vi.fn();
-vi.mock('next/navigation', () => ({
-  useRouter: () => ({ replace }),
-  useSearchParams: () => params,
-}));
+vi.mock('next/navigation', () => ({ useSearchParams: () => params }));
 
 const person = { id: 6384, mediaType: 'person', name: 'Keanu Reeves', profilePath: null, knownForDepartment: 'Acting' };
 
@@ -34,8 +30,10 @@ const respond = (results: unknown[]) =>
     ),
   );
 
+afterEach(() => vi.restoreAllMocks());
+
 beforeEach(() => {
-  replace.mockReset();
+  vi.spyOn(window.history, 'replaceState');
   window.localStorage.clear();
   vi.stubGlobal('IntersectionObserver', class { observe() {} disconnect() {} });
 });
@@ -56,7 +54,8 @@ describe('SearchView', () => {
     const user = setup('q=matrix');
     expect(await screen.findByRole('link', { name: /Matrix/ })).toHaveAttribute('href', '/filme/603-matrix');
     expect(screen.getByRole('link', { name: /Keanu Reeves/ })).toHaveAttribute('href', '/pessoa/6384-keanu-reeves');
-    await user.click(screen.getByRole('tab', { name: 'Pessoas' }));
+    await user.click(screen.getByRole('button', { name: 'Pessoas' }));
+    expect(screen.getByRole('button', { name: 'Pessoas' })).toHaveAttribute('aria-pressed', 'true');
     expect(screen.queryByRole('link', { name: /Matrix/ })).toBeNull();
     expect(screen.getByRole('link', { name: /Keanu Reeves/ })).toBeInTheDocument();
   });
@@ -67,9 +66,17 @@ describe('SearchView', () => {
     expect(await screen.findByText('Nada encontrado para "zzzz"')).toBeInTheDocument();
   });
 
-  it('syncs typing into the URL with router.replace', async () => {
+  it('says so explicitly when a filtered tab has no matches', async () => {
+    respond([movie({ id: 603, title: 'Matrix' })]);
+    const user = setup('q=matrix');
+    await screen.findByRole('link', { name: /Matrix/ });
+    await user.click(screen.getByRole('button', { name: 'Pessoas' }));
+    expect(screen.getByText('Nenhuma pessoa encontrada para "matrix"')).toBeInTheDocument();
+  });
+
+  it('syncs typing into the URL with history.replaceState', async () => {
     const user = setup('');
     await user.type(screen.getByRole('searchbox'), 'a&b');
-    await vi.waitFor(() => expect(replace).toHaveBeenCalledWith('/buscar?q=a%26b', { scroll: false }));
+    await vi.waitFor(() => expect(window.history.replaceState).toHaveBeenCalledWith(null, '', '/buscar?q=a%26b'));
   });
 });

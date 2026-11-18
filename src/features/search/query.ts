@@ -8,3 +8,8 @@ export function normalizeQuery(q: string | null | undefined): string | null {
   if (normalized.length < MIN_QUERY || normalized.length > MAX_QUERY) return null;
   return normalized;
 }
+
+/** Canonical URL of the search page for a (normalized) query. */
+export function searchHref(q: string): string {
+  return q ? `/buscar?q=${encodeURIComponent(q)}` : '/buscar';
+}

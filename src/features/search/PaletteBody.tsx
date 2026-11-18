@@ -2,11 +2,11 @@
 
 import { Search } from 'lucide-react';
 import { useRouter } from 'next/navigation';
-import { useId, useMemo, useState, type KeyboardEvent } from 'react';
+import { useEffect, useId, useMemo, useState, type KeyboardEvent } from 'react';
 import { cn } from '@/lib/cn';
 import { tmdbImage } from '@/features/tmdb/images';
 import { groupResults, type PaletteOption } from './palette-options';
-import { normalizeQuery } from './query';
+import { normalizeQuery, searchHref } from './query';
 import { saveRecent } from './recent';
 import { useSearch } from './useSearch';
 
@@ -34,6 +34,10 @@ export function PaletteBody({ onNavigate }: { onNavigate: () => void }) {
   const groups = useMemo(() => groupResults(results, uid), [results, uid]);
   const options = useMemo(() => groups.flatMap((g) => g.options), [groups]);
   const active = options.find((o) => o.id === activeId) ?? null;
+  useEffect(() => {
+    if (activeId) document.getElementById(activeId)?.scrollIntoView?.({ block: 'nearest' });
+  }, [activeId]);
+
   const expanded = normalized !== null && options.length > 0;
 
   const go = (href: string) => {
@@ -49,13 +53,14 @@ export function PaletteBody({ onNavigate }: { onNavigate: () => void }) {
   };
 
   const onKeyDown = (e: KeyboardEvent<HTMLInputElement>) => {
+    if (e.nativeEvent.isComposing) return;
     if (e.key === 'ArrowDown' || e.key === 'ArrowUp') {
       e.preventDefault();
       move(e.key === 'ArrowDown' ? 1 : -1);
-    } else if (e.key === 'Enter' && !e.nativeEvent.isComposing) {
+    } else if (e.key === 'Enter') {
       e.preventDefault();
       if (active) go(active.href);
-      else if (normalized) go(`/buscar?q=${encodeURIComponent(normalized)}`);
+      else if (normalized) go(searchHref(normalized));
     }
   };
 
@@ -127,7 +132,7 @@ export function PaletteBody({ onNavigate }: { onNavigate: () => void }) {
         {normalized ? (
           <button
             type="button"
-            onClick={() => go(`/buscar?q=${encodeURIComponent(normalized)}`)}
+            onClick={() => go(searchHref(normalized))}
             className="w-full border-t border-ink-600 px-4 py-3 text-left text-sm text-amber hover:bg-ink-800"
           >
             Ver todos os resultados

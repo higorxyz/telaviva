@@ -23,7 +23,7 @@ export function useSearch(
   const normalized = normalizeQuery(debounced);
   const pending = normalizeQuery(query) !== null && normalizeQuery(query) !== normalized;
 
-  const { data, isError, isFetching, isPending } = useQuery({
+  const { data, isError, isFetching, isPending, isPlaceholderData } = useQuery({
     queryKey: ['search', normalized],
     queryFn: ({ signal }) => fetchSearchPage(normalized as string, 1, signal),
     enabled: normalized !== null,
@@ -32,6 +32,6 @@ export function useSearch(
   });
 
   if (normalized === null && !pending) return { results: [], status: 'idle', isFetching: false };
-  const status: SearchStatus = isError ? 'error' : data && !isPending ? 'success' : 'loading';
+  const status: SearchStatus = isError ? 'error' : data && !pending && !isPending && !isPlaceholderData ? 'success' : 'loading';
   return { results: data?.results ?? [], status, isFetching: isFetching || pending };
 }
