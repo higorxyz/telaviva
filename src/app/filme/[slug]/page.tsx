@@ -11,7 +11,6 @@ import { PAGE_CONTAINER } from '@/ui/container';
 
 type Props = PageProps<'/filme/[slug]'>;
 
-
 /** Prerenders one title; every other id renders on demand. */
 export function generateStaticParams() {
   return [{ slug: '550-clube-da-luta' }];

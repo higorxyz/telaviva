@@ -19,11 +19,12 @@ export async function loadByIdSlug<T>(
 }
 
 /**
- * Shared page flow for /filme, /serie and /pessoa: load, then 308 to the canonical URL (keeping the query
- * string) when the slug differs. Call it with `params` awaited at the top of the page, outside Suspense,
+ * Shared page flow for /filme, /serie and /pessoa: load, then 308 to the canonical URL when the slug differs.
+ * Call it with `params` awaited at the top of the page, outside Suspense,
  * so redirects and 404s happen before streaming starts and produce real HTTP status codes.
  * `searchParams` is deliberately NOT read: awaiting it (even only in the redirect branch) makes the route
- * stream after the shell, which turns the 308 into a 200 with a meta refresh. The query string is dropped.
+ * stream after the shell, which turns the 308 into a 200 with a meta refresh,
+ * so the query string is dropped on redirect.
  */
 export async function loadCanonicalPage<T>(args: {
   params: Promise<{ slug: string }>;
