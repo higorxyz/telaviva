@@ -98,6 +98,17 @@ describe('getTvDetails / getSeason', () => {
   });
 });
 
+describe('404 de série e temporada', () => {
+  it('getTvDetails e getSeason rejeitam com TmdbError 404 reconhecível', async () => {
+    server.use(
+      http.get(`${BASE}/tv/999999999`, () => HttpResponse.json({ status_message: 'nope' }, { status: 404 })),
+      http.get(`${BASE}/tv/1399/season/99`, () => HttpResponse.json({ status_message: 'nope' }, { status: 404 })),
+    );
+    expect(isTmdbNotFound(await getTvDetails(999999999).catch((e: unknown) => e))).toBe(true);
+    expect(isTmdbNotFound(await getSeason(1399, 99).catch((e: unknown) => e))).toBe(true);
+  });
+});
+
 describe('getPerson', () => {
   it('mapeia a pessoa com créditos e fotos', async () => {
     lastRequest('person/287', person287);

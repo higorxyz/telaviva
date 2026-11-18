@@ -2,7 +2,8 @@ import type { Metadata } from 'next';
 import { DetailHero } from '@/features/detail/DetailHero';
 import { loadByIdSlug, loadCanonicalPage } from '@/features/detail/load-canonical';
 import { MovieMeta } from '@/features/detail/MovieMeta';
-import { MovieSections } from '@/features/detail/MovieSections';
+import { DetailSections } from '@/features/detail/DetailSections';
+import { movieFacts } from '@/features/detail/facts';
 import { truncateSummary } from '@/features/detail/summary';
 import { tmdbImage } from '@/features/tmdb/images';
 import { getMovieDetails } from '@/features/tmdb/movies';
@@ -48,7 +49,7 @@ export default async function FilmePage({ params }: Props) {
     <>
       <DetailHero item={movie} meta={<MovieMeta movie={movie} />} />
       <div className={`${PAGE_CONTAINER} py-10 md:py-14`}>
-        <MovieSections movie={movie} />
+        <DetailSections item={movie} facts={movieFacts(movie)} />
       </div>
     </>
   );

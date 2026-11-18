@@ -1,44 +1,59 @@
+import type { ReactNode } from 'react';
 import { Rail } from '@/features/catalog/Rail';
-import type { MovieDetails } from '@/features/tmdb/types';
+import type { MovieDetails, TvDetails } from '@/features/tmdb/types';
 import { CastRail } from './CastRail';
 import { DetailSection } from './DetailSection';
 import { FactsList } from './FactsList';
-import { movieFacts } from './facts';
 import { Trailer } from './Trailer';
 import { WatchProviders } from './WatchProviders';
 
-/** Body of the movie page, below the hero. Section order is part of the design. */
-export function MovieSections({ movie }: { movie: MovieDetails }) {
+/**
+ * Body of a detail page, below the hero. Section order is part of the design;
+ * `afterOverview` and `afterTrailer` are where the series page slots in its extra blocks.
+ */
+export function DetailSections({
+  item,
+  facts,
+  afterOverview,
+  afterTrailer,
+}: {
+  item: MovieDetails | TvDetails;
+  facts: Array<{ label: string; value: ReactNode }>;
+  afterOverview?: ReactNode;
+  afterTrailer?: ReactNode;
+}) {
   return (
     <div className="space-y-12 md:space-y-14">
       <DetailSection title={{ lead: 'Sinopse' }}>
         <p className="max-w-3xl text-lg leading-relaxed text-ivory/90">
-          {movie.overview || 'Sinopse ainda não disponível.'}
+          {item.overview || 'Sinopse ainda não disponível.'}
         </p>
+        {afterOverview}
       </DetailSection>
-      {movie.trailer ? (
+      {item.trailer ? (
         <DetailSection id="trailer" title={{ lead: 'Trailer' }}>
           <div className="max-w-4xl">
-            <Trailer video={movie.trailer} title={movie.title} />
+            <Trailer video={item.trailer} title={item.title} />
           </div>
         </DetailSection>
       ) : null}
+      {afterTrailer}
       <DetailSection id="onde-assistir" title={{ lead: 'Onde', accent: 'assistir' }}>
-        <WatchProviders providers={movie.providers} />
+        <WatchProviders providers={item.providers} />
       </DetailSection>
-      {movie.cast.length > 0 ? (
+      {item.cast.length > 0 ? (
         <DetailSection id="elenco" title={{ lead: 'Elenco' }}>
-          <CastRail cast={movie.cast} />
+          <CastRail cast={item.cast} />
         </DetailSection>
       ) : null}
       <DetailSection id="ficha-tecnica" title={{ lead: 'Ficha', accent: 'técnica' }}>
-        <FactsList facts={movieFacts(movie)} />
+        <FactsList facts={facts} />
       </DetailSection>
-      {movie.recommendations.length > 0 ? (
+      {item.recommendations.length > 0 ? (
         <Rail
           id="recomendacoes"
           title={{ lead: 'Você também', accent: 'pode gostar' }}
-          items={movie.recommendations}
+          items={item.recommendations}
         />
       ) : null}
     </div>
