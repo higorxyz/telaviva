@@ -77,6 +77,6 @@ describe('SearchView', () => {
   it('syncs typing into the URL with history.replaceState', async () => {
     const user = setup('');
     await user.type(screen.getByRole('searchbox'), 'a&b');
-    await vi.waitFor(() => expect(window.history.replaceState).toHaveBeenCalledWith(null, '', '/buscar?q=a%26b'));
+    await vi.waitFor(() => expect(window.history.replaceState).toHaveBeenCalledWith(null, '', '/buscar?q=a%26b'), { timeout: 5000 });
   });
 });

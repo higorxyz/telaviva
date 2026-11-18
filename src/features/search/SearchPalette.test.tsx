@@ -2,7 +2,7 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { render, screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { http, HttpResponse } from 'msw';
-import { beforeAll, beforeEach, describe, expect, it, vi } from 'vitest';
+import { beforeAll, beforeEach, describe, expect, it, onTestFinished, vi } from 'vitest';
 import { movie, tv } from '@/test/media';
 import { server } from '@/test/server';
 import { SearchPalette } from './SearchPalette';
@@ -82,7 +82,11 @@ describe('SearchPalette', () => {
 
   it('scrolls the active option into view', async () => {
     const scroll = vi.fn();
+    const original = Element.prototype.scrollIntoView;
     Element.prototype.scrollIntoView = scroll;
+    onTestFinished(() => {
+      Element.prototype.scrollIntoView = original;
+    });
     const user = setup();
     await user.keyboard('{Control>}k{/Control}');
     await user.type(combo(), 'matrix');

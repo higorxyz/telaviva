@@ -1,5 +1,5 @@
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { render, screen } from '@testing-library/react';
+import { act, render, screen } from '@testing-library/react';
 import { http, HttpResponse } from 'msw';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { movie } from '@/test/media';
@@ -35,8 +35,10 @@ beforeEach(() => {
   );
 });
 
+let client: QueryClient;
+
 function setup(tab: SearchTab) {
-  const client = new QueryClient({ defaultOptions: { queries: { retry: false } } });
+  client = new QueryClient({ defaultOptions: { queries: { retry: false } } });
   render(
     <QueryClientProvider client={client}>
       <SearchResults query="matrix" tab={tab} />
@@ -48,7 +50,9 @@ describe('SearchResults auto-loading', () => {
   it('does not chain page loads when a page adds nothing to the active tab', async () => {
     setup('person');
     expect(await screen.findByText('Nenhuma pessoa encontrada para "matrix"')).toBeInTheDocument();
-    await new Promise((r) => setTimeout(r, 150));
+    // Positive signal first: the page rendered, nothing is in flight, then assert no further request.
+    await vi.waitFor(() => expect(client.isFetching()).toBe(0), { timeout: 5000 });
+    await act(async () => {});
     expect(requested).toEqual(['1']);
     expect(screen.getByRole('button', { name: 'Carregar mais' })).toBeInTheDocument();
   });
@@ -56,8 +60,12 @@ describe('SearchResults auto-loading', () => {
   it('caps consecutive auto-loads, then requires "Carregar mais"', async () => {
     setup('all');
     await screen.findByRole('link', { name: /Filme 1/ });
-    await new Promise((r) => setTimeout(r, 300));
+    await vi.waitFor(() => expect(requested).toHaveLength(4), { timeout: 5000 });
+    await vi.waitFor(() => expect(client.isFetching()).toBe(0), { timeout: 5000 });
+    await act(async () => {});
     expect(requested).toEqual(['1', '2', '3', '4']);
     expect(screen.getByRole('button', { name: 'Carregar mais' })).toBeInTheDocument();
+    // The cap holds: no 5th request shows up.
+    await expect(vi.waitFor(() => expect(requested.length).toBeGreaterThan(4), { timeout: 200 })).rejects.toThrow();
   });
 });

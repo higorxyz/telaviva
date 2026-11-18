@@ -8,7 +8,7 @@ import { server } from '@/test/server';
 import { useSearch } from './useSearch';
 
 const requests: string[] = [];
-const DEBOUNCE = 150;
+const DEBOUNCE = 400;
 const sleep = (ms: number) => act(() => new Promise<void>((r) => setTimeout(r, ms)));
 
 function wrapper({ children }: { children: ReactNode }) {
