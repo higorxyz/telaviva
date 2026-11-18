@@ -1,7 +1,7 @@
 import { cacheLife, cacheTag } from 'next/cache';
 import { z } from 'zod';
 import { refine, sortByWeightedRating } from '@/features/catalog/curation';
-import { tmdbFetch, type TmdbParams } from './client';
+import { isTmdbNotFound, TmdbError, tmdbFetch, type TmdbParams } from './client';
 import { saoPauloIsoDate } from './dates';
 import { toMovieDetails } from './detail-mappers';
 import { movieDetailSchema, overviewOnlySchema } from './detail-schemas';
@@ -106,16 +106,31 @@ export async function getTrending(
 
 const MOVIE_APPEND = 'videos,credits,release_dates,watch/providers,recommendations,external_ids';
 
-export async function getMovieDetails(id: number): Promise<MovieDetails> {
+/**
+ * Errors thrown inside a 'use cache' function lose their class and fields at the cache boundary,
+ * so a TMDb 404 is returned as a value and rethrown as a TmdbError outside the cache.
+ */
+async function loadMovieDetails(id: number): Promise<MovieDetails | null> {
   'use cache';
   cacheLife('tmdbDetail');
   cacheTag('tmdb', `movie:${id}`);
-  const raw = await tmdbFetch(
-    `movie/${id}`,
-    { append_to_response: MOVIE_APPEND, include_video_language: 'pt,en,null' },
-    movieDetailSchema,
-  );
-  return withOverviewFallback(toMovieDetails(raw), () =>
-    tmdbFetch(`movie/${id}`, { language: 'en-US' }, overviewOnlySchema),
-  );
+  try {
+    const raw = await tmdbFetch(
+      `movie/${id}`,
+      { append_to_response: MOVIE_APPEND, include_video_language: 'pt,en,null' },
+      movieDetailSchema,
+    );
+    return await withOverviewFallback(toMovieDetails(raw), () =>
+      tmdbFetch(`movie/${id}`, { language: 'en-US' }, overviewOnlySchema),
+    );
+  } catch (error) {
+    if (isTmdbNotFound(error)) return null;
+    throw error;
+  }
+}
+
+export async function getMovieDetails(id: number): Promise<MovieDetails> {
+  const movie = await loadMovieDetails(id);
+  if (!movie) throw new TmdbError('The resource you requested could not be found.', 404, `movie/${id}`);
+  return movie;
 }

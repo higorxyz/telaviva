@@ -8,6 +8,7 @@ import { PAGE_CONTAINER } from '@/ui/container';
 import { Letterbox } from '@/ui/Letterbox';
 import { RatingRing } from '@/ui/RatingRing';
 import { cn } from '@/lib/cn';
+import { HeroTrailer } from '@/features/detail/HeroTrailer';
 import { ParallaxBackdrop } from './ParallaxBackdrop';
 
 export type HeroItem = MediaSummary & {
@@ -66,9 +67,7 @@ export function Hero({ item }: { item: HeroItem }) {
           ) : null}
           <div className="mt-6 flex flex-col gap-3 sm:flex-row">
             {item.trailer ? (
-              <ButtonLink href={`${href}#trailer`} variant="primary" size="lg" className="w-full sm:w-auto">
-                <span aria-hidden="true">▶</span> Assistir trailer
-              </ButtonLink>
+              <HeroTrailer video={item.trailer} title={item.title} className="w-full sm:w-auto" />
             ) : null}
             <ButtonLink href={href} variant="ghost" size="lg" className="w-full sm:w-auto">
               Ver detalhes

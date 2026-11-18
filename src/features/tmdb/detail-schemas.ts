@@ -101,6 +101,8 @@ export const movieDetailSchema = movieSchema.extend({
   tagline: str,
   genres: genresSchema,
   imdb_id: optStr,
+  budget: z.number().catch(0),
+  revenue: z.number().catch(0),
   videos: videosSchema,
   credits: creditsSchema.optional(),
   release_dates: releaseDatesSchema.optional(),

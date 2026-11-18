@@ -83,6 +83,8 @@ export function toMovieDetails(raw: RawMovieDetail): MovieDetails {
     providers: toProviders(raw['watch/providers']),
     recommendations: (raw.recommendations?.results ?? []).map((r) => toMediaSummary(r, 'movie')),
     imdbId: raw.imdb_id,
+    budget: raw.budget,
+    revenue: raw.revenue,
   };
 }
 

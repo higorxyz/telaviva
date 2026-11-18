@@ -6,6 +6,7 @@ import person287 from '@/test/fixtures/person-287.json';
 import tv1399 from '@/test/fixtures/tv-1399.json';
 import season1 from '@/test/fixtures/tv-1399-season-1.json';
 import { server } from '@/test/server';
+import { isTmdbNotFound } from './client';
 import { getMovieDetails } from './movies';
 import { getPerson } from './people';
 import { getSeason, getTvDetails } from './tv';
@@ -24,10 +25,20 @@ function lastRequest(path: string, body: unknown) {
 }
 
 describe('getMovieDetails', () => {
+  it('404 do TMDb vira TmdbError reconhecível por isTmdbNotFound', async () => {
+    server.use(
+      http.get(`${BASE}/movie/999999999`, () =>
+        HttpResponse.json({ status_message: 'The resource you requested could not be found.' }, { status: 404 }),
+      ),
+    );
+    const error = await getMovieDetails(999999999).catch((e: unknown) => e);
+    expect(isTmdbNotFound(error)).toBe(true);
+  });
+
   it('mapeia o filme com uma única requisição e append_to_response', async () => {
     const req = lastRequest('movie/550', movie550);
     const m = await getMovieDetails(550);
-    expect(m).toMatchObject({ id: 550, mediaType: 'movie', runtime: 139, imdbId: 'tt0137523' });
+    expect(m).toMatchObject({ id: 550, mediaType: 'movie', runtime: 139, imdbId: 'tt0137523', budget: 63000000, revenue: 100853753 });
     expect(m.trailer?.site).toBe('YouTube');
     expect(m.certification).toBe('16');
     expect(m.cast.length).toBeGreaterThan(0);

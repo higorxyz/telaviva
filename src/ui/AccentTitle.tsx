@@ -6,13 +6,14 @@ type Props = {
   text?: string;
   lead?: string;
   accent?: string | null;
+  id?: string;
   className?: string;
 };
 
-export function AccentTitle({ as: Tag = 'h2', text, lead, accent, className }: Props) {
+export function AccentTitle({ as: Tag = 'h2', text, lead, accent, id, className }: Props) {
   const parts = text !== undefined ? splitAccent(text) : { lead: lead ?? '', accent: accent ?? null };
   return (
-    <Tag className={cn('font-display text-balance text-ivory', className)}>
+    <Tag id={id} className={cn('font-display text-balance text-ivory', className)}>
       {parts.lead}
       {parts.accent ? (
         <>

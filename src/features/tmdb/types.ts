@@ -110,6 +110,9 @@ interface DetailsCommon extends MediaSummary {
 export interface MovieDetails extends DetailsCommon {
   runtime: number | null;
   imdbId: string | null;
+  /** USD; 0 when TMDb has no figure. */
+  budget: number;
+  revenue: number;
 }
 
 export interface TvDetails extends DetailsCommon {
