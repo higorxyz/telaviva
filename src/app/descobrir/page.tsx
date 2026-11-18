@@ -1,0 +1,46 @@
+import type { Metadata } from 'next';
+import { Suspense } from 'react';
+import { PageHeader } from '@/features/catalog/PageHeader';
+import { DiscoverView } from '@/features/discover/DiscoverView';
+import { getGenres, getWatchProviderCatalog } from '@/features/tmdb/genres';
+import { PAGE_CONTAINER } from '@/ui/container';
+import { Skeleton } from '@/ui/Skeleton';
+
+export const metadata: Metadata = {
+  title: 'Descobrir',
+  description: 'Filtre filmes e séries por gênero, ano, nota, duração, idioma e onde assistir no Brasil.',
+};
+
+function ViewSkeleton() {
+  return (
+    <div className="flex gap-8" aria-hidden="true">
+      <Skeleton className="hidden h-[40rem] w-72 shrink-0 md:block" />
+      <Skeleton className="h-[40rem] flex-1" />
+    </div>
+  );
+}
+
+export default async function DescobrirPage() {
+  // Cached TMDb catalogs; the URL-driven view below streams in behind the Suspense boundary.
+  const [movieGenres, tvGenres, movieProviders, tvProviders] = await Promise.all([
+    getGenres('movie'),
+    getGenres('tv'),
+    getWatchProviderCatalog('movie'),
+    getWatchProviderCatalog('tv'),
+  ]);
+  const catalog = {
+    genres: { movie: movieGenres, tv: tvGenres },
+    providers: { movie: movieProviders, tv: tvProviders },
+  };
+  return (
+    <div className={`${PAGE_CONTAINER} pt-28 pb-14 md:pt-32`}>
+      <PageHeader
+        title={{ lead: 'Descobrir', accent: 'algo bom' }}
+        description="Afine por gênero, ano, nota, duração e onde assistir no Brasil."
+      />
+      <Suspense fallback={<ViewSkeleton />}>
+        <DiscoverView catalog={catalog} />
+      </Suspense>
+    </div>
+  );
+}
