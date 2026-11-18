@@ -1,38 +1,25 @@
 import type { Metadata } from 'next';
-import { notFound } from 'next/navigation';
-import { Suspense } from 'react';
-import { assertCanonical, isCanonical, resolveCanonical, toSearchString } from '@/features/detail/canonical';
-import { DetailSkeleton } from '@/features/detail/DetailSkeleton';
 import { DetailHero } from '@/features/detail/DetailHero';
+import { loadByIdSlug, loadCanonicalPage } from '@/features/detail/load-canonical';
 import { MovieMeta } from '@/features/detail/MovieMeta';
 import { MovieSections } from '@/features/detail/MovieSections';
 import { truncateSummary } from '@/features/detail/summary';
-import { isTmdbNotFound } from '@/features/tmdb/client';
 import { tmdbImage } from '@/features/tmdb/images';
 import { getMovieDetails } from '@/features/tmdb/movies';
-import type { MovieDetails } from '@/features/tmdb/types';
 import { mediaHref } from '@/lib/slug';
 import { PAGE_CONTAINER } from '@/ui/container';
+
+type Props = PageProps<'/filme/[slug]'>;
+
 
 /** Prerenders one title; every other id renders on demand. */
 export function generateStaticParams() {
   return [{ slug: '550-clube-da-luta' }];
 }
 
-async function loadMovie(slug: string): Promise<MovieDetails> {
-  const resolved = resolveCanonical({ slug }, 'filme');
-  if (resolved === 'not-found') notFound();
-  try {
-    return await getMovieDetails(resolved.id);
-  } catch (error) {
-    if (isTmdbNotFound(error)) notFound();
-    throw error;
-  }
-}
-
-export async function generateMetadata({ params }: PageProps<'/filme/[slug]'>): Promise<Metadata> {
+export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { slug } = await params;
-  const movie = await loadMovie(slug);
+  const movie = await loadByIdSlug(slug, 'filme', getMovieDetails);
   const canonical = mediaHref(movie);
   const description = truncateSummary(movie.overview) || undefined;
   const image = tmdbImage(movie.backdropPath ?? movie.posterPath, 'w780');
@@ -50,14 +37,13 @@ export async function generateMetadata({ params }: PageProps<'/filme/[slug]'>): 
   };
 }
 
-type Props = PageProps<'/filme/[slug]'>;
-
-async function FilmeContent({ params, searchParams }: Pick<Props, 'params' | 'searchParams'>) {
-  const { slug } = await params;
-  const movie = await loadMovie(slug);
-  const canonical = mediaHref(movie);
-  // searchParams is only awaited when redirecting, so canonical (prerendered) URLs stay static.
-  if (!isCanonical(slug, canonical)) assertCanonical(slug, canonical, toSearchString(await searchParams));
+export default async function FilmePage({ params }: Props) {
+  const movie = await loadCanonicalPage({
+    params,
+    kind: 'filme',
+    load: getMovieDetails,
+    hrefOf: mediaHref,
+  });
 
   return (
     <>
@@ -66,14 +52,5 @@ async function FilmeContent({ params, searchParams }: Pick<Props, 'params' | 'se
         <MovieSections movie={movie} />
       </div>
     </>
-  );
-}
-
-/** URL data is read inside Suspense so unlisted ids can serve the app shell (Partial Prefetching). */
-export default function FilmePage({ params, searchParams }: Props) {
-  return (
-    <Suspense fallback={<DetailSkeleton />}>
-      <FilmeContent params={params} searchParams={searchParams} />
-    </Suspense>
   );
 }
