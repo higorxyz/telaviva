@@ -28,10 +28,9 @@ export function Rail({
   const measure = useCallback(() => {
     const el = listRef.current;
     if (!el) return;
-    setOverflow({
-      start: el.scrollLeft > 4,
-      end: el.scrollLeft + el.clientWidth < el.scrollWidth - 4,
-    });
+    const start = el.scrollLeft > 4;
+    const end = el.scrollLeft + el.clientWidth < el.scrollWidth - 4;
+    setOverflow((prev) => (prev.start === start && prev.end === end ? prev : { start, end }));
   }, []);
 
   useEffect(() => {
@@ -53,22 +52,35 @@ export function Rail({
   function onPointerDown(e: PointerEvent<HTMLUListElement>) {
     if (e.pointerType !== 'mouse' || e.button !== 0) return;
     drag.current = { active: true, startX: e.clientX, startScroll: e.currentTarget.scrollLeft, moved: false };
+    e.currentTarget.removeAttribute('data-dragging');
   }
 
   function onPointerMove(e: PointerEvent<HTMLUListElement>) {
     const d = drag.current;
     if (!d.active) return;
     const dx = e.clientX - d.startX;
-    if (!d.moved && Math.abs(dx) > DRAG_THRESHOLD) d.moved = true;
+    if (!d.moved && Math.abs(dx) > DRAG_THRESHOLD) {
+      d.moved = true;
+      // Snap fights programmatic scrollLeft, so it is off while dragging.
+      e.currentTarget.setAttribute('data-dragging', '');
+    }
     if (d.moved) e.currentTarget.scrollLeft = d.startScroll - dx;
   }
 
   function endDrag() {
-    drag.current.active = false;
+    const d = drag.current;
+    if (!d.active) return;
+    d.active = false;
+    listRef.current?.removeAttribute('data-dragging');
+    // Deferred so the click that follows a real drag is still suppressed.
+    setTimeout(() => {
+      if (!drag.current.active) drag.current.moved = false;
+    }, 0);
   }
 
   function onClickCapture(e: React.MouseEvent) {
-    if (drag.current.moved) {
+    // detail === 0: keyboard-generated click, never part of a pointer drag.
+    if (e.detail !== 0 && drag.current.moved) {
       e.preventDefault();
       e.stopPropagation();
       drag.current.moved = false;
@@ -113,9 +125,11 @@ export function Rail({
           onPointerMove={onPointerMove}
           onPointerUp={endDrag}
           onPointerLeave={endDrag}
+          onPointerCancel={endDrag}
+          onDragStart={(e) => e.preventDefault()}
           onClickCapture={onClickCapture}
           onKeyDown={onKeyDown}
-          className="flex snap-x snap-mandatory gap-3 overflow-x-auto overscroll-x-contain pb-4 [scrollbar-width:none] sm:gap-4 [&::-webkit-scrollbar]:hidden"
+          className="flex snap-x snap-mandatory data-dragging:snap-none gap-3 overflow-x-auto overscroll-x-contain pb-4 [scrollbar-width:none] sm:gap-4 [&::-webkit-scrollbar]:hidden"
         >
           {items.map((item, i) => (
             <li
