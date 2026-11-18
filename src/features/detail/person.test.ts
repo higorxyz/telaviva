@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { movie } from '@/test/media';
 import type { PersonCredit } from '@/features/tmdb/types';
-import { age, departmentLabel, filmography, knownFor, splitCredits } from './person';
+import { age, departmentLabel, filmography, groupRows, knownFor, toFilmRows } from './person';
 
 const credit = (o: Partial<PersonCredit> = {}): PersonCredit => ({
   ...movie(),
@@ -39,6 +39,12 @@ describe('knownFor', () => {
     expect(result).toEqual([dup, show, good].sort(byScore));
     expect(knownFor([dup, good], 1)).toEqual([dup]);
   });
+
+  it('keeps a later credit with a poster when an earlier one of the same title had none', () => {
+    const bare = credit({ id: 7, posterPath: null });
+    const withPoster = credit({ id: 7, posterPath: '/p.jpg' });
+    expect(knownFor([bare, withPoster])).toEqual([withPoster]);
+  });
 });
 
 describe('filmography', () => {
@@ -60,10 +66,21 @@ describe('filmography', () => {
   });
 });
 
-describe('splitCredits', () => {
-  it('splits acting from crew', () => {
-    const act = credit({ id: 1 });
-    const crew = credit({ id: 2, department: 'Directing' });
-    expect(splitCredits([act, crew])).toEqual({ all: [act, crew], acting: [act], crew: [crew] });
+describe('groupRows', () => {
+  const rows = toFilmRows([
+    credit({ id: 1, role: 'Herói' }),
+    credit({ id: 1, role: 'Produtor', department: 'Production' }),
+    credit({ id: 2, role: 'Diretor', department: 'Directing' }),
+  ]);
+  const roles = (f: 'all' | 'acting' | 'crew') => groupRows(rows, f).flatMap((g) => g.items.map((i) => `${i.id}:${i.role}`)).sort();
+
+  it('shows only the roles of the selected view', () => {
+    expect(roles('all')).toEqual(['1:Herói, Produtor', '2:Diretor']);
+    expect(roles('acting')).toEqual(['1:Herói']);
+    expect(roles('crew')).toEqual(['1:Produtor', '2:Diretor']);
+  });
+
+  it('keeps a cast credit with an empty role in the acting view', () => {
+    expect(groupRows(toFilmRows([credit({ id: 9, role: '' })]), 'acting')).toHaveLength(1);
   });
 });

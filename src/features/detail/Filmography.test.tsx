@@ -4,17 +4,12 @@ import { describe, expect, it } from 'vitest';
 import { movie } from '@/test/media';
 import type { PersonCredit } from '@/features/tmdb/types';
 import { Filmography } from './Filmography';
-import { filmography, splitCredits } from './person';
+import { toFilmRows } from './person';
 
 const c = (o: Partial<PersonCredit>): PersonCredit => ({ ...movie(), role: '', department: 'Acting', ...o });
 
 function setup(credits: PersonCredit[]) {
-  const s = splitCredits(credits);
-  render(
-    <Filmography
-      groups={{ all: filmography(s.all), acting: filmography(s.acting), crew: filmography(s.crew) }}
-    />,
-  );
+  render(<Filmography rows={toFilmRows(credits)} />);
 }
 
 describe('Filmography', () => {

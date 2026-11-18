@@ -1,10 +1,10 @@
 import Link from 'next/link';
 import { tmdbImage } from '@/features/tmdb/images';
-import type { PersonCredit } from '@/features/tmdb/types';
 import { mediaHref } from '@/lib/slug';
 import { MediaBadge } from '@/ui/MediaBadge';
+import type { FilmEntry } from './person';
 
-export function FilmographyRow({ credit }: { credit: PersonCredit }) {
+export function FilmographyRow({ credit }: { credit: FilmEntry }) {
   const thumb = tmdbImage(credit.posterPath, 'w92');
   return (
     <li className="flex items-center gap-3 py-2">

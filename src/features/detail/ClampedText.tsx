@@ -6,7 +6,15 @@ import { cn } from '@/lib/cn';
 const CLAMP = { 3: 'line-clamp-3', 8: 'line-clamp-8' } as const;
 
 /** Clamped text (3 lines by default); the toggle appears only when the text is really clamped. */
-export function ClampedText({ text, lines = 3 }: { text: string; lines?: keyof typeof CLAMP }) {
+export function ClampedText({
+  text,
+  lines = 3,
+  preserveLineBreaks = false,
+}: {
+  text: string;
+  lines?: keyof typeof CLAMP;
+  preserveLineBreaks?: boolean;
+}) {
   const [open, setOpen] = useState(false);
   const [overflowing, setOverflowing] = useState(false);
   const ref = useRef<HTMLParagraphElement>(null);
@@ -28,7 +36,7 @@ export function ClampedText({ text, lines = 3 }: { text: string; lines?: keyof t
 
   return (
     <div>
-      <p ref={ref} id={id} className={cn('text-sm leading-relaxed whitespace-pre-line text-ivory/85', !open && CLAMP[lines])}>
+      <p ref={ref} id={id} className={cn('text-sm leading-relaxed text-ivory/85', preserveLineBreaks && 'whitespace-pre-line', !open && CLAMP[lines])}>
         {text}
       </p>
       {overflowing ? (

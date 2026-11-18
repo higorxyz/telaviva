@@ -2,7 +2,6 @@ import { formatYear } from '@/lib/format';
 import type { PersonCredit } from '@/features/tmdb/types';
 
 export type CreditFilter = 'all' | 'acting' | 'crew';
-export type YearGroup = { year: string; items: PersonCredit[] };
 
 const NO_DATE = 'Sem data';
 
@@ -41,33 +40,64 @@ export function knownFor(credits: PersonCredit[], limit = 12): PersonCredit[] {
   const seen = new Set<string>();
   const unique: PersonCredit[] = [];
   for (const c of credits) {
-    if (seen.has(key(c))) continue;
+    if (seen.has(key(c)) || !c.posterPath) continue;
     seen.add(key(c));
-    if (c.posterPath) unique.push(c);
+    unique.push(c);
   }
   return unique.sort((a, b) => score(b) - score(a)).slice(0, limit);
 }
 
-/** One entry per title; repeated credits (cast + crew jobs) join their roles. */
-function mergeByTitle(credits: PersonCredit[]): PersonCredit[] {
-  const merged = new Map<string, PersonCredit>();
+/** Slim, serializable row: one per title, with the cast and crew roles kept apart for the client filter. */
+export type FilmRow = {
+  key: string;
+  id: number;
+  mediaType: 'movie' | 'tv';
+  title: string;
+  releaseDate: string | null;
+  posterPath: string | null;
+  popularity: number;
+  castRoles: string[] | null;
+  crewRoles: string[] | null;
+};
+export type FilmEntry = FilmRow & { role: string };
+export type YearGroup = { year: string; items: FilmEntry[] };
+
+const addRole = (roles: string[] | null, role: string) => {
+  const list = roles ?? [];
+  return role && !list.includes(role) ? [...list, role] : list;
+};
+
+/** Merges repeated credits of a title (cast + crew jobs) into one row. */
+export function toFilmRows(credits: PersonCredit[]): FilmRow[] {
+  const rows = new Map<string, FilmRow>();
   for (const c of credits) {
-    const prev = merged.get(key(c));
-    if (!prev) {
-      merged.set(key(c), c);
-      continue;
-    }
-    const roles = [prev.role, c.role].flatMap((r) => r.split(', ')).filter(Boolean);
-    merged.set(key(c), { ...prev, role: [...new Set(roles)].join(', ') });
+    const row = rows.get(key(c)) ?? {
+      key: key(c),
+      id: c.id,
+      mediaType: c.mediaType,
+      title: c.title,
+      releaseDate: c.releaseDate,
+      posterPath: c.posterPath,
+      popularity: c.popularity,
+      castRoles: null,
+      crewRoles: null,
+    };
+    if (c.department === 'Acting') row.castRoles = addRole(row.castRoles, c.role);
+    else row.crewRoles = addRole(row.crewRoles, c.role);
+    rows.set(row.key, row);
   }
-  return [...merged.values()];
+  return [...rows.values()];
 }
 
-export function filmography(credits: PersonCredit[]): YearGroup[] {
-  const groups = new Map<string, PersonCredit[]>();
-  for (const c of mergeByTitle(credits)) {
-    const year = formatYear(c.releaseDate) ?? NO_DATE;
-    groups.set(year, [...(groups.get(year) ?? []), c]);
+/** Year-grouped view of the rows for a filter; roles shown are only those of that view. */
+export function groupRows(rows: FilmRow[], filter: CreditFilter = 'all'): YearGroup[] {
+  const groups = new Map<string, FilmEntry[]>();
+  for (const r of rows) {
+    const roles = [...(filter === 'crew' ? [] : (r.castRoles ?? [])), ...(filter === 'acting' ? [] : (r.crewRoles ?? []))];
+    const included = filter === 'all' || (filter === 'acting' ? r.castRoles : r.crewRoles) !== null;
+    if (!included) continue;
+    const year = formatYear(r.releaseDate) ?? NO_DATE;
+    groups.set(year, [...(groups.get(year) ?? []), { ...r, role: roles.join(', ') }]);
   }
   return [...groups.entries()]
     .sort(([a], [b]) => (a === NO_DATE ? 1 : b === NO_DATE ? -1 : Number(b) - Number(a)))
@@ -77,10 +107,6 @@ export function filmography(credits: PersonCredit[]): YearGroup[] {
     }));
 }
 
-export function splitCredits(credits: PersonCredit[]): Record<CreditFilter, PersonCredit[]> {
-  return {
-    all: credits,
-    acting: credits.filter((c) => c.department === 'Acting'),
-    crew: credits.filter((c) => c.department !== 'Acting'),
-  };
+export function filmography(credits: PersonCredit[]): YearGroup[] {
+  return groupRows(toFilmRows(credits));
 }

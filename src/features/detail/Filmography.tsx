@@ -1,10 +1,10 @@
 'use client';
 
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import { cn } from '@/lib/cn';
 import { EmptyState } from '@/ui/EmptyState';
 import { FilmographyRow } from './FilmographyRow';
-import type { CreditFilter, YearGroup } from './person';
+import { groupRows, type CreditFilter, type FilmRow } from './person';
 
 const OPTIONS: Array<{ value: CreditFilter; label: string }> = [
   { value: 'all', label: 'Todos' },
@@ -13,9 +13,9 @@ const OPTIONS: Array<{ value: CreditFilter; label: string }> = [
 ];
 
 /** Year-grouped credits with a client-side Todos / Atuação / Equipe filter (no URL state). */
-export function Filmography({ groups }: { groups: Record<CreditFilter, YearGroup[]> }) {
+export function Filmography({ rows }: { rows: FilmRow[] }) {
   const [filter, setFilter] = useState<CreditFilter>('all');
-  const visible = groups[filter];
+  const visible = useMemo(() => groupRows(rows, filter), [rows, filter]);
 
   return (
     <div>
@@ -44,7 +44,7 @@ export function Filmography({ groups }: { groups: Record<CreditFilter, YearGroup
               <h3 className="font-display text-2xl text-amber">{group.year}</h3>
               <ul className="divide-y divide-ink-800">
                 {group.items.map((c) => (
-                  <FilmographyRow key={`${c.mediaType}:${c.id}`} credit={c} />
+                  <FilmographyRow key={c.key} credit={c} />
                 ))}
               </ul>
             </section>
