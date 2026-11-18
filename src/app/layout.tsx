@@ -1,6 +1,9 @@
 import type { Metadata, Viewport } from 'next';
 import { Instrument_Serif, Inter_Tight } from 'next/font/google';
 import { env } from '@/lib/env';
+import { Footer } from '@/features/shell/Footer';
+import { Header } from '@/features/shell/Header';
+import { TabBar } from '@/features/shell/TabBar';
 import { Grain } from '@/ui/Grain';
 import { Providers } from './providers';
 import './globals.css';
@@ -35,8 +38,19 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     <html lang="pt-BR" className={`${instrumentSerif.variable} ${interTight.variable}`}>
       <body className="min-h-dvh">
         <Providers>
+          <a
+            href="#conteudo"
+            className="sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-70 focus:rounded-full focus:bg-amber focus:px-4 focus:py-2 focus:text-ink-950"
+          >
+            Pular para o conteúdo
+          </a>
           <Grain />
-          <main id="conteudo">{children}</main>
+          <Header />
+          <main id="conteudo" className="pb-20 md:pb-0">
+            {children}
+          </main>
+          <Footer />
+          <TabBar />
         </Providers>
       </body>
     </html>
