@@ -20,7 +20,6 @@ function Poster({ item }: { item: HeroSource }) {
           alt={`Pôster de ${item.title}`}
           width={500}
           height={750}
-          fetchPriority="high"
           decoding="async"
           className="size-full object-cover"
         />
@@ -52,6 +51,7 @@ export function DetailHero({
           srcSet={backdropSrcSet(item.backdropPath)}
           sizes="100vw"
           alt=""
+          fetchPriority="high"
           decoding="async"
           className="absolute inset-0 -z-10 size-full object-cover object-top"
         />

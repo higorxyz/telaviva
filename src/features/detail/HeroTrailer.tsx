@@ -23,6 +23,7 @@ export function HeroTrailer({ video, title, className }: { video: Video; title: 
       <button
         type="button"
         onClick={() => setOpen(true)}
+        aria-haspopup="dialog"
         className={cn(buttonClasses({ variant: 'primary', size: 'lg' }), className)}
       >
         <span aria-hidden="true">▶</span> Assistir trailer
@@ -34,7 +35,7 @@ export function HeroTrailer({ video, title, className }: { video: Video; title: 
         onClick={(e) => {
           if (e.target === e.currentTarget) setOpen(false);
         }}
-        className="m-auto w-[min(96vw,64rem)] max-w-none overflow-visible bg-transparent p-0 backdrop:bg-ink-950/85"
+        className="m-auto w-[min(96vw,64rem,calc((100dvh-7rem)*16/9))] max-w-none overflow-visible bg-transparent p-0 backdrop:bg-ink-950/85"
       >
         {open ? (
           <div className="relative">

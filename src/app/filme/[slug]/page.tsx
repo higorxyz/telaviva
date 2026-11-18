@@ -1,6 +1,8 @@
 import type { Metadata } from 'next';
 import { notFound } from 'next/navigation';
-import { assertCanonical, resolveCanonical } from '@/features/detail/canonical';
+import { Suspense } from 'react';
+import { assertCanonical, isCanonical, resolveCanonical, toSearchString } from '@/features/detail/canonical';
+import { DetailSkeleton } from '@/features/detail/DetailSkeleton';
 import { DetailHero } from '@/features/detail/DetailHero';
 import { MovieMeta } from '@/features/detail/MovieMeta';
 import { MovieSections } from '@/features/detail/MovieSections';
@@ -48,10 +50,14 @@ export async function generateMetadata({ params }: PageProps<'/filme/[slug]'>): 
   };
 }
 
-export default async function FilmePage({ params }: PageProps<'/filme/[slug]'>) {
+type Props = PageProps<'/filme/[slug]'>;
+
+async function FilmeContent({ params, searchParams }: Pick<Props, 'params' | 'searchParams'>) {
   const { slug } = await params;
   const movie = await loadMovie(slug);
-  assertCanonical(slug, mediaHref(movie));
+  const canonical = mediaHref(movie);
+  // searchParams is only awaited when redirecting, so canonical (prerendered) URLs stay static.
+  if (!isCanonical(slug, canonical)) assertCanonical(slug, canonical, toSearchString(await searchParams));
 
   return (
     <>
@@ -60,5 +66,14 @@ export default async function FilmePage({ params }: PageProps<'/filme/[slug]'>) 
         <MovieSections movie={movie} />
       </div>
     </>
+  );
+}
+
+/** URL data is read inside Suspense so unlisted ids can serve the app shell (Partial Prefetching). */
+export default function FilmePage({ params, searchParams }: Props) {
+  return (
+    <Suspense fallback={<DetailSkeleton />}>
+      <FilmeContent params={params} searchParams={searchParams} />
+    </Suspense>
   );
 }

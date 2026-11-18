@@ -12,10 +12,10 @@ export function CertificationBadge({ value }: { value: string }) {
   return (
     <span
       title={`Classificação indicativa: ${label}`}
-      aria-label={`Classificação indicativa: ${label}`}
       className="inline-grid min-w-7 place-items-center rounded border border-ivory/60 px-1.5 py-0.5 text-xs font-semibold text-ivory"
     >
       <span aria-hidden="true">{code}</span>
+      <span className="sr-only">Classificação indicativa: {label}</span>
     </span>
   );
 }

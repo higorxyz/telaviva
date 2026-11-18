@@ -37,6 +37,11 @@
     color-scheme: dark;
   }
 
+  /* Modal dialogs (trailer) lock page scroll while open. */
+  html:has(dialog[open]) {
+    overflow: hidden;
+  }
+
   body {
     @apply bg-ink-950 text-ivory font-sans antialiased;
   }

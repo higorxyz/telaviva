@@ -112,7 +112,6 @@ const MOVIE_APPEND = 'videos,credits,release_dates,watch/providers,recommendatio
  */
 async function loadMovieDetails(id: number): Promise<MovieDetails | null> {
   'use cache';
-  cacheLife('tmdbDetail');
   cacheTag('tmdb', `movie:${id}`);
   try {
     const raw = await tmdbFetch(
@@ -120,11 +119,17 @@ async function loadMovieDetails(id: number): Promise<MovieDetails | null> {
       { append_to_response: MOVIE_APPEND, include_video_language: 'pt,en,null' },
       movieDetailSchema,
     );
-    return await withOverviewFallback(toMovieDetails(raw), () =>
+    const movie = await withOverviewFallback(toMovieDetails(raw), () =>
       tmdbFetch(`movie/${id}`, { language: 'en-US' }, overviewOnlySchema),
     );
+    cacheLife('tmdbDetail');
+    return movie;
   } catch (error) {
-    if (isTmdbNotFound(error)) return null;
+    if (isTmdbNotFound(error)) {
+      // A transient 404 must not stick for the full detail lifetime.
+      cacheLife('hours');
+      return null;
+    }
     throw error;
   }
 }

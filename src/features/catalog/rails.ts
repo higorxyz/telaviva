@@ -39,7 +39,7 @@ export function dedupeRails(
   return out;
 }
 
-type Source = {
+export type Source = {
   id: string;
   title: RailInput['title'];
   href: string;
@@ -61,20 +61,22 @@ const SOURCES: Source[] = [
   { id: 'em-breve', title: { lead: 'Em', accent: 'breve' }, href: '/filmes/em-breve', fetch: () => getMovieList('upcoming') },
 ];
 
-/** Loads every rail source; a rejected source drops only its own rail. Sources are cached, this is not. */
-export async function loadHomeRails(): Promise<RailInput[]> {
-  const settled = await Promise.allSettled(SOURCES.map((s) => s.fetch()));
+/** Loads every source; a rejected one drops only its own rail (logged under `scope`). Sources are cached, this is not. */
+export async function settleRails(sources: Source[], scope: string): Promise<RailInput[]> {
+  const settled = await Promise.allSettled(sources.map((s) => s.fetch()));
   const rails: RailInput[] = [];
   settled.forEach((result, i) => {
-    const source = SOURCES[i]!;
+    const source = sources[i]!;
     if (result.status === 'rejected') {
-      console.error(`[home] rail "${source.id}" dropped:`, result.reason);
+      console.error(`[${scope}] rail "${source.id}" dropped:`, result.reason);
       return;
     }
     rails.push({ id: source.id, title: source.title, href: source.href, items: result.value.results });
   });
   return rails;
 }
+
+export const loadHomeRails = () => settleRails(SOURCES, 'home');
 
 export async function buildHomeRails(exclude: string[] = []): Promise<RailOutput[]> {
   return dedupeRails(await loadHomeRails(), { perRail: PER_RAIL, exclude });
