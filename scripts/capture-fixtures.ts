@@ -32,6 +32,7 @@ const captures: Capture[] = [
     path: 'movie/550',
     params: {
       append_to_response: 'videos,credits,release_dates,watch/providers,recommendations,external_ids',
+      include_video_language: 'pt,en,null',
     },
   },
   { file: 'movie-550-en', path: 'movie/550', params: { language: 'en-US' } },
@@ -40,6 +41,7 @@ const captures: Capture[] = [
     path: 'tv/1399',
     params: {
       append_to_response: 'videos,aggregate_credits,content_ratings,watch/providers,recommendations',
+      include_video_language: 'pt,en,null',
     },
   },
   { file: 'tv-1399-season-1', path: 'tv/1399/season/1' },
