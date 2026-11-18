@@ -1,5 +1,5 @@
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { render, screen, within } from '@testing-library/react';
+import { act, render, screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { http, HttpResponse } from 'msw';
 import { afterEach, beforeAll, beforeEach, describe, expect, it, vi } from 'vitest';
@@ -33,14 +33,18 @@ function respond(results: unknown[] = [movie({ id: 603, title: 'Matrix' })]) {
   );
 }
 
+let rerenderView: () => void = () => {};
+
 function setup(qs: string) {
   params = new URLSearchParams(qs);
   const client = new QueryClient({ defaultOptions: { queries: { retry: false } } });
-  render(
+  const tree = () => (
     <QueryClientProvider client={client}>
       <DiscoverView catalog={catalog} />
-    </QueryClientProvider>,
+    </QueryClientProvider>
   );
+  const { rerender } = render(tree());
+  rerenderView = () => rerender(tree());
   return userEvent.setup();
 }
 
@@ -74,7 +78,7 @@ describe('DiscoverView', () => {
     expect(seen).toHaveLength(1);
     expect(seen[0].toString()).toBe('tipo=serie&generos=18&nota=8&votos=1000&ordem=nota&page=1');
 
-    const chips = screen.getByRole('list', { name: 'Filtros ativos' });
+    const chips = screen.getByRole('group', { name: 'Filtros ativos' });
     expect(within(chips).getByText('Gênero: Drama')).toBeInTheDocument();
     expect(within(chips).getByText('Nota 8,0+')).toBeInTheDocument();
     expect(within(sidebar()).getByRole('button', { name: 'Série' })).toHaveAttribute('aria-pressed', 'true');
@@ -92,6 +96,8 @@ describe('DiscoverView', () => {
     await user.click(panel.getByRole('button', { name: 'Netflix' }));
     await user.selectOptions(panel.getByLabelText('Votos mínimos'), '500');
     expect(panel.getByLabelText('Duração máxima')).toHaveAttribute('aria-valuetext', 'Qualquer duração');
+    // No positive signal exists for "nothing happened": wait a short, explicit window for a stray request.
+    await new Promise((r) => setTimeout(r, 150));
     expect(seen).toHaveLength(1);
     expect(replace).not.toHaveBeenCalled();
 
@@ -113,7 +119,7 @@ describe('DiscoverView', () => {
 
     await user.click(screen.getByRole('button', { name: 'Limpar tudo' }));
     expect(lastUrl(replace)).toBe('/descobrir');
-    expect(screen.queryByRole('list', { name: 'Filtros ativos' })).toBeNull();
+    expect(screen.queryByRole('button', { name: 'Limpar tudo' })).toBeNull();
     expect(within(sidebar()).getByRole('button', { name: 'Drama' })).toHaveAttribute('aria-pressed', 'false');
   });
 
@@ -209,5 +215,87 @@ describe('DiscoverView', () => {
     await user.click(screen.getByRole('button', { name: 'Filtros (3)' }));
     await user.click(within(dialog).getByRole('button', { name: 'Fechar filtros' }));
     expect(dialog).not.toHaveAttribute('open');
+  });
+
+  it('discards unapplied sheet edits on dismiss; clicks in the sheet padding do not close it', async () => {
+    const user = setup('generos=18');
+    await screen.findByRole('link', { name: /Matrix/ });
+    await user.click(screen.getByRole('button', { name: 'Filtros (1)' }));
+    const dialog = screen.getByRole('dialog', { name: 'Filtros', hidden: true });
+
+    await user.click(within(dialog).getByRole('button', { name: 'Ação' }));
+    expect(within(dialog).getByRole('button', { name: 'Ação' })).toHaveAttribute('aria-pressed', 'true');
+    await user.click(within(dialog).getByRole('heading', { name: 'Filtros', hidden: true }));
+    expect(dialog).toHaveAttribute('open');
+
+    await user.click(dialog); // backdrop area
+    expect(dialog).not.toHaveAttribute('open');
+    expect(within(sidebar()).getByRole('button', { name: 'Ação' })).toHaveAttribute('aria-pressed', 'false');
+
+    await user.click(screen.getByRole('button', { name: 'Filtros (1)' }));
+    expect(within(dialog).getByRole('button', { name: 'Ação' })).toHaveAttribute('aria-pressed', 'false');
+    await user.click(within(dialog).getByRole('button', { name: 'Ação' }));
+    act(() => (dialog as HTMLDialogElement).close()); // what Esc does on a native dialog
+    expect(within(sidebar()).getByRole('button', { name: 'Ação' })).toHaveAttribute('aria-pressed', 'false');
+  });
+
+  it('closes the open sheet (discarding edits) when the viewport becomes wide', async () => {
+    let onChange: () => void = () => {};
+    const mq = {
+      matches: false,
+      addEventListener: (_: string, cb: () => void) => (onChange = cb),
+      removeEventListener: () => {},
+    };
+    vi.stubGlobal('matchMedia', () => mq);
+    const user = setup('');
+    await screen.findByRole('link', { name: /Matrix/ });
+    await user.click(screen.getByRole('button', { name: 'Filtros (0)' }));
+    const dialog = screen.getByRole('dialog', { name: 'Filtros', hidden: true });
+    await user.click(within(dialog).getByRole('button', { name: 'Drama' }));
+
+    mq.matches = true;
+    act(() => onChange());
+    await vi.waitFor(() => expect(dialog).not.toHaveAttribute('open'));
+    expect(within(sidebar()).getByRole('button', { name: 'Drama' })).toHaveAttribute('aria-pressed', 'false');
+  });
+
+  it('canonicalizes on apply and does not refetch when useSearchParams catches up to the written URL', async () => {
+    const user = setup('');
+    await screen.findByRole('link', { name: /Matrix/ });
+    const panel = within(sidebar());
+    await user.selectOptions(panel.getByLabelText('Ano de'), '2020');
+    await user.selectOptions(panel.getByLabelText('Ano até'), '2010');
+    await user.click(panel.getByRole('button', { name: 'Aplicar' }));
+    expect(lastUrl(replace)).toBe('/descobrir?de=2010&ate=2020');
+    await vi.waitFor(() => expect(seen).toHaveLength(2));
+    expect(seen[1].toString()).toBe('de=2010&ate=2020&page=1');
+
+    // Production path: Next now reports the URL we wrote.
+    params = new URLSearchParams('de=2010&ate=2020');
+    rerenderView();
+    await screen.findByRole('button', { name: 'Remover filtro A partir de 2010' });
+    // No positive signal for "no extra request": wait a short, explicit window.
+    await new Promise((r) => setTimeout(r, 150));
+    expect(seen).toHaveLength(2);
+  });
+
+  it('prunes genres that do not exist for the type from the URL', async () => {
+    setup('tipo=serie&generos=28');
+    await screen.findByRole('link', { name: /Matrix/ });
+    expect(screen.queryByText(/Gênero:/)).toBeNull();
+    expect(seen[0].has('generos')).toBe(false);
+  });
+
+  it('moves focus to a sensible chip after removal, and to the region when none are left', async () => {
+    const user = setup('generos=28,18&nota=8');
+    await screen.findByRole('link', { name: /Matrix/ });
+    const remove = (name: string) => screen.getByRole('button', { name: `Remover filtro ${name}` });
+
+    await user.click(remove('Gênero: Ação'));
+    expect(remove('Gênero: Drama')).toHaveFocus();
+    await user.click(remove('Nota 8,0+'));
+    expect(remove('Gênero: Drama')).toHaveFocus(); // no next chip: the previous one
+    await user.click(remove('Gênero: Drama'));
+    expect(screen.getByRole('group', { name: 'Filtros ativos' })).toHaveFocus();
   });
 });

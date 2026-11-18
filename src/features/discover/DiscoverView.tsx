@@ -13,8 +13,10 @@ import { useSidebarCollapsed } from './useSidebarCollapsed';
 
 /** Filters live in the URL; the grid remounts (new key) whenever the applied filters change. */
 export function DiscoverView({ catalog }: { catalog: DiscoverCatalog }) {
-  const { applied, draft, setDraft, apply } = useDiscoverFilters();
+  const { applied, draft, setDraft, apply, resetDraft } = useDiscoverFilters(catalog);
   const [collapsed, setCollapsed] = useSidebarCollapsed();
+  // new Date() is safe here: the route is prerendered, and this client subtree sits behind Suspense because
+  // useSearchParams bails out of the static shell, so it only ever renders in the browser.
   const maxYear = new Date().getFullYear() + 1;
   const chips = activeChips(applied, catalog);
 
@@ -43,7 +45,7 @@ export function DiscoverView({ catalog }: { catalog: DiscoverCatalog }) {
       )}
       <div className="min-w-0 flex-1">
         <div className="mb-4 flex items-center gap-3">
-          <FiltersSheet count={chips.length}>{(close) => panel(close)}</FiltersSheet>
+          <FiltersSheet count={chips.length} onDismiss={resetDraft}>{(close) => panel(close)}</FiltersSheet>
           <button
             type="button"
             aria-expanded={!collapsed}

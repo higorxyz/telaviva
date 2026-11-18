@@ -49,7 +49,9 @@ const year = (y?: number) => (y === undefined ? undefined : clamp(Math.round(y),
 export function parseFilters(sp: URLSearchParams): DiscoverFilters {
   const media: MediaType = sp.get('tipo') === 'serie' ? 'tv' : 'movie';
   const sortRaw = sp.get('ordem');
-  const sort = SORTS.find((s) => s === sortRaw) ?? 'popularidade';
+  const parsedSort = SORTS.find((s) => s === sortRaw) ?? 'popularidade';
+  // Series have no box office: the select does not offer it, so state must not hold it either.
+  const sort = media === 'tv' && parsedSort === 'bilheteria' ? 'popularidade' : parsedSort;
 
   let yearFrom = year(num(sp.get('de')));
   let yearTo = year(num(sp.get('ate')));

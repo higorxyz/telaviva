@@ -19,7 +19,8 @@ const without = <K extends keyof DiscoverFilters>(f: DiscoverFilters, key: K): D
 export function activeChips(f: DiscoverFilters, catalog: DiscoverCatalog): FilterChip[] {
   const chips: FilterChip[] = [];
   for (const id of f.genres) {
-    const name = catalog.genres[f.media].find((g) => g.id === id)?.name ?? String(id);
+    const name = catalog.genres[f.media].find((g) => g.id === id)?.name;
+    if (!name) continue;
     chips.push({ key: `g${id}`, label: `Gênero: ${name}`, next: { ...f, genres: f.genres.filter((g) => g !== id) } });
   }
   if (f.yearFrom !== undefined) chips.push({ key: 'de', label: `A partir de ${f.yearFrom}`, next: without(f, 'yearFrom') });
@@ -29,7 +30,8 @@ export function activeChips(f: DiscoverFilters, catalog: DiscoverCatalog): Filte
   if (f.maxRuntime !== undefined) chips.push({ key: 'duracao', label: `Até ${f.maxRuntime} min`, next: without(f, 'maxRuntime') });
   if (f.language) chips.push({ key: 'idioma', label: `Idioma: ${languageLabel(f.language)}`, next: without(f, 'language') });
   for (const id of f.providers) {
-    const name = catalog.providers[f.media].find((p) => p.id === id)?.name ?? String(id);
+    const name = catalog.providers[f.media].find((p) => p.id === id)?.name;
+    if (!name) continue;
     chips.push({ key: `p${id}`, label: `Provedor: ${name}`, next: { ...f, providers: f.providers.filter((p) => p !== id) } });
   }
   return chips;
@@ -51,4 +53,12 @@ export function switchMedia(f: DiscoverFilters, media: MediaType, catalog: Disco
   if (media === 'tv') delete next.maxRuntime;
   if (media === 'tv' && next.sort === 'bilheteria') next.sort = 'popularidade';
   return next;
+}
+
+/** Drops genre and provider ids that do not exist for the filters' media type (e.g. a movie genre on ?tipo=serie). */
+export function pruneUnknown(f: DiscoverFilters, catalog: DiscoverCatalog): DiscoverFilters {
+  const genres = f.genres.filter((id) => catalog.genres[f.media].some((g) => g.id === id));
+  const providers = f.providers.filter((id) => catalog.providers[f.media].some((p) => p.id === id));
+  if (genres.length === f.genres.length && providers.length === f.providers.length) return f;
+  return { ...f, genres, providers };
 }

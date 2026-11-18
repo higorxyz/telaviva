@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { activeChips, clearFilters, switchMedia } from './chips';
+import { activeChips, clearFilters, pruneUnknown, switchMedia } from './chips';
 import { parseFilters } from './filters';
 import type { DiscoverCatalog } from './labels';
 
@@ -51,5 +51,18 @@ describe('clearFilters / switchMedia', () => {
     const next = switchMedia(parse('generos=28,18&provedores=8&duracao=100&ordem=bilheteria'), 'tv', catalog);
     expect(next).toMatchObject({ media: 'tv', genres: [18], providers: [8], sort: 'popularidade' });
     expect(next.maxRuntime).toBeUndefined();
+  });
+});
+
+describe('pruneUnknown', () => {
+  it('drops ids missing for the media type and never renders a raw id chip', () => {
+    const f = parse('tipo=serie&generos=28,18&provedores=8,999');
+    expect(pruneUnknown(f, catalog)).toMatchObject({ genres: [18], providers: [8] });
+    expect(activeChips(f, catalog).map((c) => c.label)).toEqual(['Gênero: Drama', 'Provedor: Netflix']);
+  });
+
+  it('returns the same object when nothing is dropped', () => {
+    const f = parse('generos=28');
+    expect(pruneUnknown(f, catalog)).toBe(f);
   });
 });

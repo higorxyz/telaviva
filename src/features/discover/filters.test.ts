@@ -96,3 +96,10 @@ describe('toTmdbParams', () => {
     expect(toTmdbParams(parse(''))).not.toHaveProperty('vote_count.gte');
   });
 });
+
+describe('series sort', () => {
+  it('maps box office to popularity for series so state and select agree', () => {
+    expect(parse('tipo=serie&ordem=bilheteria').sort).toBe('popularidade');
+    expect(parse('ordem=bilheteria').sort).toBe('bilheteria');
+  });
+});
