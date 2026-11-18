@@ -2,9 +2,10 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { Search } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { cn } from '@/lib/cn';
+import { SearchPalette } from '@/features/search/SearchPalette';
+import { SearchTrigger } from '@/features/search/SearchTrigger';
 import { PAGE_CONTAINER } from '@/ui/container';
 import { isActive, NAV_ITEMS } from './nav';
 import { Wordmark } from './Wordmark';
@@ -55,14 +56,8 @@ export function Header() {
             })}
           </ul>
         </nav>
-        <Link
-          href="/buscar"
-          className="hidden items-center gap-2 rounded-full border border-ink-600 bg-ink-800/60 px-4 py-2 text-sm text-ivory-muted transition-colors hover:text-ivory motion-reduce:transition-none md:flex"
-        >
-          <Search aria-hidden="true" className="size-4" />
-          Buscar
-          <kbd className="rounded border border-ink-600 px-1.5 text-xs text-ivory-muted">Ctrl K</kbd>
-        </Link>
+        <SearchTrigger className="hidden md:flex" />
+        <SearchPalette />
       </div>
     </header>
   );
