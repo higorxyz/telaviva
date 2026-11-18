@@ -1,0 +1,429 @@
+{
+  "dates": {
+    "maximum": "2026-11-25",
+    "minimum": "2026-10-14"
+  },
+  "page": 1,
+  "results": [
+    {
+      "adult": false,
+      "backdrop_path": "/9nU0FKNefmhbgi2xXlvZchZsqwm.jpg",
+      "genre_ids": [
+        27,
+        53,
+        28
+      ],
+      "id": 1244523,
+      "title": "Boiúna : Terror no Amazonas",
+      "original_language": "en",
+      "original_title": "Beware Boiúna",
+      "overview": "Um grupo de jovens médicos embarca em missão humanitária na Amazônia, cada um com seus próprios interesses ocultos. No entanto, nem todos recebem bem a chegada do grupo, e a visita deles desperta um predador ancestral: a Boiúna. A criatura mítica retorna para defender seu território. Em meio à selva densa, trava-se uma luta pela sobrevivência, e as fronteiras entre caçador e presa, herói e vilão, tornam-se cada vez mais tênues.",
+      "popularity": 179.4963,
+      "poster_path": "/mCyttsR7mW91v2Mpy5AXMCtWKAK.jpg",
+      "release_date": "2026-11-12",
+      "softcore": false,
+      "video": false,
+      "vote_average": 6,
+      "vote_count": 65
+    },
+    {
+      "adult": false,
+      "backdrop_path": "/oqrYIDH4tvfEzPe1yqT4jzmAWHQ.jpg",
+      "genre_ids": [
+        878,
+        27,
+        28
+      ],
+      "id": 1381071,
+      "title": "Godzilla Minus Zero",
+      "original_language": "ja",
+      "original_title": "ゴジラ-0.0",
+      "overview": "A guerra reduziu o Japão a zero, e o Godzilla mergulhou-o no negativo. Passaram-se dois anos desde então, e o país tem enfrentado lutas agonizantes para alcançar a recuperação e, finalmente, voltar à vida normal. No momento em que a humanidade conseguiu se agarrar a uma paz conquistada com dificuldade, surge uma nova ameaça, esmagando a esperança num instante.",
+      "popularity": 137.676,
+      "poster_path": "/ebVZ8n64rtHsSItTei4EgTKzPVu.jpg",
+      "release_date": "2026-11-05",
+      "softcore": false,
+      "video": false,
+      "vote_average": 7.7,
+      "vote_count": 250
+    },
+    {
+      "adult": false,
+      "backdrop_path": "/fdOVxyNNL95SuI8BGaN6vudEuYX.jpg",
+      "genre_ids": [
+        14,
+        35,
+        27
+      ],
+      "id": 1567605,
+      "title": "Ebenezer e os Fantasmas do Natal",
+      "original_language": "en",
+      "original_title": "Ebenezer",
+      "overview": "Ebenezer Scrooge é um velho avarento que recebe a visita do fantasma de seu antigo sócio, Jacob Marley, e dos Espíritos do Natal Passado, Presente e Futuro. Os encontros o força a confrontar o próprio passado e a lutar por uma segunda chance de ser feliz.",
+      "popularity": 137.3574,
+      "poster_path": "/7MBeM27NNcCYUszjTNYJUycPDhV.jpg",
+      "release_date": "2026-11-12",
+      "softcore": false,
+      "video": false,
+      "vote_average": 7.624,
+      "vote_count": 105
+    },
+    {
+      "adult": false,
+      "backdrop_path": "/yHVZncPRZr63mezRX20IyKLrSkv.jpg",
+      "genre_ids": [
+        14,
+        28,
+        12
+      ],
+      "id": 656908,
+      "title": "Ramayana: O Nascimento de uma Lenda",
+      "original_language": "hi",
+      "original_title": "रामायणम्",
+      "overview": "Rama é um príncipe cujo destino é marcado pelo sacrifício, enquanto Ravana é um rei imortal movido pela vingança. Uma profecia une os destinos dos dois.",
+      "popularity": 137.197,
+      "poster_path": "/lV7b3n4tqwlKGUsl72r3fI7COH1.jpg",
+      "release_date": "2026-11-19",
+      "softcore": false,
+      "video": false,
+      "vote_average": 7.5,
+      "vote_count": 57
+    },
+    {
+      "adult": false,
+      "backdrop_path": "/aqFZcr2dxSZ2UwWSo1WC6C0rwDf.jpg",
+      "genre_ids": [
+        878,
+        28,
+        12
+      ],
+      "id": 1300968,
+      "title": "Jogos Vorazes: Amanhecer na Colheita",
+      "original_language": "en",
+      "original_title": "The Hunger Games: Sunrise on the Reaping",
+      "overview": "Revisite o mundo de Panem 24 anos antes dos eventos de Jogos Vorazes, começando na manhã da colheita dos 50º Jogos Vorazes, também conhecida como o Segundo Massacre Quaternário.",
+      "popularity": 122.6519,
+      "poster_path": "/ibZ6GSHtCeC7fLDJ2uyXNemgYwr.jpg",
+      "release_date": "2026-11-18",
+      "softcore": false,
+      "video": false,
+      "vote_average": 8.6,
+      "vote_count": 18
+    },
+    {
+      "adult": false,
+      "backdrop_path": "/oHBhHoNe59VH6bUMazDtJmWOFSS.jpg",
+      "genre_ids": [
+        878,
+        27,
+        28
+      ],
+      "id": 940721,
+      "title": "Godzilla Minus One",
+      "original_language": "ja",
+      "original_title": "ゴジラ-1.0",
+      "overview": "Em um Japão social e economicamente devastado após o término da Segunda Guerra Mundial, a situação chega a um nível ainda mais crítico quando uma gigantesca e misteriosa criatura surge do mar para assolar o país.",
+      "popularity": 79.6161,
+      "poster_path": "/9XSOyim1pivuSHQqlrDj5gj2J5w.jpg",
+      "release_date": "2023-12-14",
+      "softcore": false,
+      "video": false,
+      "vote_average": 7.626,
+      "vote_count": 3697
+    },
+    {
+      "adult": false,
+      "backdrop_path": "/9vNW8ysMKIbefbEQOFEZIKpMqwZ.jpg",
+      "genre_ids": [
+        28,
+        14
+      ],
+      "id": 1153576,
+      "title": "Street Fighter",
+      "original_language": "en",
+      "original_title": "Street Fighter",
+      "overview": "Em 1993, os lutadores Ryu e Ken Masters são colocados de volta no combate quando a misteriosa Chun-Li os recruta para o próximo Torneio Street Fighter: uma brutal briga de socos, destino e fúria. Entretanto, por trás desse campeonato, se esconde uma conspiração mortal que os força a encarar um ao outro e os demônios do passado. E se eles não fizerem, é game over!",
+      "popularity": 83.9207,
+      "poster_path": "/6gWmrC2GyDbUM1ET5EBg9lxBi7S.jpg",
+      "release_date": "2026-10-15",
+      "softcore": false,
+      "video": false,
+      "vote_average": 6.3,
+      "vote_count": 247
+    },
+    {
+      "adult": false,
+      "backdrop_path": "/sl5NJ1vtyhP9Vr88bB4blULsJYp.jpg",
+      "genre_ids": [
+        16,
+        14,
+        12
+      ],
+      "id": 791523,
+      "title": "O Bosque Selvagem",
+      "original_language": "en",
+      "original_title": "Wildwood",
+      "overview": "A determinada adolescente Prue McKeel embarca em uma missão desesperada de resgate depois que seu irmão caçula é sequestrado por um bando de corvos. Acompanhada por seu colega de classe desajeitado, mas leal, Curtis Mehlberg, Prue navega por um mundo habitado por animais falantes, bandidos e figuras poderosas movidas pela dor e pela ambição. À medida que a dupla é arrastada para um conflito que ameaça o equilíbrio da própria floresta, Prue precisa descobrir uma força e uma crença que jamais soube que possuía.",
+      "popularity": 79.9275,
+      "poster_path": "/mcuUYNWGJHPEaRumOlgSZCzMRPc.jpg",
+      "release_date": "2026-10-29",
+      "softcore": false,
+      "video": false,
+      "vote_average": 8.5,
+      "vote_count": 293
+    },
+    {
+      "adult": false,
+      "backdrop_path": "/xSDoxv4pHvs4xZjvTb0Iqg1A6ro.jpg",
+      "genre_ids": [
+        27,
+        53,
+        878
+      ],
+      "id": 1400940,
+      "title": "Cara-de-Barro",
+      "original_language": "en",
+      "original_title": "Clayface",
+      "overview": "A ascensão meteórica de Matt Hagen de garoto das ruas de Gotham a astro de Hollywood é tragicamente interrompida quando as ações de um chefão do crime local o deixam terrivelmente desfigurado. Abandonado por sua equipe e sem nada, Matt busca um tratamento de ponta que, milagrosamente, o devolve à sua antiga forma... mas que também afeta, de maneira inesperada, sua percepção da realidade, lançando-o em uma espiral destrutiva de obsessão e vingança.",
+      "popularity": 74.4631,
+      "poster_path": "/dqvHs2YXks989ScXvsngbqAeBHX.jpg",
+      "release_date": "2026-10-22",
+      "softcore": false,
+      "video": false,
+      "vote_average": 7.4,
+      "vote_count": 453
+    },
+    {
+      "adult": false,
+      "backdrop_path": "/u38hNQbxvIicUdfrHpqa9puBnA9.jpg",
+      "genre_ids": [
+        28,
+        80,
+        53
+      ],
+      "id": 1437511,
+      "title": "Como Roubar um Banco",
+      "original_language": "en",
+      "original_title": "How to Rob a Bank",
+      "overview": "Um grupo de assaltantes de banco habilidosos transmite seus ousados roubos ao vivo, sem perceber que sua crescente fama viral os colocou na mira de um veterano agente do FBI e de uma brilhante engenheira de software. Mesmo com a dupla se aproximando cada vez mais, a quadrilha ultrapassa todos os limites, arriscando tudo por aquilo em que acredita — e por seu assalto mais ambicioso até então.",
+      "popularity": 75.1014,
+      "poster_path": "/6QOVs2PMyxHtE4tHiMZS1eIboxl.jpg",
+      "release_date": "2026-11-12",
+      "softcore": false,
+      "video": false,
+      "vote_average": 6.013,
+      "vote_count": 38
+    },
+    {
+      "adult": false,
+      "backdrop_path": "/7RsPdXLDNugDIlwXPVeeprNfMx.jpg",
+      "genre_ids": [
+        27,
+        14,
+        9648
+      ],
+      "id": 1232569,
+      "title": "Pinóquio: Maldição de Madeira",
+      "original_language": "en",
+      "original_title": "Pinocchio: Unstrung",
+      "overview": "O boneco de madeira Pinóquio é trazido à vida por forças macabras. Distante da inocência original, sua jornada para se tornar um menino de verdade é marcada por violência e vingança. À medida que Pinóquio persegue brutalmente aqueles que cruzam seu caminho, antigos laços familiares são distorcidos em horrores impensáveis.",
+      "popularity": 57.305,
+      "poster_path": "/wgO649swkzsI58q3ikpxYNvkwv7.jpg",
+      "release_date": "2026-11-12",
+      "softcore": false,
+      "video": false,
+      "vote_average": 6.31,
+      "vote_count": 174
+    },
+    {
+      "adult": false,
+      "backdrop_path": "/3uLA0ujne91bkzFStZICCYeqhnt.jpg",
+      "genre_ids": [
+        35,
+        80,
+        53
+      ],
+      "id": 891621,
+      "title": "Cavalo Selvagem Nove",
+      "original_language": "en",
+      "original_title": "Wild Horse Nine",
+      "overview": "Pouco antes do golpe de Estado no Chile em 1973, dois agentes da CIA são enviados de Santiago para a Ilha de Páscoa em uma missão de teste de confiança. Entre as famosas estátuas que são o marco da ilha, conhecidas como muais, eles enfrentam passados sombrios e conspirações, enquanto o envolvimento de um dos agentes com estudantes rebeldes ameaça arruinar a viagem.",
+      "popularity": 67.7602,
+      "poster_path": "/mfnJ58xi3BJLDf9sSHAfNm1QJY9.jpg",
+      "release_date": "2026-11-05",
+      "softcore": false,
+      "video": false,
+      "vote_average": 7.967,
+      "vote_count": 242
+    },
+    {
+      "adult": false,
+      "backdrop_path": "/9y9o686DsQg0KzPtERzcW7Cf8IE.jpg",
+      "genre_ids": [
+        16,
+        14,
+        12,
+        10751,
+        35
+      ],
+      "id": 1117898,
+      "title": "O Gatola da Cartola",
+      "original_language": "en",
+      "original_title": "The Cat in the Hat",
+      "overview": "O Gatola da Cartola assume sua tarefa mais difícil até agora no I.I.I.I. — Instituto para Instituir a Imaginação e a Inspiração: animar e alegrar Gabby e Sebastian, dois irmãos com dificuldade para se adaptar à cidade para a qual acabaram de se mudar. Conhecido por levar as situações longe demais, esta pode ser a última chance de o agente do caos provar seu valor... ou perder seu chapéu mágico!",
+      "popularity": 61.1401,
+      "poster_path": "/sAUr79TPVXMmZrpsqGh6xTH9jy6.jpg",
+      "release_date": "2026-11-05",
+      "softcore": false,
+      "video": false,
+      "vote_average": 7,
+      "vote_count": 29
+    },
+    {
+      "adult": false,
+      "backdrop_path": "/npXZNWjOEYrqdMDPQ11SGBrXqAG.jpg",
+      "genre_ids": [
+        28,
+        35,
+        53
+      ],
+      "id": 1377237,
+      "title": "Três Horas Para Viver",
+      "original_language": "en",
+      "original_title": "Runner",
+      "overview": "Um transportador de elite embarca em uma missão urgente: entregar um órgão vital para salvar a vida de uma garotinha de sete anos. O que parecia ser uma tarefa objetiva logo se transforma em uma corrida frenética contra o tempo quando uma perigosa organização criminosa entra em cena para impedir o sucesso da entrega.",
+      "popularity": 52.3368,
+      "poster_path": "/vzb3bKOFtciIVSEIsLOZH4uJfxN.jpg",
+      "release_date": "2026-10-29",
+      "softcore": false,
+      "video": false,
+      "vote_average": 8.179,
+      "vote_count": 862
+    },
+    {
+      "adult": false,
+      "backdrop_path": "/iGViga8sDCET1S6GfwOlAbuhSGQ.jpg",
+      "genre_ids": [
+        27,
+        28,
+        878
+      ],
+      "id": 1375646,
+      "title": "Zona Zero",
+      "original_language": "ko",
+      "original_title": "군체",
+      "overview": "De repente, um vírus que sofre mutações rápidas é liberado em uma conferência de biologia, forçando o isolamento imediato do local. A contaminação se espalha rapidamente, e os infectados não apenas atacam, eles evoluem de formas imprevisíveis e cada vez mais perigosas. Presos nesse confinamento, um grupo de sobreviventes precisa lutar pela própria vida enquanto, a cada minuto, as regras do jogo mudam.",
+      "popularity": 53.2107,
+      "poster_path": "/5tQ8kDNk00HPuVb43pZH1BmcNWQ.jpg",
+      "release_date": "2026-10-22",
+      "softcore": false,
+      "video": false,
+      "vote_average": 8.174,
+      "vote_count": 1616
+    },
+    {
+      "adult": false,
+      "backdrop_path": "/tIcONOFK9D3F89ETK8DBS1hIwVF.jpg",
+      "genre_ids": [
+        18,
+        10749
+      ],
+      "id": 1503762,
+      "title": "Razão e Sensibilidade",
+      "original_language": "en",
+      "original_title": "Sense and Sensibility",
+      "overview": "Uma nova e irresistível releitura do icônico romance “Razão e Sensibilidade”, de Jane Austen: uma história encantadora, espirituosa e com a qual é fácil se identificar, sobre amor e irmandade.",
+      "popularity": 52.5894,
+      "poster_path": "/kuSSXcjitZy1LLGGoB9XqLBPCYl.jpg",
+      "release_date": "2026-10-15",
+      "softcore": false,
+      "video": false,
+      "vote_average": 7.2,
+      "vote_count": 170
+    },
+    {
+      "adult": false,
+      "backdrop_path": "/eHaazLxM5LRMh0ySkVy7SK6wUWt.jpg",
+      "genre_ids": [
+        12,
+        28,
+        878
+      ],
+      "id": 101299,
+      "title": "Jogos Vorazes: Em Chamas",
+      "original_language": "en",
+      "original_title": "The Hunger Games: Catching Fire",
+      "overview": "Após saírem vencedores da última edição dos Jogos Vorazes, as atitudes desafiadoras de Katniss e Peeta acabam inspirando uma rebelião contra a opressiva Capital. No entanto, os dois são obrigados a participarem de uma edição especial do torneio, o Massacre Quaternário, que acontece apenas a cada 25 anos, e reúne vencedores das edições anteriores.",
+      "popularity": 44.819,
+      "poster_path": "/m1lky5ftnhLRpkoYWKssH8qvlRU.jpg",
+      "release_date": "2013-11-15",
+      "softcore": false,
+      "video": false,
+      "vote_average": 7.426,
+      "vote_count": 19070
+    },
+    {
+      "adult": false,
+      "backdrop_path": "/shW2jHkQLZVv4Fko2rJDqTGU0gx.jpg",
+      "genre_ids": [
+        53
+      ],
+      "id": 1255833,
+      "title": "Dentro da Baleia",
+      "original_language": "en",
+      "original_title": "Whalefall",
+      "overview": "Um jovem mergulhador resolveu buscar os restos mortais do seu pai em alto mar, mas no meio dessa triste aventura é capturado por uma baleia cachalote de 25 metros e 60 toneladas. Restando apenas uma hora de oxigênio, ele terá que fazer de tudo para encontrar uma forma de ir embora e seguir a sua vida, mas para isso terá que enfrentar uma grande jornada física e emocional para que ele consiga redescobrir a sua vontade de viver após a vivência do luto.",
+      "popularity": 50.3192,
+      "poster_path": "/66fDoNVCtPrP6jIqMpV1sUEcciw.jpg",
+      "release_date": "2026-10-15",
+      "softcore": false,
+      "video": false,
+      "vote_average": 6.6,
+      "vote_count": 146
+    },
+    {
+      "adult": false,
+      "backdrop_path": "/vcZ3UUVmFNk90DBSrTBlTKCdbbE.jpg",
+      "genre_ids": [
+        35,
+        18,
+        53
+      ],
+      "id": 1130948,
+      "title": "Rosebush Pruning",
+      "original_language": "en",
+      "original_title": "Rosebush Pruning",
+      "overview": "Sob o sol da Catalunha, uma rica família branca norte-americana vive em um isolamento hedonista, buscando amor e validação uns nos outros, em suas roupas de grife e na música pop. Quando Jack, o irmão mais velho, apresenta sua noiva para a família, tensões há muito tempo reprimidas vêm à tona e os laços de sangue da matilha começam a se romper.",
+      "popularity": 38.2951,
+      "poster_path": "/uor0DM9RAc0ZwJXT4wrT8XAvsKL.jpg",
+      "release_date": "2026-10-15",
+      "softcore": false,
+      "video": false,
+      "vote_average": 5.546,
+      "vote_count": 76
+    },
+    {
+      "adult": false,
+      "backdrop_path": "/lV1P1Q5gLDXVG1ZYCxZHStkcQC3.jpg",
+      "genre_ids": [
+        878,
+        12,
+        53
+      ],
+      "id": 131631,
+      "title": "Jogos Vorazes: A Esperança - Parte 1",
+      "original_language": "en",
+      "original_title": "The Hunger Games: Mockingjay - Part 1",
+      "overview": "Após sobreviver à temível arena dos Jogos Vorazes, Katniss Everdeen está desanimada e destruída. Depois que a Capital reduziu o Distrito 12 a destroços, ela se refugiou no Distrito 13. Peeta Mellark foi submetido a uma lavagem cerebral, e agora está sob o domínio de Snow. Então, a presidência quer que Katniss lidere uma \"resistência\" e mobilize a população em uma empreitada que irá colocá-la no centro da trama para desmascarar Snow.",
+      "popularity": 41.4913,
+      "poster_path": "/hekpVNWOROZm57RS4OLW0ySkxx9.jpg",
+      "release_date": "2014-11-19",
+      "softcore": false,
+      "video": false,
+      "vote_average": 6.816,
+      "vote_count": 17251
+    }
+  ],
+  "total_pages": 10,
+  "total_results": 191
+}

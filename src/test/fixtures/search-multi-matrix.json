@@ -1,0 +1,423 @@
+{
+  "page": 1,
+  "results": [
+    {
+      "adult": false,
+      "backdrop_path": "/tlm8UkiQsitc8rSuIAscQDCnP8d.jpg",
+      "genre_ids": [
+        28,
+        878
+      ],
+      "id": 603,
+      "title": "Matrix",
+      "original_language": "en",
+      "original_title": "The Matrix",
+      "overview": "O jovem programador Thomas Anderson é atormentado por estranhos pesadelos em que está sempre conectado por cabos a um imenso sistema de computadores do futuro. À medida que o sonho se repete, ele começa a desconfiar da realidade. Thomas conhece os misteriosos Morpheus e Trinity e descobre que é vítima de um sistema inteligente e artificial chamado Matrix, que manipula a mente das pessoas e cria a ilusão de um mundo real enquanto usa os cérebros e corpos dos indivíduos para produzir energia.",
+      "popularity": 37.0108,
+      "poster_path": "/lDqMDI3xpbB9UQRyeXfei0MXhqb.jpg",
+      "release_date": "1999-03-31",
+      "softcore": false,
+      "video": false,
+      "vote_average": 8.263,
+      "vote_count": 29279,
+      "media_type": "movie"
+    },
+    {
+      "adult": false,
+      "backdrop_path": "/ihOJcrorpDQtHTzIOrobbOhpJsj.jpg",
+      "genre_ids": [
+        28,
+        53,
+        878
+      ],
+      "id": 604,
+      "title": "Matrix Reloaded",
+      "original_language": "en",
+      "original_title": "The Matrix Reloaded",
+      "overview": "Após derrotar as máquinas em seu combate inicial, Neo ainda vive na Nabucodonosor ao lado de Morpheus, Trinity e Link, o novo tripulante da nave. As máquinas estão realizando uma grande ofensiva contra Zion, onde 250 mil delas escavam rumo à cidade e podem alcançá-la em poucos dias. A Nabucodonosor é convocada para retornar a Zion e participar da reunião que definirá o contra-ataque para salvar a humanidade da extinção. Entretanto, um recado enviado pelo Oráculo faz com que Neo retorne à Matrix.",
+      "popularity": 14.4689,
+      "poster_path": "/ayZkaN2f3ASjWW8ooCfuJT3T8Va.jpg",
+      "release_date": "2003-05-15",
+      "softcore": false,
+      "video": false,
+      "vote_average": 7.087,
+      "vote_count": 12555,
+      "media_type": "movie"
+    },
+    {
+      "adult": false,
+      "backdrop_path": "/eNI7PtK6DEYgZmHWP9gQNuff8pv.jpg",
+      "genre_ids": [
+        878,
+        28,
+        12
+      ],
+      "id": 624860,
+      "title": "Matrix Resurrections",
+      "original_language": "en",
+      "original_title": "The Matrix Resurrections",
+      "overview": "Em um mundo de duas realidades — a vida cotidiana e o que está por trás dela —, Thomas Anderson terá que escolher seguir o coelho branco mais uma vez. A escolha, embora seja uma ilusão, ainda é a única maneira de entrar ou sair da Matrix, que é mais forte, mais segura e mais perigosa do que nunca.",
+      "popularity": 9.5445,
+      "poster_path": "/9DT4WVqZqBEI9Kub18gZ3m1D89m.jpg",
+      "release_date": "2021-12-16",
+      "softcore": false,
+      "video": false,
+      "vote_average": 6.296,
+      "vote_count": 6875,
+      "media_type": "movie"
+    },
+    {
+      "adult": false,
+      "backdrop_path": "/533xAMhhVyjTy8hwMUFEt5TuDfR.jpg",
+      "genre_ids": [
+        28,
+        53,
+        878
+      ],
+      "id": 605,
+      "title": "Matrix Revolutions",
+      "original_language": "en",
+      "original_title": "The Matrix Revolutions",
+      "overview": "Após enfrentar os sentinelas no mundo real, Neo, a maior esperança da humanidade, está preso entre a Matrix e a realidade. A maioria da população do planeta permanece em um estado de suspensão da realidade virtual. Os poucos humanos que estão cientes das duras realidades tentam desesperadamente afastar as máquinas a tempo de Neo escapar e salvar o dia. Mas as coisas pioram quando o poderoso programa de computador, Agente Smith, aparece na forma humana.",
+      "popularity": 10.3002,
+      "poster_path": "/92oJ810bYqijBQ8tqYL74mSpPtV.jpg",
+      "release_date": "2003-11-05",
+      "softcore": false,
+      "video": false,
+      "vote_average": 6.763,
+      "vote_count": 11339,
+      "media_type": "movie"
+    },
+    {
+      "adult": false,
+      "backdrop_path": "/Ams57f2bNSwWsoQWCfD5u3xQjgS.jpg",
+      "genre_ids": [
+        18,
+        10759
+      ],
+      "id": 711,
+      "name": "Threat Matrix",
+      "original_language": "en",
+      "original_name": "Threat Matrix",
+      "overview": "",
+      "popularity": 4.9661,
+      "poster_path": "/xOeA42Rc9EiIe0dGnwywLqYKetG.jpg",
+      "first_air_date": "2003-09-18",
+      "softcore": false,
+      "vote_average": 6.2,
+      "vote_count": 6,
+      "media_type": "tv",
+      "origin_country": [
+        "US"
+      ]
+    },
+    {
+      "adult": false,
+      "backdrop_path": "/bEVjkVlOGlXwD02Q3ybnAvDNxPV.jpg",
+      "genre_ids": [
+        18
+      ],
+      "id": 11393,
+      "name": "Matrix",
+      "original_language": "en",
+      "original_name": "Matrix",
+      "overview": "",
+      "popularity": 2.7166,
+      "poster_path": "/sNrH17lMcPEgNPZTst95mgSkgzE.jpg",
+      "first_air_date": "1993-03-01",
+      "softcore": false,
+      "vote_average": 6.8,
+      "vote_count": 4,
+      "media_type": "tv",
+      "origin_country": [
+        "CA"
+      ]
+    },
+    {
+      "adult": false,
+      "backdrop_path": "/2JCUdkC84MWnRQzOEMDO2i37tZy.jpg",
+      "genre_ids": [
+        16
+      ],
+      "id": 411948,
+      "title": "Matrix",
+      "original_language": "en",
+      "original_title": "Matrix",
+      "overview": "",
+      "popularity": 0.2893,
+      "poster_path": "/wwGvUPEM6MRiXv3gRNaVUlUCHiT.jpg",
+      "release_date": "1971-05-18",
+      "softcore": false,
+      "video": false,
+      "vote_average": 7.3,
+      "vote_count": 3,
+      "media_type": "movie"
+    },
+    {
+      "adult": false,
+      "backdrop_path": null,
+      "genre_ids": [],
+      "id": 373223,
+      "title": "Matrix",
+      "original_language": "en",
+      "original_title": "Matrix",
+      "overview": "",
+      "popularity": 0.3217,
+      "poster_path": "/wx2s9xYeC6uP2auuuVg99yl4RpU.jpg",
+      "release_date": "1973-09-06",
+      "softcore": false,
+      "video": false,
+      "vote_average": 6.4,
+      "vote_count": 22,
+      "media_type": "movie"
+    },
+    {
+      "adult": false,
+      "backdrop_path": "/lBdXACywnLwKUZmZkZ87djDQBeV.jpg",
+      "genre_ids": [
+        99
+      ],
+      "id": 14543,
+      "title": "Matrix – Os Segredos de Produção",
+      "original_language": "en",
+      "original_title": "The Matrix Revisited",
+      "overview": "O documentário apresenta detalhes e curiosidades sobre a produção original e toda a trajetória de preparação para as filmagens. É mostrada a coleta de informações pelos diretores Larry e Andrew Wachowski sobre filosofia oriental e a natureza da realidade. Curiosidades como os diversos livros que Keanu Reeves teve de ler antes de conhecer o roteiro, além da influência de Hong Konge das lutas de kung-Fu sobre o filme são explicadas por meio de comentários da equipe e do elenco. Todos os mecanismos e táticas para a realização do filme são revelados no documentário. Vale dizer que a obra está dividida em tópicos para que os mistérios sejam esclarecidos: as locações dos sets na Austrália; o estilo visual; os figurinos; a criação dos efeitos especiais; o treinamento dos atores.",
+      "popularity": 1.5001,
+      "poster_path": "/oNZK87GPiBPYfQnDJapungYlRyQ.jpg",
+      "release_date": "2001-11-19",
+      "softcore": false,
+      "video": false,
+      "vote_average": 6.954,
+      "vote_count": 217,
+      "media_type": "movie"
+    },
+    {
+      "adult": false,
+      "backdrop_path": null,
+      "genre_ids": [
+        878,
+        10749
+      ],
+      "id": 51767,
+      "title": "Sexual Matrix",
+      "original_language": "en",
+      "original_title": "Sexual Matrix",
+      "overview": "Uma pacata cidade universitária se envolve em polêmica quando a invenção de software de um professor, o Cybertron, aumenta o desejo sexual dos professores e alunos da universidade, permitindo que eles libertem suas fantasias mais íntimas em um mundo virtual.",
+      "popularity": 0.7439,
+      "poster_path": "/vmhBIPKyYCWlp2PrIIc6EXZlP9Z.jpg",
+      "release_date": "2000-04-01",
+      "softcore": false,
+      "video": false,
+      "vote_average": 6.4,
+      "vote_count": 23,
+      "media_type": "movie"
+    },
+    {
+      "adult": false,
+      "backdrop_path": null,
+      "genre_ids": [
+        10759,
+        16,
+        35,
+        9648
+      ],
+      "id": 306887,
+      "name": "Matrix Dreads",
+      "original_language": "en",
+      "original_name": "Matrix Dreads",
+      "overview": "",
+      "popularity": 0.4277,
+      "poster_path": "/mQbvyR1ak6xoJ41wmKtPjMhkBoy.jpg",
+      "first_air_date": "2030-01-01",
+      "softcore": false,
+      "vote_average": 0,
+      "vote_count": 0,
+      "media_type": "tv",
+      "origin_country": [
+        "MY"
+      ]
+    },
+    {
+      "adult": false,
+      "backdrop_path": null,
+      "genre_ids": [],
+      "id": 31636,
+      "name": "Matrix",
+      "original_language": "en",
+      "original_name": "Matrix",
+      "overview": "",
+      "popularity": 0.0528,
+      "poster_path": null,
+      "first_air_date": "",
+      "softcore": false,
+      "vote_average": 0,
+      "vote_count": 0,
+      "media_type": "tv",
+      "origin_country": [
+        "IT"
+      ]
+    },
+    {
+      "adult": false,
+      "backdrop_path": null,
+      "genre_ids": [],
+      "id": 555879,
+      "title": "Matrix",
+      "original_language": "en",
+      "original_title": "Matrix",
+      "overview": "",
+      "popularity": 0.1554,
+      "poster_path": "/AfFD10ZqEx2vkxM2yvRZkybsGB7.jpg",
+      "release_date": "1998-12-31",
+      "softcore": false,
+      "video": false,
+      "vote_average": 7.1,
+      "vote_count": 51,
+      "media_type": "movie"
+    },
+    {
+      "adult": false,
+      "backdrop_path": "/2P3FyI9ZTe9duRIGpGPiDC3mQMf.jpg",
+      "genre_ids": [
+        99
+      ],
+      "id": 1217455,
+      "title": "Matrix génération",
+      "original_language": "fr",
+      "original_title": "Matrix génération",
+      "overview": "",
+      "popularity": 1.2695,
+      "poster_path": "/jSmzYl9PQLZu4ZnumDBHNRGLF4s.jpg",
+      "release_date": "2023-12-13",
+      "softcore": false,
+      "video": false,
+      "vote_average": 6.9,
+      "vote_count": 26,
+      "media_type": "movie"
+    },
+    {
+      "adult": false,
+      "backdrop_path": null,
+      "genre_ids": [
+        16
+      ],
+      "id": 393587,
+      "title": "Matrix III",
+      "original_language": "en",
+      "original_title": "Matrix III",
+      "overview": "",
+      "popularity": 0.3947,
+      "poster_path": "/5OwWTs0guJwcIXFgZdiDqtXLiFm.jpg",
+      "release_date": "1972-11-01",
+      "softcore": false,
+      "video": false,
+      "vote_average": 7,
+      "vote_count": 9,
+      "media_type": "movie"
+    },
+    {
+      "adult": false,
+      "backdrop_path": null,
+      "genre_ids": [
+        10767
+      ],
+      "id": 68447,
+      "name": "Matrix Chiambretti",
+      "original_language": "it",
+      "original_name": "Matrix Chiambretti",
+      "overview": "",
+      "popularity": 0.3009,
+      "poster_path": null,
+      "first_air_date": "2016-10-07",
+      "softcore": false,
+      "vote_average": 0,
+      "vote_count": 0,
+      "media_type": "tv",
+      "origin_country": [
+        "IT"
+      ]
+    },
+    {
+      "adult": false,
+      "backdrop_path": null,
+      "genre_ids": [],
+      "id": 325692,
+      "name": "The Approval Matrix",
+      "original_language": "en",
+      "original_name": "The Approval Matrix",
+      "overview": "",
+      "popularity": 0.6062,
+      "poster_path": null,
+      "first_air_date": "2014-08-11",
+      "softcore": false,
+      "vote_average": 0,
+      "vote_count": 0,
+      "media_type": "tv",
+      "origin_country": [
+        "US"
+      ]
+    },
+    {
+      "adult": false,
+      "backdrop_path": "/fMhPrsWnLGV05OsMcY7Bl1hZhDP.jpg",
+      "genre_ids": [
+        10765
+      ],
+      "id": 18401,
+      "name": "Paranormal Matrix",
+      "original_language": "en",
+      "original_name": "Paranormal Matrix",
+      "overview": "",
+      "popularity": 0.5567,
+      "poster_path": null,
+      "first_air_date": "2016-08-17",
+      "softcore": false,
+      "vote_average": 0,
+      "vote_count": 0,
+      "media_type": "tv",
+      "origin_country": [
+        "US"
+      ]
+    },
+    {
+      "adult": false,
+      "backdrop_path": null,
+      "genre_ids": [],
+      "id": 775293,
+      "title": "Matrix",
+      "original_language": "en",
+      "original_title": "Matrix",
+      "overview": "",
+      "popularity": 0.0941,
+      "poster_path": "/frDqG8rmqKUg4HzQ604LZo8VLHB.jpg",
+      "release_date": "1973-01-01",
+      "softcore": false,
+      "video": false,
+      "vote_average": 6.8,
+      "vote_count": 25,
+      "media_type": "movie"
+    },
+    {
+      "adult": false,
+      "backdrop_path": "/2nOjWSRPBqAhZZnRmNHUzqT7XX7.jpg",
+      "genre_ids": [
+        99
+      ],
+      "id": 1456523,
+      "title": "Matrix II",
+      "original_language": "en",
+      "original_title": "Matrix II",
+      "overview": "",
+      "popularity": 0.3054,
+      "poster_path": "/8KCbKg3de6GmdN8osCDuDc6yH0m.jpg",
+      "release_date": "1974-01-01",
+      "softcore": false,
+      "video": false,
+      "vote_average": 0,
+      "vote_count": 0,
+      "media_type": "movie"
+    }
+  ],
+  "total_pages": 7,
+  "total_results": 126
+}

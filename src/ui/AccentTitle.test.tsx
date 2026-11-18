@@ -1,8 +1,6 @@
-import { cleanup, render, screen, within } from '@testing-library/react';
-import { afterEach, describe, expect, it } from 'vitest';
+import { render, screen, within } from '@testing-library/react';
+import { describe, expect, it } from 'vitest';
 import { AccentTitle } from './AccentTitle';
-
-afterEach(cleanup);
 
 describe('AccentTitle', () => {
   it('emphasizes the accent from text', () => {

@@ -1,0 +1,419 @@
+{
+  "dates": {
+    "maximum": "2026-12-16",
+    "minimum": "2026-11-25"
+  },
+  "page": 1,
+  "results": [
+    {
+      "adult": false,
+      "backdrop_path": "/subj7knTn4DeS6KS7qI66EQKe9i.jpg",
+      "genre_ids": [
+        878,
+        28,
+        12
+      ],
+      "id": 969681,
+      "title": "Homem-Aranha: Um Novo Dia",
+      "original_language": "en",
+      "original_title": "Spider-Man: Brand New Day",
+      "overview": "É um novo dia para Peter Parker. Combatendo o crime em tempo integral como Homem-Aranha em um mundo que não se lembra mais dele e lidando com a pressão de ver seus antigos amigos seguirem em frente sem sua presença, Peter passa por uma mudança que talvez nem ele tenha o poder de controlar. Mas essa transformação também pode ser a única coisa capaz de deter uma surpreendente nova ameaça à cidade e às pessoas que ele ama: um poderoso vilão que ninguém sequer consegue enxergar.",
+      "popularity": 328.2605,
+      "poster_path": "/x0nvYzQpyJc5pdT9lMnkMuYAg0O.jpg",
+      "release_date": "2026-07-29",
+      "softcore": false,
+      "video": false,
+      "vote_average": 8.464,
+      "vote_count": 6939
+    },
+    {
+      "adult": false,
+      "backdrop_path": "/nhIL3O4W9h5V5JbNQm7yjoDk3So.jpg",
+      "genre_ids": [
+        99
+      ],
+      "id": 1765072,
+      "title": "Tudo Pode Ser Visto",
+      "original_language": "en",
+      "original_title": "You Can See Everything",
+      "overview": "Trinta e quatro dias antes de ser enviada para a prisão, a notória fundadora do Vale do Silício, Elizabeth Holmes, convida uma equipe de filmagem cética para documentar cada passo seu. O que começa como um retrato íntimo de uma criminosa enigmática se transforma em uma jornada alucinante de três anos rumo ao abismo.",
+      "popularity": 70.5011,
+      "poster_path": "/mnu5cNfijdbuU4iWrV2Lg7AfM0J.jpg",
+      "release_date": "2026-11-26",
+      "softcore": false,
+      "video": false,
+      "vote_average": 8.8,
+      "vote_count": 126
+    },
+    {
+      "adult": false,
+      "backdrop_path": "/lpk0MwAn0UA3qCy9Iub4xMe15gv.jpg",
+      "genre_ids": [
+        28,
+        53
+      ],
+      "id": 1476746,
+      "title": "A Última Entrega",
+      "original_language": "en",
+      "original_title": "The Florist",
+      "overview": "Um horticultor discreto, que secretamente é um assassino profissional, vê sua identidade ameaçada ao criar uma amizade inesperada com uma testemunha de corrupção policial.",
+      "popularity": 50.6119,
+      "poster_path": "/iVYJbqGrAgwPAcihayklVRd7ZMF.jpg",
+      "release_date": "2026-12-03",
+      "softcore": false,
+      "video": false,
+      "vote_average": 5.7,
+      "vote_count": 40
+    },
+    {
+      "adult": false,
+      "backdrop_path": "/eZ239CUp1d6OryZEBPnO2n87gMG.jpg",
+      "genre_ids": [
+        878,
+        12
+      ],
+      "id": 693134,
+      "title": "Duna: Parte Dois",
+      "original_language": "en",
+      "original_title": "Dune: Part Two",
+      "overview": "A jornada de Paul Atreides continua. Ele está determinado a buscar vingança contra aqueles que destruíram sua família e seu lar. Com a ajuda de Chani e dos Fremen, ele embarca em uma jornada espiritual, mística e marcial. Se torna Muad'Dib, o líder messiânico dos Fremen, enquanto luta para evitar um futuro sombrio que ele testemunhou em visões. No entanto, suas ações inadvertidamente desencadeiam uma Guerra Santa em seu nome, que se espalha pelo universo conhecido. Enquanto enfrenta escolhas difíceis entre o amor por Chani e o destino de seu povo, Paul precisa usar suas habilidades e conhecimentos para evitar o terrível futuro que previu.",
+      "popularity": 46.4531,
+      "poster_path": "/VMy4UGsI2u3f4fALGeCqCdsQBb.jpg",
+      "release_date": "2024-02-29",
+      "softcore": false,
+      "video": false,
+      "vote_average": 8.1,
+      "vote_count": 8997
+    },
+    {
+      "adult": false,
+      "backdrop_path": "/qVgZu5BTx6pu4owCvVOm4zjTfOi.jpg",
+      "genre_ids": [
+        878,
+        12
+      ],
+      "id": 438631,
+      "title": "Duna",
+      "original_language": "en",
+      "original_title": "Dune",
+      "overview": "Em um futuro distante, planetas são comandados por casas nobres que fazem parte de um império feudal intergalático. Paul Atreides é um jovem cuja família toma o controle do planeta deserto Arrakis, também conhecido como Duna. A única fonte da especiaria Melange, a substância mais importante do cosmos, Arrakis se mostra ser um planeta nem um pouco fácil de governar.",
+      "popularity": 41.9438,
+      "poster_path": "/uzERcfV2rSHNhW5eViQiO9hNiA7.jpg",
+      "release_date": "2021-10-21",
+      "softcore": false,
+      "video": false,
+      "vote_average": 7.786,
+      "vote_count": 15987
+    },
+    {
+      "adult": false,
+      "backdrop_path": "/i5E9H7Ik0u61ylDDTbmUpTL3Yw.jpg",
+      "genre_ids": [
+        878,
+        12
+      ],
+      "id": 1170608,
+      "title": "Duna: Parte Três",
+      "original_language": "en",
+      "original_title": "Dune: Part Three",
+      "overview": "Na qualidade de Imperador, Paul Atreides debate-se com as consequências da sua ascensão ao poder, enquanto conspirações políticas e uma guerra santa que se estende por toda a galáxia ameaçam o futuro que só ele consegue prever.",
+      "popularity": 36.1176,
+      "poster_path": "/8WBjwT8TBCt5PCFHjmBeb1St8BS.jpg",
+      "release_date": "2026-12-15",
+      "softcore": false,
+      "video": false,
+      "vote_average": 0,
+      "vote_count": 0
+    },
+    {
+      "adult": false,
+      "backdrop_path": "/84Sh7J9uvMjqEqEyRsKXaiSBcjP.jpg",
+      "genre_ids": [
+        27,
+        53
+      ],
+      "id": 1379486,
+      "title": "Psicopata Vitoriana",
+      "original_language": "en",
+      "original_title": "Victorian Psycho",
+      "overview": "Winifred Notty vive nos limites da loucura, escondendo desejos violentos por trás de um sorriso impecável. Na Inglaterra de 1858, ela é enviada à sombria mansão Ensor House para disciplinar as crianças do lar. Quando os membros da casa começam a desaparecer um a um, fica claro que o verdadeiro terror sempre esteve dentro de casa.",
+      "popularity": 37.9282,
+      "poster_path": "/PknxspZqEf739GAC4L50jF9aNv.jpg",
+      "release_date": "2026-12-03",
+      "softcore": false,
+      "video": false,
+      "vote_average": 5.8,
+      "vote_count": 4
+    },
+    {
+      "adult": false,
+      "backdrop_path": "/2Biv1mSzaaxWOqvcnDZn4GcYEAb.jpg",
+      "genre_ids": [
+        16,
+        35,
+        14,
+        12,
+        10751
+      ],
+      "id": 808,
+      "title": "Shrek",
+      "original_language": "en",
+      "original_title": "Shrek",
+      "overview": "Em um pântano distante vive Shrek, um ogro solitário que vê, sem mais nem menos, sua vida ser invadida por uma série de personagens de contos de fada. Todos eles foram expulsos de suas casas pelo maligno Lorde Farquaad. Determinado a recuperar a tranquilidade, Shrek faz um acordo com Farquaad: todos os personagens poderão retornar aos seus lares se ele e seu amigo Burro resgatarem uma princesa que foi aprisionada por um dragão.",
+      "popularity": 23.1653,
+      "poster_path": "/wxeqfC221YMptRRdzxlijAh7q8l.jpg",
+      "release_date": "2001-06-22",
+      "softcore": false,
+      "video": false,
+      "vote_average": 7.781,
+      "vote_count": 19607
+    },
+    {
+      "adult": false,
+      "backdrop_path": "/zdXnJqBaGFVtLoPNuMeKfEYUViZ.jpg",
+      "genre_ids": [
+        10749,
+        18
+      ],
+      "id": 11036,
+      "title": "Diário de uma Paixão",
+      "original_language": "en",
+      "original_title": "The Notebook",
+      "overview": "Na década de 40, o operário Noah Calhoun e a rica Allie estão desesperadamente apaixonados, mas os pais da jovem não aprovam o namoro. Quando Noah vai para a Segunda Guerra Mundial, parece ser o fim do romance. Enquanto isso, Allie se envolve com outro homem. Mas quando Noah retorna para a pequena cidade anos mais tarde, próximo ao casamento de Allie, logo se torna claro que a paixão ainda não acabou.",
+      "popularity": 22.9155,
+      "poster_path": "/hO6k34ZNDwWzgcnzFbqYf2Rjg5W.jpg",
+      "release_date": "2004-08-13",
+      "softcore": false,
+      "video": false,
+      "vote_average": 7.888,
+      "vote_count": 13063
+    },
+    {
+      "adult": false,
+      "backdrop_path": "/wZ9Me7OndzgBOEAa8nSBNPu3Sl4.jpg",
+      "genre_ids": [
+        12,
+        16,
+        10751,
+        14,
+        35
+      ],
+      "id": 1538497,
+      "title": "Enfeitiçadas: Bem-vindos a Hexe",
+      "original_language": "en",
+      "original_title": "Hexed",
+      "overview": "Uma adolescente desajeitada e sua mãe perfeccionista descobrem que suas peculiaridades podem ser poderes mágicos, transformando suas vidas e revelando um reino mágico oculto.",
+      "popularity": 22.015,
+      "poster_path": "/lhDdE2Uvis4Khtr1o366cAbnb57.jpg",
+      "release_date": "2026-11-26",
+      "softcore": false,
+      "video": false,
+      "vote_average": 0,
+      "vote_count": 0
+    },
+    {
+      "adult": false,
+      "backdrop_path": "/6IfsmHoVWwgJwzxA9DLim2XZbSn.jpg",
+      "genre_ids": [
+        35,
+        10749
+      ],
+      "id": 1400336,
+      "title": "Entrando Numa Grande Fria",
+      "original_language": "en",
+      "original_title": "Focker-in-Law",
+      "overview": "Henry, filho de Greg e Pam Focker, enfrenta o caos familiar ao decidir se casar com uma mulher de personalidade forte que parece ser totalmente incompatível com ele.",
+      "popularity": 19.233,
+      "poster_path": "/aoJYSUEBOS1MYEf4nqjsH0K3PWB.jpg",
+      "release_date": "2026-11-25",
+      "softcore": false,
+      "video": false,
+      "vote_average": 4,
+      "vote_count": 1
+    },
+    {
+      "adult": false,
+      "backdrop_path": "/7y8zWGEjs7tresw4Hzkkf4TdkcL.jpg",
+      "genre_ids": [
+        27,
+        10749
+      ],
+      "id": 1564614,
+      "title": "Leviticus: Ritual de Sangue",
+      "original_language": "en",
+      "original_title": "Leviticus",
+      "overview": "Dois adolescentes precisam escapar de um monstro violento capaz de se transformar na pessoa que a vítima mais deseja no mundo. Por estarem apaixonados, a criatura assume a aparência de um para atrair o outro, transformando o afeto em uma armadilha de sobrevivência.",
+      "popularity": 15.5062,
+      "poster_path": "/tA2pUPCx4TyWn6rkH4XtAsvMaYS.jpg",
+      "release_date": "2026-11-26",
+      "softcore": false,
+      "video": false,
+      "vote_average": 6.836,
+      "vote_count": 663
+    },
+    {
+      "adult": false,
+      "backdrop_path": "/qqPspJFy0XrEoVTKZdp0Em7kej6.jpg",
+      "genre_ids": [
+        35,
+        18,
+        53
+      ],
+      "id": 1457866,
+      "title": "As Novas Desventuras de Cliff Booth",
+      "original_language": "en",
+      "original_title": "THE FURTHER MIS-ADVENTURES OF CLIFF BOOTH",
+      "overview": "Oito anos após os eventos de “Era uma vez em… Hollywood”, Cliff Booth navega pelo sistema de estúdio em seu novo papel como um arrumador.",
+      "popularity": 12.9568,
+      "poster_path": "/60KWghhG3I3bKNEPT2i7ak7GiVg.jpg",
+      "release_date": "2026-11-25",
+      "softcore": false,
+      "video": false,
+      "vote_average": 0,
+      "vote_count": 0
+    },
+    {
+      "adult": false,
+      "backdrop_path": "/pulJ1iY7GVeppMRipiR7ZGDW7EW.jpg",
+      "genre_ids": [
+        18
+      ],
+      "id": 615,
+      "title": "A Paixão de Cristo",
+      "original_language": "en",
+      "original_title": "The Passion of the Christ",
+      "overview": "As últimas 12 horas da vida de Jesus de Nazaré. No meio da noite, Jesus é traído por Judas e preso por soldados no Monte das Oliveiras, sob o comando de religiosos hebreus, liderados por Caifás. Após ser severamente espancado pelos seus captores, Jesus é entregue para o governador romano na Judéia, Poncio Pilatos, que não entende o que aquele homem possa ter feito de tão horrível para pedirem a pena máxima.",
+      "popularity": 11.9368,
+      "poster_path": "/ptGYQgdYCR8GVMVjpJ8QNJSxlkf.jpg",
+      "release_date": "2004-03-19",
+      "softcore": false,
+      "video": false,
+      "vote_average": 7.537,
+      "vote_count": 5423
+    },
+    {
+      "adult": false,
+      "backdrop_path": "/9Ebn8atCcGk5OZrx4xmoTobAxoh.jpg",
+      "genre_ids": [
+        35,
+        10749
+      ],
+      "id": 1581,
+      "title": "O Amor Não Tira Férias",
+      "original_language": "en",
+      "original_title": "The Holiday",
+      "overview": "Amanda Woods e Iris Simpkins estão desesperadas por mudanças de ares depois de uma série de problemas com os homens. Numa troca de residências temporária, Amanda viaja para Londres, enquanto Iris parte para Los Angeles, cidades que não conhecem, mas onde rapidamente se integram.",
+      "popularity": 10.2745,
+      "poster_path": "/4TvrnjDdIACRp9Jy4KWO3VxrUrg.jpg",
+      "release_date": "2006-12-22",
+      "softcore": false,
+      "video": false,
+      "vote_average": 7.1,
+      "vote_count": 5849
+    },
+    {
+      "adult": false,
+      "backdrop_path": "/78dChJs7doULSEhIiOvGUcXQRGU.jpg",
+      "genre_ids": [
+        28,
+        35,
+        14
+      ],
+      "id": 1078446,
+      "title": "Noite Ainda Mais Infeliz",
+      "original_language": "en",
+      "original_title": "Violent Night 2",
+      "overview": "O Papai Noel se encontra preso em um shopping, em Nova Jersey, e isolado do Polo Norte. Ele precisa fazer justiça à sua maneira contra um implacável Senhor do Crime e seus capangas, que invadem o estabelecimento.",
+      "popularity": 9.4344,
+      "poster_path": "/e2olETeXHDasOr30feVU7JCxFJN.jpg",
+      "release_date": "2026-12-03",
+      "softcore": false,
+      "video": false,
+      "vote_average": 0,
+      "vote_count": 0
+    },
+    {
+      "adult": false,
+      "backdrop_path": "/hKC8k08rgIyXFVQXrp1izEAWwL1.jpg",
+      "genre_ids": [
+        36,
+        18,
+        80
+      ],
+      "id": 1376415,
+      "title": "The Money Maker - O Falsificador",
+      "original_language": "fr",
+      "original_title": "L'Affaire Bojarski",
+      "overview": "Jan Bojarski, um jovem engenheiro polonês refugiado na França durante a Segunda Guerra Mundial, coloca seus talentos a serviço da resistência, fabricando documentos falsos. No pós-guerra, ele passa a produzir notas falsas perfeitas, levando uma vida dupla até entrar na mira do inspetor Mattei, considerado o melhor policial da França.",
+      "popularity": 11.4052,
+      "poster_path": "/r60UQDxVX3ayqlvUDdjPWUfD3x4.jpg",
+      "release_date": "2026-11-26",
+      "softcore": false,
+      "video": false,
+      "vote_average": 7.105,
+      "vote_count": 209
+    },
+    {
+      "adult": false,
+      "backdrop_path": "/pXtbTukWUFdkQmYydHihDceDFcU.jpg",
+      "genre_ids": [
+        18
+      ],
+      "id": 1074074,
+      "title": "O Ser Querido",
+      "original_language": "es",
+      "original_title": "El ser querido",
+      "overview": "Um aclamado diretor espanhol se reúne com sua filha afastada, uma atriz sem sucesso, para filmar. Os dois precisam lidar com seu relacionamento tenso e problemas do passado que nenhum quer abordar diretamente.",
+      "popularity": 7.841,
+      "poster_path": "/np85eyqM67U80U4mIlnB6X4dSnL.jpg",
+      "release_date": "2026-11-26",
+      "softcore": false,
+      "video": false,
+      "vote_average": 7,
+      "vote_count": 124
+    },
+    {
+      "adult": false,
+      "backdrop_path": "/8ApwSMdd9QehKjvW3fOmKVrnZXv.jpg",
+      "genre_ids": [
+        18,
+        36,
+        27
+      ],
+      "id": 31767,
+      "title": "Os Demônios",
+      "original_language": "en",
+      "original_title": "The Devils",
+      "overview": "Ambientado durante o violento regime católico que tomava conta da França nos idos de 1631, parte da suposta possessão de uma madre-superiora cujas fantasias sexuais com o mais proeminente padre do vilarejo de Loudon resulta num dos mais sangrentos episódios daquela era.",
+      "popularity": 7.7302,
+      "poster_path": "/y1k7eiOFc6fzm8XeTa1kNGx6JIs.jpg",
+      "release_date": "2026-12-03",
+      "softcore": false,
+      "video": false,
+      "vote_average": 7.524,
+      "vote_count": 513
+    },
+    {
+      "adult": false,
+      "backdrop_path": "/gznkDTmyJflVCImfC36dr0EDy5W.jpg",
+      "genre_ids": [
+        10749,
+        35
+      ],
+      "id": 509,
+      "title": "Um Lugar Chamado Notting Hill",
+      "original_language": "en",
+      "original_title": "Notting Hill",
+      "overview": "Will, pacato dono de livraria especializada em guias de viagem, recebe a inesperada visita de uma cliente muito especial: a estrela de cinema americana Anna Scott. Dois ou três encontros fortuitos mais tarde, Will e Anna iniciam um relacionamento tenro, engraçado e cheio de idas e vindas.",
+      "popularity": 8.8825,
+      "poster_path": "/9yFgNvFK870icK6SvTdeVyEjXN4.jpg",
+      "release_date": "1999-07-30",
+      "softcore": false,
+      "video": false,
+      "vote_average": 7.261,
+      "vote_count": 6997
+    }
+  ],
+  "total_pages": 4,
+  "total_results": 69
+}

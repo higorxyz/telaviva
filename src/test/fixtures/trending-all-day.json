@@ -1,0 +1,448 @@
+{
+  "page": 1,
+  "results": [
+    {
+      "adult": false,
+      "backdrop_path": "/c7btGYblBnfAaw713WvFM0Kimc7.jpg",
+      "genre_ids": [
+        12,
+        28,
+        14
+      ],
+      "id": 1368337,
+      "title": "A Odisseia",
+      "original_language": "en",
+      "original_title": "The Odyssey",
+      "overview": "Acompanhe o rei grego Odisseu em sua perigosa jornada de 20 anos para voltar a Ítaca após a Guerra de Troia, enfrentando monstros e deuses enquanto sua esposa Penélope resiste em seu reino.",
+      "popularity": 478.6101,
+      "poster_path": "/m0ehGErq8GTLK4WZxaq9QLGAR3u.jpg",
+      "release_date": "2026-07-15",
+      "softcore": false,
+      "video": false,
+      "vote_average": 8.023,
+      "vote_count": 5041,
+      "media_type": "movie"
+    },
+    {
+      "adult": false,
+      "backdrop_path": "/aqFZcr2dxSZ2UwWSo1WC6C0rwDf.jpg",
+      "genre_ids": [
+        878,
+        28,
+        12
+      ],
+      "id": 1300968,
+      "title": "Jogos Vorazes: Amanhecer na Colheita",
+      "original_language": "en",
+      "original_title": "The Hunger Games: Sunrise on the Reaping",
+      "overview": "Revisite o mundo de Panem 24 anos antes dos eventos de Jogos Vorazes, começando na manhã da colheita dos 50º Jogos Vorazes, também conhecida como o Segundo Massacre Quaternário.",
+      "popularity": 122.6519,
+      "poster_path": "/ibZ6GSHtCeC7fLDJ2uyXNemgYwr.jpg",
+      "release_date": "2026-11-18",
+      "softcore": false,
+      "video": false,
+      "vote_average": 8.3,
+      "vote_count": 19,
+      "media_type": "movie"
+    },
+    {
+      "adult": false,
+      "backdrop_path": "/rObL4of4eFA8yWaN9pRFo9aOVNi.jpg",
+      "genre_ids": [
+        878,
+        28,
+        12
+      ],
+      "id": 1003596,
+      "title": "Vingadores: Doutor Destino",
+      "original_language": "en",
+      "original_title": "Avengers: Doomsday",
+      "overview": "Heróis icônicos de três universos diferentes são colocados em rota de colisão mortal e enfrentam uma ameaça existencial sem precedentes, diferente de tudo que já vivenciaram antes.",
+      "popularity": 176.1731,
+      "poster_path": "/xYnLlYTQ3v31qllNPTZEIDzMOKl.jpg",
+      "release_date": "2026-12-16",
+      "softcore": false,
+      "video": false,
+      "vote_average": 0,
+      "vote_count": 0,
+      "media_type": "movie"
+    },
+    {
+      "adult": false,
+      "backdrop_path": "/r5RYEmZzm1Z6imS7XfiKPnMlyc7.jpg",
+      "genre_ids": [
+        28,
+        53
+      ],
+      "id": 1185344,
+      "title": "The Beast",
+      "original_language": "en",
+      "original_title": "The Beast",
+      "overview": "Quando uma milícia de hostis não identificados coordena um golpe contra os Estados Unidos, o presidente precisa revidar utilizando as capacidades ofensivas altamente secretas de sua limusine blindada, apelidada de A Besta.",
+      "popularity": 102.4222,
+      "poster_path": "/ocg5JfJP19fodcv5uQUApkmZMdI.jpg",
+      "release_date": "2026-10-08",
+      "softcore": false,
+      "video": false,
+      "vote_average": 5.4,
+      "vote_count": 40,
+      "media_type": "movie"
+    },
+    {
+      "adult": false,
+      "backdrop_path": "/subj7knTn4DeS6KS7qI66EQKe9i.jpg",
+      "genre_ids": [
+        878,
+        28,
+        12
+      ],
+      "id": 969681,
+      "title": "Homem-Aranha: Um Novo Dia",
+      "original_language": "en",
+      "original_title": "Spider-Man: Brand New Day",
+      "overview": "É um novo dia para Peter Parker. Combatendo o crime em tempo integral como Homem-Aranha em um mundo que não se lembra mais dele e lidando com a pressão de ver seus antigos amigos seguirem em frente sem sua presença, Peter passa por uma mudança que talvez nem ele tenha o poder de controlar. Mas essa transformação também pode ser a única coisa capaz de deter uma surpreendente nova ameaça à cidade e às pessoas que ele ama: um poderoso vilão que ninguém sequer consegue enxergar.",
+      "popularity": 328.2605,
+      "poster_path": "/x0nvYzQpyJc5pdT9lMnkMuYAg0O.jpg",
+      "release_date": "2026-07-29",
+      "softcore": false,
+      "video": false,
+      "vote_average": 8.5,
+      "vote_count": 6940,
+      "media_type": "movie"
+    },
+    {
+      "adult": false,
+      "backdrop_path": "/hYJqUoXRZnodGxgVZTM8uwr5kbC.jpg",
+      "genre_ids": [
+        9648,
+        18
+      ],
+      "id": 291507,
+      "name": "O Corpo",
+      "original_language": "en",
+      "original_name": "The Body",
+      "overview": "Na noite de Halloween, as garotas de um grupo de dança são tomadas por desejos profanos, visões fantasmagóricas e culpa católica depois que um ritual de iniciação dá errado.",
+      "popularity": 206.6655,
+      "poster_path": "/iHG87S3P8409qOFtYA616BiNLPj.jpg",
+      "first_air_date": "2026-11-11",
+      "softcore": false,
+      "vote_average": 7.785,
+      "vote_count": 79,
+      "media_type": "tv",
+      "origin_country": [
+        "US"
+      ]
+    },
+    {
+      "adult": false,
+      "backdrop_path": "/smZ8BT4Vzw4iCEppTLCnN8jNYtn.jpg",
+      "genre_ids": [
+        27
+      ],
+      "id": 1400837,
+      "title": "Outra Mamãe",
+      "original_language": "en",
+      "original_title": "Other Mommy",
+      "overview": "Uma menina de 8 anos, filha de um casal que enfrenta problemas conjugais, encara uma entidade sinistra que sai do seu armário e torna-se cada vez mais ameaçadora para a família.",
+      "popularity": 411.8403,
+      "poster_path": "/hiuBB4ZqGbL7uihdVPUahFtg7Zr.jpg",
+      "release_date": "2026-10-07",
+      "softcore": false,
+      "video": false,
+      "vote_average": 6.407,
+      "vote_count": 491,
+      "media_type": "movie"
+    },
+    {
+      "adult": false,
+      "backdrop_path": "/uoXXbN2PrOxH6UKyP7kYwmGpAAP.jpg",
+      "genre_ids": [
+        10765,
+        18
+      ],
+      "id": 213375,
+      "name": "VisionQuest",
+      "original_language": "en",
+      "original_name": "VisionQuest",
+      "overview": "Um Visão repaginado tem se escondido daqueles que buscam usá-lo como arma. Enquanto permanece na clandestinidade, ele consulta as personalidades de IA embutidas em sua programação, incluindo o infame Ultron, para encontrar seu verdadeiro propósito. Essa vida tranquila de autorreflexão chega ao fim quando uma recompensa por sua cabeça o força a fugir ao lado de Thomas Shepard, um garoto misterioso que pode ser a reencarnação de seu filho.",
+      "popularity": 256.4807,
+      "poster_path": "/WGyAyBPncfuu8MZhLY9RtfZPM0.jpg",
+      "first_air_date": "2026-10-13",
+      "softcore": false,
+      "vote_average": 8.291,
+      "vote_count": 530,
+      "media_type": "tv",
+      "origin_country": [
+        "US"
+      ]
+    },
+    {
+      "adult": false,
+      "backdrop_path": "/mfpjOQ6hsvMUIFyzWglwerbpgFS.jpg",
+      "genre_ids": [
+        53,
+        18,
+        80
+      ],
+      "id": 1084409,
+      "title": "Como Nasce um Assassino",
+      "original_language": "en",
+      "original_title": "A Talent for Murder",
+      "overview": "A escritora Patricia Highsmith, autora do clássico O talentoso Ripley, tem um encontro curioso e intenso com um jovem agente literário determinado a convencê-la a lançar mais um livro.",
+      "popularity": 47.6984,
+      "poster_path": "/mstDPKNKgSGFvVFVdfzeMNkcyw2.jpg",
+      "release_date": "2026-10-23",
+      "softcore": false,
+      "video": false,
+      "vote_average": 7.1,
+      "vote_count": 15,
+      "media_type": "movie"
+    },
+    {
+      "adult": false,
+      "backdrop_path": "/uVOcz7JBOuZxsx9IYpx6Ah174LX.jpg",
+      "genre_ids": [
+        10759,
+        10765
+      ],
+      "id": 84773,
+      "name": "O Senhor dos Anéis: Os Anéis de Poder",
+      "original_language": "en",
+      "original_name": "The Lord of the Rings: The Rings of Power",
+      "overview": "Tendo início em uma época de relativa paz, a série acompanha um grupo de personagens que enfrenta o ressurgimento do mal na Terra-média. Das profundezas escuras das Montanhas de Névoa, das majestosas florestas de Lindon, do belíssimo reino da ilha de Númenor, até os confins do mapa, esses reinos e personagens criarão legados que permanecerão vivos muito além de suas partidas.",
+      "popularity": 1865.5108,
+      "poster_path": "/8FPCnfOftiLTHg5wnJxVdtlF8EN.jpg",
+      "first_air_date": "2022-09-01",
+      "softcore": false,
+      "vote_average": 7.219,
+      "vote_count": 4100,
+      "media_type": "tv",
+      "origin_country": [
+        "US"
+      ]
+    },
+    {
+      "adult": false,
+      "backdrop_path": "/8R79AZjX1Bt4219Ub3CrRMsPQsW.jpg",
+      "genre_ids": [
+        27,
+        878,
+        12
+      ],
+      "id": 1423191,
+      "title": "Resident Evil",
+      "original_language": "en",
+      "original_title": "Resident Evil",
+      "overview": "Bryan, um tranquilo entregador de órgãos, é enviado para uma entrega noturna no Hospital Geral de Raccoon City. No caminho por uma estrada montanhosa coberta de neve, ele acidentalmente atropela uma mulher desconhecida. Ela sobrevive, mas algo está muito errado. Ao tentar ajudar, Bryan se depara com um surto em larga escala envolvendo mutações horríveis com tentáculos e monstruosidades bioengenheiradas.",
+      "popularity": 400.9661,
+      "poster_path": "/bvBTdNaWVPrHKjyPFnsigZJsKdD.jpg",
+      "release_date": "2026-09-16",
+      "softcore": false,
+      "video": false,
+      "vote_average": 7.52,
+      "vote_count": 2329,
+      "media_type": "movie"
+    },
+    {
+      "adult": false,
+      "backdrop_path": "/fdOVxyNNL95SuI8BGaN6vudEuYX.jpg",
+      "genre_ids": [
+        14,
+        35,
+        27
+      ],
+      "id": 1567605,
+      "title": "Ebenezer e os Fantasmas do Natal",
+      "original_language": "en",
+      "original_title": "Ebenezer",
+      "overview": "Ebenezer Scrooge é um velho avarento que recebe a visita do fantasma de seu antigo sócio, Jacob Marley, e dos Espíritos do Natal Passado, Presente e Futuro. Os encontros o força a confrontar o próprio passado e a lutar por uma segunda chance de ser feliz.",
+      "popularity": 137.3574,
+      "poster_path": "/7MBeM27NNcCYUszjTNYJUycPDhV.jpg",
+      "release_date": "2026-11-11",
+      "softcore": false,
+      "video": false,
+      "vote_average": 7.6,
+      "vote_count": 105,
+      "media_type": "movie"
+    },
+    {
+      "adult": false,
+      "backdrop_path": "/oqrYIDH4tvfEzPe1yqT4jzmAWHQ.jpg",
+      "genre_ids": [
+        878,
+        27,
+        28
+      ],
+      "id": 1381071,
+      "title": "Godzilla Minus Zero",
+      "original_language": "ja",
+      "original_title": "ゴジラ-0.0",
+      "overview": "A guerra reduziu o Japão a zero, e o Godzilla mergulhou-o no negativo. Passaram-se dois anos desde então, e o país tem enfrentado lutas agonizantes para alcançar a recuperação e, finalmente, voltar à vida normal. No momento em que a humanidade conseguiu se agarrar a uma paz conquistada com dificuldade, surge uma nova ameaça, esmagando a esperança num instante.",
+      "popularity": 137.676,
+      "poster_path": "/ebVZ8n64rtHsSItTei4EgTKzPVu.jpg",
+      "release_date": "2026-11-03",
+      "softcore": false,
+      "video": false,
+      "vote_average": 7.663,
+      "vote_count": 252,
+      "media_type": "movie"
+    },
+    {
+      "adult": false,
+      "backdrop_path": "/i5E9H7Ik0u61ylDDTbmUpTL3Yw.jpg",
+      "genre_ids": [
+        878,
+        12
+      ],
+      "id": 1170608,
+      "title": "Duna: Parte Três",
+      "original_language": "en",
+      "original_title": "Dune: Part Three",
+      "overview": "Na qualidade de Imperador, Paul Atreides debate-se com as consequências da sua ascensão ao poder, enquanto conspirações políticas e uma guerra santa que se estende por toda a galáxia ameaçam o futuro que só ele consegue prever.",
+      "popularity": 36.1176,
+      "poster_path": "/8WBjwT8TBCt5PCFHjmBeb1St8BS.jpg",
+      "release_date": "2026-12-15",
+      "softcore": false,
+      "video": false,
+      "vote_average": 0,
+      "vote_count": 0,
+      "media_type": "movie"
+    },
+    {
+      "adult": false,
+      "backdrop_path": "/4wZZ8CGEsjXaKt5TosiFqbaPymD.jpg",
+      "genre_ids": [
+        10759,
+        35,
+        80
+      ],
+      "id": 226102,
+      "name": "Acidente",
+      "original_language": "ko",
+      "original_name": "크래시",
+      "overview": "Um drama sobre Cha Yeon-ho, um individualista razoável do KAIST, e Min So-hee, um ás da investigação de trânsito com julgamento frio e sensibilidade calorosa na Investigação de Crimes de Trânsito (TCI).",
+      "popularity": 19.1325,
+      "poster_path": "/mlm7ZnMZxyexylGeAD48QgjEeAg.jpg",
+      "first_air_date": "2024-05-13",
+      "softcore": false,
+      "vote_average": 8.6,
+      "vote_count": 20,
+      "media_type": "tv",
+      "origin_country": [
+        "KR"
+      ]
+    },
+    {
+      "adult": false,
+      "backdrop_path": "/yE766yhgg98tKwTKd8CyNvAtmn6.jpg",
+      "genre_ids": [
+        12,
+        53
+      ],
+      "id": 1263337,
+      "title": "Coração Selvagem",
+      "original_language": "en",
+      "original_title": "Heart of the Beast",
+      "overview": "Um ex-soldado ferido e seu cão de guerra aposentado lutam para sobreviver na região do Alasca e encontrar o caminho de volta para casa após um acidente aéreo na mata.",
+      "popularity": 507.5043,
+      "poster_path": "/n4PJa4xVo4SjIsBvTA0yGMKjTBh.jpg",
+      "release_date": "2026-09-19",
+      "softcore": false,
+      "video": false,
+      "vote_average": 7.698,
+      "vote_count": 974,
+      "media_type": "movie"
+    },
+    {
+      "adult": false,
+      "backdrop_path": "/xSDoxv4pHvs4xZjvTb0Iqg1A6ro.jpg",
+      "genre_ids": [
+        27,
+        53,
+        878
+      ],
+      "id": 1400940,
+      "title": "Cara-de-Barro",
+      "original_language": "en",
+      "original_title": "Clayface",
+      "overview": "A ascensão meteórica de Matt Hagen de garoto das ruas de Gotham a astro de Hollywood é tragicamente interrompida quando as ações de um chefão do crime local o deixam terrivelmente desfigurado. Abandonado por sua equipe e sem nada, Matt busca um tratamento de ponta que, milagrosamente, o devolve à sua antiga forma... mas que também afeta, de maneira inesperada, sua percepção da realidade, lançando-o em uma espiral destrutiva de obsessão e vingança.",
+      "popularity": 74.4631,
+      "poster_path": "/dqvHs2YXks989ScXvsngbqAeBHX.jpg",
+      "release_date": "2026-10-19",
+      "softcore": false,
+      "video": false,
+      "vote_average": 7.389,
+      "vote_count": 455,
+      "media_type": "movie"
+    },
+    {
+      "adult": false,
+      "backdrop_path": "/ob7m6JqZ7jSOocR3VL73VxRC6Is.jpg",
+      "genre_ids": [
+        35,
+        18,
+        80
+      ],
+      "id": 303745,
+      "name": "Amor Disfarçado",
+      "original_language": "ko",
+      "original_name": "나의 유죄인간",
+      "overview": "Yoon Yi-jun, herdeiro do Grupo Taekang, é o principal suspeito de um assassinato chocante. Para descobrir a verdade, a detetive Kang Jae-hee se infiltra como seu secretário para vigiá-lo de perto. Quanto mais se aproximam da verdade, mais próximos também ficam. Será que Jae-hee, que esconde sua identidade, e Yi-jun, que guarda um segredo, conseguirão revelar o que realmente sentem um pelo outro?",
+      "popularity": 142.0429,
+      "poster_path": "/fhYPYQyVopTbPIf4A7FN5Q3lxPR.jpg",
+      "first_air_date": "2026-10-19",
+      "softcore": false,
+      "vote_average": 9.099,
+      "vote_count": 81,
+      "media_type": "tv",
+      "origin_country": [
+        "KR"
+      ]
+    },
+    {
+      "adult": false,
+      "backdrop_path": "/9LtN1ac91JAqXMke8CAJ6BiBSLS.jpg",
+      "genre_ids": [
+        18
+      ],
+      "id": 307853,
+      "name": "Luz em Dias de Chuva",
+      "original_language": "zh",
+      "original_name": "今天是太阳雨",
+      "overview": "Dois estudantes de biologia com dificuldades, inicialmente rivais por uma bolsa de estudos, encontram apoio mútuo e consolo, transformando sua relação de competição em companheirismo.",
+      "popularity": 34.6101,
+      "poster_path": "/ex26ZwCJmwUkIAbSf8s0TQpTegZ.jpg",
+      "first_air_date": "2026-11-06",
+      "softcore": false,
+      "vote_average": 9.538,
+      "vote_count": 13,
+      "media_type": "tv",
+      "origin_country": [
+        "CN"
+      ]
+    },
+    {
+      "adult": false,
+      "backdrop_path": "/5lTZyuBTNOfawsfPT8Q0cIg6qAF.jpg",
+      "genre_ids": [
+        27,
+        53
+      ],
+      "id": 1339713,
+      "title": "Obsessão",
+      "original_language": "en",
+      "original_title": "Obsession",
+      "overview": "Sem grandes pretensões, um romântico incurável compra um brinquedo que promete realizar desejos únicos. Ele quebra o artefato misterioso enquanto pede para conquistar a crush e consegue exatamente o que desejava, mas descobre que a consequência é sinistra.",
+      "popularity": 74.4417,
+      "poster_path": "/wUc6IDf5ChjM1UyQye21qFBeJY0.jpg",
+      "release_date": "2026-05-13",
+      "softcore": false,
+      "video": false,
+      "vote_average": 8.16,
+      "vote_count": 6661,
+      "media_type": "movie"
+    }
+  ],
+  "total_pages": 500,
+  "total_results": 10000
+}

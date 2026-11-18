@@ -14,5 +14,9 @@ export default defineConfig({
     environment: 'jsdom',
     setupFiles: ['src/test/setup.ts'],
     include: ['src/**/*.test.{ts,tsx}'],
+    env: {
+      TMDB_READ_TOKEN: 'test-token',
+      TMDB_API_BASE_URL: 'https://api.themoviedb.org/3',
+    },
   },
 });

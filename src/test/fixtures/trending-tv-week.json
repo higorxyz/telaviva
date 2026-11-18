@@ -1,0 +1,474 @@
+{
+  "page": 1,
+  "results": [
+    {
+      "adult": false,
+      "backdrop_path": "/uoXXbN2PrOxH6UKyP7kYwmGpAAP.jpg",
+      "genre_ids": [
+        10765,
+        18
+      ],
+      "id": 213375,
+      "origin_country": [
+        "US"
+      ],
+      "original_language": "en",
+      "original_name": "VisionQuest",
+      "overview": "Um Visão repaginado tem se escondido daqueles que buscam usá-lo como arma. Enquanto permanece na clandestinidade, ele consulta as personalidades de IA embutidas em sua programação, incluindo o infame Ultron, para encontrar seu verdadeiro propósito. Essa vida tranquila de autorreflexão chega ao fim quando uma recompensa por sua cabeça o força a fugir ao lado de Thomas Shepard, um garoto misterioso que pode ser a reencarnação de seu filho.",
+      "popularity": 256.4807,
+      "poster_path": "/WGyAyBPncfuu8MZhLY9RtfZPM0.jpg",
+      "first_air_date": "2026-10-13",
+      "softcore": false,
+      "name": "VisionQuest",
+      "vote_average": 8.291,
+      "vote_count": 530,
+      "media_type": "tv"
+    },
+    {
+      "adult": false,
+      "backdrop_path": "/uVOcz7JBOuZxsx9IYpx6Ah174LX.jpg",
+      "genre_ids": [
+        10759,
+        10765
+      ],
+      "id": 84773,
+      "origin_country": [
+        "US"
+      ],
+      "original_language": "en",
+      "original_name": "The Lord of the Rings: The Rings of Power",
+      "overview": "Tendo início em uma época de relativa paz, a série acompanha um grupo de personagens que enfrenta o ressurgimento do mal na Terra-média. Das profundezas escuras das Montanhas de Névoa, das majestosas florestas de Lindon, do belíssimo reino da ilha de Númenor, até os confins do mapa, esses reinos e personagens criarão legados que permanecerão vivos muito além de suas partidas.",
+      "popularity": 1865.5108,
+      "poster_path": "/8FPCnfOftiLTHg5wnJxVdtlF8EN.jpg",
+      "first_air_date": "2022-09-01",
+      "softcore": false,
+      "name": "O Senhor dos Anéis: Os Anéis de Poder",
+      "vote_average": 7.219,
+      "vote_count": 4100,
+      "media_type": "tv"
+    },
+    {
+      "adult": false,
+      "backdrop_path": "/hYJqUoXRZnodGxgVZTM8uwr5kbC.jpg",
+      "genre_ids": [
+        9648,
+        18
+      ],
+      "id": 291507,
+      "origin_country": [
+        "US"
+      ],
+      "original_language": "en",
+      "original_name": "The Body",
+      "overview": "Na noite de Halloween, as garotas de um grupo de dança são tomadas por desejos profanos, visões fantasmagóricas e culpa católica depois que um ritual de iniciação dá errado.",
+      "popularity": 206.6655,
+      "poster_path": "/iHG87S3P8409qOFtYA616BiNLPj.jpg",
+      "first_air_date": "2026-11-11",
+      "softcore": false,
+      "name": "O Corpo",
+      "vote_average": 7.785,
+      "vote_count": 79,
+      "media_type": "tv"
+    },
+    {
+      "adult": false,
+      "backdrop_path": "/tjy25xpiFeo2gahl7N0hoxbRtG7.jpg",
+      "genre_ids": [
+        10759,
+        80,
+        18
+      ],
+      "id": 254630,
+      "origin_country": [
+        "US"
+      ],
+      "original_language": "en",
+      "original_name": "12 12 12",
+      "overview": "Um roubo leva 12 meses para ser planejado, 12 horas para ser executado e um ladrão que não é capturado em até 12 dias nunca mais será. Ao longo de três linhas do tempo eletrizantes, um agente do FBI e um criminoso profissional travam um jogo mortal de gato e rato pela Europa.",
+      "popularity": 127.0178,
+      "poster_path": "/8q6BvFQuKM1Rud4E9NQDaMGy9EL.jpg",
+      "first_air_date": "2026-11-12",
+      "softcore": false,
+      "name": "12 12 12",
+      "vote_average": 6.364,
+      "vote_count": 33,
+      "media_type": "tv"
+    },
+    {
+      "adult": false,
+      "backdrop_path": "/h0OC7ouop8YLwbAVfS3UUE2Lw4T.jpg",
+      "genre_ids": [
+        80,
+        18
+      ],
+      "id": 247718,
+      "origin_country": [
+        "GB",
+        "US"
+      ],
+      "original_language": "en",
+      "original_name": "MobLand",
+      "overview": "O poder está em disputa quando duas famílias do crime se chocam numa batalha que ameaça derrubar impérios e arruinar vidas. No meio está Harry Da Souza, um \"resolvedor de problemas\" que sabe bem onde a lealdade está quando as forças opostas colidem.",
+      "popularity": 407.534,
+      "poster_path": "/jM7bH9b9QT22PtkTyHzxbXx4lDI.jpg",
+      "first_air_date": "2025-03-30",
+      "softcore": false,
+      "name": "Terra da Máfia",
+      "vote_average": 8.667,
+      "vote_count": 1265,
+      "media_type": "tv"
+    },
+    {
+      "adult": false,
+      "backdrop_path": "/taqVKvEmMlI2hs2g364fXWzv0ia.jpg",
+      "genre_ids": [
+        10767,
+        35
+      ],
+      "id": 1489,
+      "origin_country": [
+        "US"
+      ],
+      "original_language": "en",
+      "original_name": "Jimmy Kimmel Live!",
+      "overview": "",
+      "popularity": 99.4097,
+      "poster_path": "/bGB6bEbG4qL22C1SFupkdAxYC9i.jpg",
+      "first_air_date": "2003-01-26",
+      "softcore": false,
+      "name": "Jimmy Kimmel Live!",
+      "vote_average": 5.281,
+      "vote_count": 228,
+      "media_type": "tv"
+    },
+    {
+      "adult": false,
+      "backdrop_path": "/vcpj6rRDS93ImHCLPY8bwBuFGjR.jpg",
+      "genre_ids": [
+        80,
+        18,
+        9648
+      ],
+      "id": 259909,
+      "origin_country": [
+        "US"
+      ],
+      "original_language": "en",
+      "original_name": "Dexter: Resurrection",
+      "overview": "Dexter Morgan acorda do coma e vai para Nova Iorque, determinado a encontrar Harrison e consertar as coisas, mas quando Angel Batista da Miami Metro chega com perguntas, Dexter percebe que seu passado está mais próximo do que nunca.",
+      "popularity": 92.2978,
+      "poster_path": "/wnQ99OpwyVUxRZbfeqhNE1aab6h.jpg",
+      "first_air_date": "2025-07-13",
+      "softcore": false,
+      "name": "Dexter: Ressurreição",
+      "vote_average": 8.547,
+      "vote_count": 765,
+      "media_type": "tv"
+    },
+    {
+      "adult": false,
+      "backdrop_path": "/mDYIV71RL3mkaW8IfSGNthuVB7l.jpg",
+      "genre_ids": [
+        9648,
+        18,
+        80
+      ],
+      "id": 293610,
+      "origin_country": [
+        "KR"
+      ],
+      "original_language": "ko",
+      "original_name": "닥터X: 하얀 마피아의 시대",
+      "overview": "Uma cirurgiã enigmática e brilhante chega a um hospital dominado pelo ego e pela corrupção. Encarando uma oposição brutal, ela resolve casos aparentemente impossíveis.",
+      "popularity": 67.3296,
+      "poster_path": "/d41TWEoIeMHI4Hwa3kkwkVvnVF5.jpg",
+      "first_air_date": "2026-10-09",
+      "softcore": false,
+      "name": "Doctor X: A Máfia do Jaleco Branco",
+      "vote_average": 8.592,
+      "vote_count": 65,
+      "media_type": "tv"
+    },
+    {
+      "adult": false,
+      "backdrop_path": "/ob7m6JqZ7jSOocR3VL73VxRC6Is.jpg",
+      "genre_ids": [
+        35,
+        18,
+        80
+      ],
+      "id": 303745,
+      "origin_country": [
+        "KR"
+      ],
+      "original_language": "ko",
+      "original_name": "나의 유죄인간",
+      "overview": "Yoon Yi-jun, herdeiro do Grupo Taekang, é o principal suspeito de um assassinato chocante. Para descobrir a verdade, a detetive Kang Jae-hee se infiltra como seu secretário para vigiá-lo de perto. Quanto mais se aproximam da verdade, mais próximos também ficam. Será que Jae-hee, que esconde sua identidade, e Yi-jun, que guarda um segredo, conseguirão revelar o que realmente sentem um pelo outro?",
+      "popularity": 142.0429,
+      "poster_path": "/fhYPYQyVopTbPIf4A7FN5Q3lxPR.jpg",
+      "first_air_date": "2026-10-19",
+      "softcore": false,
+      "name": "Amor Disfarçado",
+      "vote_average": 9.099,
+      "vote_count": 81,
+      "media_type": "tv"
+    },
+    {
+      "adult": false,
+      "backdrop_path": "/9LtN1ac91JAqXMke8CAJ6BiBSLS.jpg",
+      "genre_ids": [
+        18
+      ],
+      "id": 307853,
+      "origin_country": [
+        "CN"
+      ],
+      "original_language": "zh",
+      "original_name": "今天是太阳雨",
+      "overview": "Dois estudantes de biologia com dificuldades, inicialmente rivais por uma bolsa de estudos, encontram apoio mútuo e consolo, transformando sua relação de competição em companheirismo.",
+      "popularity": 34.6101,
+      "poster_path": "/ex26ZwCJmwUkIAbSf8s0TQpTegZ.jpg",
+      "first_air_date": "2026-11-06",
+      "softcore": false,
+      "name": "Luz em Dias de Chuva",
+      "vote_average": 9.538,
+      "vote_count": 13,
+      "media_type": "tv"
+    },
+    {
+      "adult": false,
+      "backdrop_path": "/nDU6mUk4wVU1EkDkDvcLvT2UWdy.jpg",
+      "genre_ids": [
+        18,
+        9648
+      ],
+      "id": 249565,
+      "origin_country": [
+        "US"
+      ],
+      "original_language": "en",
+      "original_name": "The Good Daughter",
+      "overview": "The Good Daughter acompanha duas irmãs afastadas que se reencontram após uma situação perigosa em uma escola de sua cidade natal.",
+      "popularity": 43.8353,
+      "poster_path": "/qJPvyo9Pxz3MQndd3tKSocLz1Nt.jpg",
+      "first_air_date": "2026-11-12",
+      "softcore": false,
+      "name": "The Good Daughter",
+      "vote_average": 7.9,
+      "vote_count": 21,
+      "media_type": "tv"
+    },
+    {
+      "adult": false,
+      "backdrop_path": "/2YQFwn9aF7huTFHxn9lFTAn14F.jpg",
+      "genre_ids": [
+        10759,
+        10751,
+        18
+      ],
+      "id": 85077,
+      "origin_country": [
+        "US"
+      ],
+      "original_language": "en",
+      "original_name": "The Chosen",
+      "overview": "Aprofundando-se nas histórias de fundo e no contexto das pessoas e eventos dos evangelhos, a Primeira Temporada do projeto de mídia de maior financiamento coletivo pelo público de todos os tempos apresenta pessoas como Simão Pedro, Nicodemos, Maria Madalena, Mateus e, claro, Jesus de uma forma nunca antes vista em filme.",
+      "popularity": 104.7496,
+      "poster_path": "/9lL4etMuaZnqlSzkf0zEm3gbvlR.jpg",
+      "first_air_date": "2019-04-21",
+      "softcore": false,
+      "name": "The Chosen: Os Escolhidos",
+      "vote_average": 8.859,
+      "vote_count": 1072,
+      "media_type": "tv"
+    },
+    {
+      "adult": false,
+      "backdrop_path": "/m5tiVhzIFIqDyIPwOsHDsMDGMsK.jpg",
+      "genre_ids": [
+        18
+      ],
+      "id": 279155,
+      "origin_country": [
+        "CN"
+      ],
+      "original_language": "zh",
+      "original_name": "谷雨",
+      "overview": "",
+      "popularity": 26.0935,
+      "poster_path": "/rupJ8YCAtGJ4usBY8j4Hy3h9Qpf.jpg",
+      "first_air_date": "2026-11-05",
+      "softcore": false,
+      "name": "谷雨",
+      "vote_average": 9,
+      "vote_count": 1,
+      "media_type": "tv"
+    },
+    {
+      "adult": false,
+      "backdrop_path": "/3UviYOlhn8EgXMBuiT6MnUuo1w9.jpg",
+      "genre_ids": [
+        35,
+        16
+      ],
+      "id": 2190,
+      "origin_country": [
+        "US"
+      ],
+      "original_language": "en",
+      "original_name": "South Park",
+      "overview": "Série animada que satiriza com muito humor negro a sociedade estadounidense ao apresentar situações bizarras e surreais protagonizadas por Stan, Kyle, Eric e Kenny, as crianças mais travessas de South Park.",
+      "popularity": 141.9793,
+      "poster_path": "/ojwZ7dO7CUVUjbUDW81XaBjqy6h.jpg",
+      "first_air_date": "1997-08-13",
+      "softcore": false,
+      "name": "South Park",
+      "vote_average": 8.3,
+      "vote_count": 5280,
+      "media_type": "tv"
+    },
+    {
+      "adult": false,
+      "backdrop_path": "/fNcpHmuZLKoyhNMBEzdqzX8iIvg.jpg",
+      "genre_ids": [
+        18,
+        10765
+      ],
+      "id": 279246,
+      "origin_country": [
+        "KR"
+      ],
+      "original_language": "ko",
+      "original_name": "재혼 황후",
+      "overview": "A amada imperatriz Navier governa o Império do Oriente ao lado do imperador Sovieshu. Mas, quando Sovieshu se apaixona por uma escrava fugitiva e exige o divórcio, Navier aceita sob uma única condição: receber permissão para se casar com o príncipe rival Heinrey, do Reino do Ocidente.",
+      "popularity": 190.3462,
+      "poster_path": "/lzS8kJgL5pNlX25iVVjafhvQGBy.jpg",
+      "first_air_date": "2026-11-03",
+      "softcore": false,
+      "name": "A Imperatriz Se Casou Novamente",
+      "vote_average": 8.716,
+      "vote_count": 104,
+      "media_type": "tv"
+    },
+    {
+      "adult": false,
+      "backdrop_path": "/4wZZ8CGEsjXaKt5TosiFqbaPymD.jpg",
+      "genre_ids": [
+        10759,
+        35,
+        80
+      ],
+      "id": 226102,
+      "origin_country": [
+        "KR"
+      ],
+      "original_language": "ko",
+      "original_name": "크래시",
+      "overview": "Um drama sobre Cha Yeon-ho, um individualista razoável do KAIST, e Min So-hee, um ás da investigação de trânsito com julgamento frio e sensibilidade calorosa na Investigação de Crimes de Trânsito (TCI).",
+      "popularity": 19.1325,
+      "poster_path": "/mlm7ZnMZxyexylGeAD48QgjEeAg.jpg",
+      "first_air_date": "2024-05-13",
+      "softcore": false,
+      "name": "Acidente",
+      "vote_average": 8.6,
+      "vote_count": 20,
+      "media_type": "tv"
+    },
+    {
+      "adult": false,
+      "backdrop_path": "/2rmK7mnchw9Xr3XdiTFSxTTLXqv.jpg",
+      "genre_ids": [
+        10759,
+        35,
+        16
+      ],
+      "id": 37854,
+      "origin_country": [
+        "JP"
+      ],
+      "original_language": "ja",
+      "original_name": "ワンピース",
+      "overview": "Houve um homem que conquistou tudo aquilo que o mundo tinha a oferecer, o lendário Rei dos Piratas, Gold Roger. Capturado e condenado à execução pelo Governo Mundial, suas últimas palavras lançaram legiões aos mares. \"Meu tesouro? Se quiserem, podem pegá-lo. Procurem-no! Ele contém tudo que este mundo pode oferecer!\". Foi a revelação do maior tesouro, o One Piece, cobiçado por homens de todo o mundo, sonhando com fama e riqueza imensuráveis... Assim começou a Grande Era dos Piratas!",
+      "popularity": 358.8189,
+      "poster_path": "/9ltisibeD4gzqjM1AzmQwCdyirQ.jpg",
+      "first_air_date": "1999-10-20",
+      "softcore": false,
+      "name": "One Piece",
+      "vote_average": 8.8,
+      "vote_count": 5657,
+      "media_type": "tv"
+    },
+    {
+      "adult": false,
+      "backdrop_path": "/mNHRGO1gFpR2CYZdANe72kcKq7G.jpg",
+      "genre_ids": [
+        80,
+        18,
+        35
+      ],
+      "id": 153312,
+      "origin_country": [
+        "US"
+      ],
+      "original_language": "en",
+      "original_name": "Tulsa King",
+      "overview": "Depois de cumprir 25 anos de prisão, Dwight Manfredi é exilado sem cerimônia por seu chefe da máfia para se estabelecer em Oklahoma. Dwight lentamente constrói um novo império criminoso em Tulsa.",
+      "popularity": 253.5325,
+      "poster_path": "/y13WOeZ2rz2Ezpws0RJ0I8sQpG4.jpg",
+      "first_air_date": "2022-11-13",
+      "softcore": false,
+      "name": "Tulsa King",
+      "vote_average": 8.322,
+      "vote_count": 2963,
+      "media_type": "tv"
+    },
+    {
+      "adult": false,
+      "backdrop_path": "/614k6C9doThoMe6GyH0nTnGgLXt.jpg",
+      "genre_ids": [
+        80,
+        18,
+        9648
+      ],
+      "id": 292741,
+      "origin_country": [
+        "US"
+      ],
+      "original_language": "en",
+      "original_name": "Nocturne",
+      "overview": "Quando uma vítima do notório serial killer Jurek Walter reaparece viva inesperadamente, o detetive Jonah Lynn corre contra o tempo para encontrar a única pessoa que ainda está desaparecida, enquanto sua protegida, Saga Bauer, infiltra-se em segredo para obter respostas do próprio assassino.",
+      "popularity": 72.8848,
+      "poster_path": "/lVoPRl5RXH2U7XJUQJnl3z0au89.jpg",
+      "first_air_date": "2026-10-29",
+      "softcore": false,
+      "name": "Noturno",
+      "vote_average": 7.542,
+      "vote_count": 59,
+      "media_type": "tv"
+    },
+    {
+      "adult": false,
+      "backdrop_path": "/lnPf1rCmSgcowbhMPH4M1avSApm.jpg",
+      "genre_ids": [
+        18
+      ],
+      "id": 131488,
+      "origin_country": [
+        "DE"
+      ],
+      "original_language": "de",
+      "original_name": "Die Kaiserin",
+      "overview": "Na Áustria do século XIX, a rebelde e apaixonada Sisi e o Imperador Francisco precisam defender seu amor contra ameaças, intrigas e lutas pelo poder na corte vienense.",
+      "popularity": 35.4938,
+      "poster_path": "/fOaBC66LkIwBABowOsjUEAjUeGN.jpg",
+      "first_air_date": "2022-09-29",
+      "softcore": false,
+      "name": "A Imperatriz",
+      "vote_average": 7.676,
+      "vote_count": 194,
+      "media_type": "tv"
+    }
+  ],
+  "total_pages": 500,
+  "total_results": 10000
+}

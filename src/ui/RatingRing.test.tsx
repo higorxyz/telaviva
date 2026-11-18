@@ -1,8 +1,6 @@
-import { cleanup, render, screen } from '@testing-library/react';
-import { afterEach, describe, expect, it } from 'vitest';
+import { render, screen } from '@testing-library/react';
+import { describe, expect, it } from 'vitest';
 import { RatingRing } from './RatingRing';
-
-afterEach(cleanup);
 
 describe('RatingRing', () => {
   it('renders a TMDb rating', () => {
