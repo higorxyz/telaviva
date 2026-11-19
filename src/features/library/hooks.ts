@@ -1,13 +1,24 @@
 'use client';
 
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { useCallback } from 'react';
+import { useCallback, useSyncExternalStore } from 'react';
 import { useToast } from '@/ui/toast/useToast';
 import { applyCommand, findItem, findRating, type LibraryCommand } from './commands';
 import { LIBRARY_KEY, useLibraryRepository } from './LibraryProvider';
 import type { EpisodeMark, LibraryItem, LibraryState, LibraryStatus, Rating, TitleRef } from './types';
 
 const NO_MARKS: EpisodeMark[] = [];
+
+const noopSubscribe = () => () => {};
+
+/**
+ * False on the server and while hydrating (React reads the server snapshot then), true afterwards. A boundary that
+ * hydrates late (the home rails, behind Suspense) may find the library already loaded by another component; it
+ * must still render the server's neutral state first, or React reports a hydration mismatch.
+ */
+function useHydrated(): boolean {
+  return useSyncExternalStore(noopSubscribe, () => true, () => false);
+}
 
 export function useLibrary(): { state: LibraryState | undefined; ready: boolean } {
   const repository = useLibraryRepository();
@@ -16,7 +27,8 @@ export function useLibrary(): { state: LibraryState | undefined; ready: boolean 
     queryFn: () => repository.load(),
     staleTime: Infinity,
   });
-  return { state: data, ready: data !== undefined };
+  const hydrated = useHydrated();
+  return hydrated ? { state: data, ready: data !== undefined } : { state: undefined, ready: false };
 }
 
 export function useLibraryEntry(ref: TitleRef): {
@@ -49,7 +61,8 @@ export function useLibraryStatus(ref: TitleRef): { ready: boolean; status: Libra
     staleTime: Infinity,
     select: (state): LibraryStatus | null => findItem(state, ref)?.status ?? null,
   });
-  return { ready: data !== undefined, status: data ?? null };
+  const hydrated = useHydrated();
+  return hydrated ? { ready: data !== undefined, status: data ?? null } : { ready: false, status: null };
 }
 
 function refOf(command: LibraryCommand): TitleRef {
