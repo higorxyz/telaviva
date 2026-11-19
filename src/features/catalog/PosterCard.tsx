@@ -1,5 +1,6 @@
 import Link from 'next/link';
 import type { ReactNode } from 'react';
+import { CardLibraryAction } from '@/features/library/CardLibraryAction';
 import { posterSrcSet, tmdbImage } from '@/features/tmdb/images';
 import type { MediaSummary } from '@/features/tmdb/types';
 import { formatRating, formatYear } from '@/lib/format';
@@ -27,6 +28,7 @@ export function PosterCard({
   sizes = GRID_SIZES,
   subtitle,
   actions,
+  libraryAction = true,
   tabIndex,
   ringValue,
   ringTone = 'tmdb',
@@ -39,6 +41,8 @@ export function PosterCard({
   sizes?: string;
   subtitle?: string;
   actions?: ReactNode;
+  /** Quick "Quero ver" icon on the poster. An explicit `actions` replaces it. */
+  libraryAction?: boolean;
   /** Set by Rail for its roving tab stop. */
   tabIndex?: number;
   /** Value of the corner ring; defaults to the TMDb average. */
@@ -48,6 +52,7 @@ export function PosterCard({
   const year = formatYear(item.releaseDate);
   const meta = subtitle ?? year;
   const src = tmdbImage(item.posterPath, 'w342');
+  const corner = actions ?? (libraryAction ? <CardLibraryAction item={item} /> : null);
 
   return (
     <div className="group relative">
@@ -93,7 +98,12 @@ export function PosterCard({
           {meta ? <p className="font-sans text-xs text-ivory-muted">{meta}</p> : null}
         </div>
       </Link>
-      {actions ? <div className="absolute top-2 left-2">{actions}</div> : null}
+      {/* Outside the link (valid HTML) but lifts with the card. Empty until the library is ready. */}
+      {corner ? (
+        <div className="absolute top-2 left-2 transition duration-300 group-hover:-translate-y-1 group-focus-within:-translate-y-1 motion-reduce:transition-none motion-reduce:group-hover:translate-y-0 motion-reduce:group-focus-within:translate-y-0">
+          {corner}
+        </div>
+      ) : null}
     </div>
   );
 }

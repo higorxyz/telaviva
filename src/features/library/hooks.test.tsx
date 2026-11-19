@@ -5,7 +5,7 @@ import { describe, expect, it, vi } from 'vitest';
 import { ToastProvider } from '@/ui/toast/ToastProvider';
 import { applyCommand, type LibraryCommand } from './commands';
 import { LibraryProvider } from './LibraryProvider';
-import { useLibraryActions, useLibraryEntry } from './hooks';
+import { useLibraryActions, useLibraryEntry, useLibraryStatus } from './hooks';
 import type { LibraryRepository } from './repository';
 import { EMPTY_LIBRARY, type LibraryState, type TitleRef } from './types';
 
@@ -84,6 +84,24 @@ describe('useLibraryEntry', () => {
     expect(result.current).toEqual({ ready: false, item: null, rating: null, marks: [] });
     await waitFor(() => expect(result.current.ready).toBe(true));
     expect(result.current.item?.status).toBe('want');
+  });
+});
+
+describe('useLibraryStatus', () => {
+  it('reports readiness and ignores other titles changing', async () => {
+    const other: TitleRef = { mediaType: 'movie', tmdbId: 9 };
+    const fake = fakeRepository({ initial: applyCommand(EMPTY_LIBRARY, setStatus('want'), NOW) });
+    const { wrapper } = setup(fake);
+    const { result } = renderHook(
+      () => ({ status: useLibraryStatus(movie), actions: useLibraryActions() }),
+      { wrapper },
+    );
+    expect(result.current.status).toEqual({ ready: false, status: null });
+    await waitFor(() => expect(result.current.status).toEqual({ ready: true, status: 'want' }));
+    act(() => result.current.actions.run({ type: 'setStatus', ref: other, status: 'want', snapshot }));
+    await waitFor(() => expect(fake.pending).toHaveLength(1));
+    await act(async () => fake.pending[0]!.resolve());
+    expect(result.current.status).toEqual({ ready: true, status: 'want' });
   });
 });
 

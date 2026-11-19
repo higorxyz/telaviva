@@ -5,7 +5,7 @@ import { useCallback } from 'react';
 import { useToast } from '@/ui/toast/useToast';
 import { applyCommand, findItem, findRating, type LibraryCommand } from './commands';
 import { LIBRARY_KEY, useLibraryRepository } from './LibraryProvider';
-import type { EpisodeMark, LibraryItem, LibraryState, Rating, TitleRef } from './types';
+import type { EpisodeMark, LibraryItem, LibraryState, LibraryStatus, Rating, TitleRef } from './types';
 
 const NO_MARKS: EpisodeMark[] = [];
 
@@ -35,6 +35,21 @@ export function useLibraryEntry(ref: TitleRef): {
     rating: findRating(state, ref) ?? null,
     marks,
   };
+}
+
+/**
+ * Status of one title. The query selects only that status, so a card re-renders when its own
+ * entry changes and not on every library write.
+ */
+export function useLibraryStatus(ref: TitleRef): { ready: boolean; status: LibraryStatus | null } {
+  const repository = useLibraryRepository();
+  const { data } = useQuery({
+    queryKey: LIBRARY_KEY,
+    queryFn: () => repository.load(),
+    staleTime: Infinity,
+    select: (state): LibraryStatus | null => findItem(state, ref)?.status ?? null,
+  });
+  return { ready: data !== undefined, status: data ?? null };
 }
 
 function refOf(command: LibraryCommand): TitleRef {

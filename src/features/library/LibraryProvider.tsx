@@ -16,6 +16,11 @@ export function useLibraryRepository(): LibraryRepository {
   return repository;
 }
 
+/** True when a LibraryProvider is above; lets optional UI (poster cards) render nothing without one. */
+export function useHasLibrary(): boolean {
+  return useContext(RepositoryContext) !== null;
+}
+
 /** Tests inject a fake repository; production uses the local one. */
 export function LibraryProvider({ children, repository }: { children: ReactNode; repository?: LibraryRepository }) {
   const queryClient = useQueryClient();
