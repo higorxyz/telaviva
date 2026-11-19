@@ -139,3 +139,33 @@ describe('purity', () => {
     }).not.toThrow();
   });
 });
+
+describe('restore', () => {
+  const mark = { tvId: 1399, seasonNumber: 1, episodeNumber: 1, watchedAt: NOW };
+  const rating = { ...tv, score: 7, ratedAt: NOW, updatedAt: NOW };
+  const item = { ...tv, status: 'watching' as const, addedAt: NOW, updatedAt: NOW, watchedAt: null, snapshot };
+
+  it('replaces item, rating and marks for the ref and leaves others alone', () => {
+    const other = setStatus(EMPTY_LIBRARY, movie, 'want');
+    const next = applyCommand(other, { type: 'restore', ref: tv, item, rating, marks: [mark] }, LATER);
+    expect(next.items).toHaveLength(2);
+    expect(findItem(next, tv)).toEqual(item);
+    expect(findRating(next, tv)).toEqual(rating);
+    expect(next.episodes).toEqual([mark]);
+  });
+
+  it('removes item, rating and marks when given null and []', () => {
+    const full = applyCommand(EMPTY_LIBRARY, { type: 'restore', ref: tv, item, rating, marks: [mark] }, NOW);
+    const next = applyCommand(full, { type: 'restore', ref: tv, item: null, rating: null, marks: [] }, LATER);
+    expect(next).toEqual(EMPTY_LIBRARY);
+  });
+
+  it('replaces existing values instead of duplicating', () => {
+    const full = applyCommand(EMPTY_LIBRARY, { type: 'restore', ref: tv, item, rating, marks: [mark] }, NOW);
+    const changed = { ...item, status: 'want' as const };
+    const next = applyCommand(full, { type: 'restore', ref: tv, item: changed, rating: null, marks: [] }, LATER);
+    expect(next.items).toEqual([changed]);
+    expect(next.ratings).toEqual([]);
+    expect(next.episodes).toEqual([]);
+  });
+});

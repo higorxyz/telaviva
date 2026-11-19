@@ -3,6 +3,8 @@
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { useState, type ReactNode } from 'react';
 import { NavigationTracker } from '@/features/detail/NavigationTracker';
+import { LibraryProvider } from '@/features/library/LibraryProvider';
+import { ToastProvider } from '@/ui/toast/ToastProvider';
 
 export function Providers({ children }: { children: ReactNode }) {
   const [client] = useState(
@@ -15,8 +17,12 @@ export function Providers({ children }: { children: ReactNode }) {
   );
   return (
     <QueryClientProvider client={client}>
-      <NavigationTracker />
-      {children}
+      <ToastProvider>
+        <LibraryProvider>
+          <NavigationTracker />
+          {children}
+        </LibraryProvider>
+      </ToastProvider>
     </QueryClientProvider>
   );
 }

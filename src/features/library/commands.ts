@@ -14,6 +14,8 @@ export type LibraryCommand =
   | { type: 'remove'; ref: TitleRef }
   | { type: 'rate'; ref: TitleRef; score: number; snapshot: TitleSnapshot }
   | { type: 'unrate'; ref: TitleRef }
+  /** Internal: puts a title back as it was (used by undo). null and [] remove. */
+  | { type: 'restore'; ref: TitleRef; item: LibraryItem | null; rating: Rating | null; marks: EpisodeMark[] }
   | {
       type: 'setEpisodes';
       tvId: number;
@@ -171,5 +173,17 @@ export function applyCommand(state: LibraryState, command: LibraryCommand, now: 
       return { ...state, ratings: state.ratings.filter((r) => !same(r, command.ref)) };
     case 'setEpisodes':
       return setEpisodes(state, command, now);
+    case 'restore': {
+      const { ref, item, rating, marks } = command;
+      const items = state.items.filter((i) => !same(i, ref));
+      const ratings = state.ratings.filter((r) => !same(r, ref));
+      return {
+        ...state,
+        items: item ? [...items, item] : items,
+        ratings: rating ? [...ratings, rating] : ratings,
+        episodes:
+          ref.mediaType === 'tv' ? [...state.episodes.filter((e) => e.tvId !== ref.tmdbId), ...marks] : state.episodes,
+      };
+    }
   }
 }
