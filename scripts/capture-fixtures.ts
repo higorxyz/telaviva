@@ -54,6 +54,17 @@ const captures: Capture[] = [
   { file: 'genre-movie-list', path: 'genre/movie/list' },
   { file: 'genre-tv-list', path: 'genre/tv/list' },
   { file: 'watch-providers-movie-br', path: 'watch/providers/movie', params: { watch_region: 'BR' } },
+  // Extra fixtures for the E2E mock (e2e/mock-tmdb.ts): distinct title sets so home rails survive dedupe.
+  { file: 'movie-popular-br', path: 'movie/popular', params: { region: 'BR' } },
+  { file: 'discover-movie-page-2', path: 'discover/movie', params: { sort_by: 'popularity.desc', include_adult: 'false', page: '2' } },
+  { file: 'discover-movie-page-3', path: 'discover/movie', params: { sort_by: 'popularity.desc', include_adult: 'false', page: '3' } },
+  { file: 'discover-movie-page-4', path: 'discover/movie', params: { sort_by: 'popularity.desc', include_adult: 'false', page: '4' } },
+  { file: 'discover-tv-popular', path: 'discover/tv', params: { sort_by: 'popularity.desc', include_adult: 'false' } },
+  { file: 'discover-tv-page-2', path: 'discover/tv', params: { sort_by: 'popularity.desc', include_adult: 'false', page: '2' } },
+  { file: 'tv-on-the-air', path: 'tv/on_the_air' },
+  { file: 'tv-airing-today', path: 'tv/airing_today', params: { timezone: 'America/Sao_Paulo' } },
+  { file: 'tv-popular', path: 'tv/popular' },
+  { file: 'watch-providers-tv-br', path: 'watch/providers/tv', params: { watch_region: 'BR' } },
 ];
 
 async function main(): Promise<void> {

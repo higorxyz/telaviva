@@ -1,0 +1,427 @@
+{
+  "page": 3,
+  "results": [
+    {
+      "adult": false,
+      "backdrop_path": "/51fGmBW7WjyJouP9TjIcxRpCUNk.jpg",
+      "genre_ids": [
+        878,
+        12,
+        35
+      ],
+      "id": 1518204,
+      "title": "Allen",
+      "original_language": "en",
+      "original_title": "Allen",
+      "overview": "Vinte anos se passaram, e Petey nunca conseguiu tirar da cabeça seu encontro extraterrestre. Até que o amigo alienígena retorna, mas por um motivo complicado e muito inesperado.",
+      "popularity": 72.8616,
+      "poster_path": "/alhhrpj1PSAn5bfz4Os1k7Bweoj.jpg",
+      "release_date": "2026-11-12",
+      "softcore": false,
+      "video": false,
+      "vote_average": 6.604,
+      "vote_count": 48
+    },
+    {
+      "adult": false,
+      "backdrop_path": "/p40lmrdI4blcAPZQMTPaiy5v5Ym.jpg",
+      "genre_ids": [
+        27,
+        53
+      ],
+      "id": 1291595,
+      "title": "Sobrenatural: Agora Entre Nós",
+      "original_language": "en",
+      "original_title": "Insidious: Out of the Further",
+      "overview": "Um trio de criminosos se infiltra em um bairro tranquilo e força uma nova família a entrar no plano astral, onde descobrem uma verdade aterradora: o Além está se infiltrando no mundo real.",
+      "popularity": 72.4229,
+      "poster_path": "/8IEzyoBOCbKIvJ9DMwHgceJkNsP.jpg",
+      "release_date": "2026-08-19",
+      "softcore": false,
+      "video": false,
+      "vote_average": 7.676,
+      "vote_count": 1077
+    },
+    {
+      "adult": false,
+      "backdrop_path": "/nhIL3O4W9h5V5JbNQm7yjoDk3So.jpg",
+      "genre_ids": [
+        99
+      ],
+      "id": 1765072,
+      "title": "Tudo Pode Ser Visto",
+      "original_language": "en",
+      "original_title": "You Can See Everything",
+      "overview": "Trinta e quatro dias antes de ser enviada para a prisão, a notória fundadora do Vale do Silício, Elizabeth Holmes, convida uma equipe de filmagem cética para documentar cada passo seu. O que começa como um retrato íntimo de uma criminosa enigmática se transforma em uma jornada alucinante de três anos rumo ao abismo.",
+      "popularity": 70.5011,
+      "poster_path": "/mnu5cNfijdbuU4iWrV2Lg7AfM0J.jpg",
+      "release_date": "2026-10-16",
+      "softcore": false,
+      "video": false,
+      "vote_average": 8.8,
+      "vote_count": 128
+    },
+    {
+      "adult": false,
+      "backdrop_path": "/wnR8pwWtoL3TFwP41mLCt91ReCt.jpg",
+      "genre_ids": [
+        878,
+        9648,
+        53
+      ],
+      "id": 1101383,
+      "title": "O Fim da Rua",
+      "original_language": "en",
+      "original_title": "The End of Oak Street",
+      "overview": "Após um misterioso evento cósmico abalar o bairro Oak Street e o transportar dos subúrbios para um lugar desconhecido, a família Platt descobre que sua sobrevivência vai depender da união entre todos para enfrentar um ambiente agora irreconhecível.",
+      "popularity": 68.312,
+      "poster_path": "/aqEPRht1pZR653rmU7eHyk8wSNP.jpg",
+      "release_date": "2026-08-12",
+      "softcore": false,
+      "video": false,
+      "vote_average": 7.013,
+      "vote_count": 2487
+    },
+    {
+      "adult": false,
+      "backdrop_path": "/2o9FzuBzCqrDTdlHRuEVnGD2d5h.jpg",
+      "genre_ids": [
+        16,
+        12,
+        14,
+        35,
+        10751
+      ],
+      "id": 1465063,
+      "title": "A Ilha Esquecida",
+      "original_language": "en",
+      "original_title": "Forgotten Island",
+      "overview": "Jo e Raissa se veem presas no fantástico mundo da ilha esquecida de Nakali. Elas descobrem que seu único caminho para casa pode custar uma vida inteira de memórias e emoções.",
+      "popularity": 68.1111,
+      "poster_path": "/7OTbIk4TwYzpvf1GbOGXAFafxiz.jpg",
+      "release_date": "2026-09-10",
+      "softcore": false,
+      "video": false,
+      "vote_average": 8.044,
+      "vote_count": 272
+    },
+    {
+      "adult": false,
+      "backdrop_path": "/qjTqY5coNiz6sVtPng40IzltsoN.jpg",
+      "genre_ids": [
+        16,
+        10751,
+        35,
+        12
+      ],
+      "id": 1084244,
+      "title": "Toy Story 5",
+      "original_language": "en",
+      "original_title": "Toy Story 5",
+      "overview": "O trabalho de Buzz, Woody, Jessie e do resto da gangue fica exponencialmente mais difícil quando eles enfrentam uma nova ameaça à diversão: a tecnologia.",
+      "popularity": 67.8089,
+      "poster_path": "/jTN1hdfP88Km63waezqIN1uUqT3.jpg",
+      "release_date": "2026-06-17",
+      "softcore": false,
+      "video": false,
+      "vote_average": 8.2,
+      "vote_count": 2896
+    },
+    {
+      "adult": false,
+      "backdrop_path": "/3uLA0ujne91bkzFStZICCYeqhnt.jpg",
+      "genre_ids": [
+        35,
+        80,
+        53
+      ],
+      "id": 891621,
+      "title": "Cavalo Selvagem Nove",
+      "original_language": "en",
+      "original_title": "Wild Horse Nine",
+      "overview": "Pouco antes do golpe de Estado no Chile em 1973, dois agentes da CIA são enviados de Santiago para a Ilha de Páscoa em uma missão de teste de confiança. Entre as famosas estátuas que são o marco da ilha, conhecidas como muais, eles enfrentam passados sombrios e conspirações, enquanto o envolvimento de um dos agentes com estudantes rebeldes ameaça arruinar a viagem.",
+      "popularity": 67.7602,
+      "poster_path": "/mfnJ58xi3BJLDf9sSHAfNm1QJY9.jpg",
+      "release_date": "2026-10-30",
+      "softcore": false,
+      "video": false,
+      "vote_average": 7.962,
+      "vote_count": 251
+    },
+    {
+      "adult": false,
+      "backdrop_path": "/4pYKqctQvvdyhuGjiK4szH9jEv9.jpg",
+      "genre_ids": [
+        27,
+        28,
+        10752,
+        14,
+        53
+      ],
+      "id": 1657630,
+      "title": "El despertar",
+      "original_language": "es",
+      "original_title": "El despertar",
+      "overview": "",
+      "popularity": 66.8913,
+      "poster_path": "/w3YJx1PPPC6aiVKusxfc9QA0uYS.jpg",
+      "release_date": "2026-10-29",
+      "softcore": false,
+      "video": false,
+      "vote_average": 6.5,
+      "vote_count": 128
+    },
+    {
+      "adult": false,
+      "backdrop_path": "/hhQT0TySg3LXCE8BEPpfPJ5zJA2.jpg",
+      "genre_ids": [
+        35,
+        18
+      ],
+      "id": 1570488,
+      "title": "O Natal Perfeito de um Cachorro",
+      "original_language": "en",
+      "original_title": "A Dog's Perfect Christmas",
+      "overview": "Depois que uma emergência médica separa a família Goss, o determinado cãozinho Winstead faz de tudo para reunir seus humanos antes da véspera de Natal.",
+      "popularity": 66.7591,
+      "poster_path": "/2YhgEEGYOQfl3CzoRcYys8b6JxH.jpg",
+      "release_date": "2026-11-04",
+      "softcore": false,
+      "video": false,
+      "vote_average": 7.2,
+      "vote_count": 67
+    },
+    {
+      "adult": false,
+      "backdrop_path": "/hULWeQoEJUhiZ6NlANxsLoMJJ5p.jpg",
+      "genre_ids": [
+        37,
+        28,
+        12,
+        10749
+      ],
+      "id": 1669915,
+      "title": "Angel and the Badman",
+      "original_language": "en",
+      "original_title": "Angel and the Badman",
+      "overview": "Um bandido ferido encontra uma misericórdia inesperada ao cuidar da filha de um fazendeiro. A esperança do amor o leva a uma vida diferente até que a lei e seu passado violento se aproximem de sua nova casa. Agora ele deve escolher o tipo de homem que ele se tornará.",
+      "popularity": 65.4794,
+      "poster_path": "/mJe53zlhGBdcjtN1GqncNZ5Unm0.jpg",
+      "release_date": "2026-10-08",
+      "softcore": false,
+      "video": false,
+      "vote_average": 8.364,
+      "vote_count": 22
+    },
+    {
+      "adult": false,
+      "backdrop_path": "/ftfnS4ABocBNkwrvkIjkkxaBjgH.jpg",
+      "genre_ids": [
+        27
+      ],
+      "id": 1474226,
+      "title": "A Maldição do Vestido",
+      "original_language": "es",
+      "original_title": "El vestido",
+      "overview": "Após o divórcio, uma mãe e sua filha se mudam para uma casa remota, onde um vestido azul leva a criança a uma menina fantasma. Segredos obscuros vêm à tona, intensificando a tensão e resultando em violência e uma criança em coma.",
+      "popularity": 62.6604,
+      "poster_path": "/cblb7r3vv5rnARKNssdxPnmkUgo.jpg",
+      "release_date": "2026-02-10",
+      "softcore": false,
+      "video": false,
+      "vote_average": 6.4,
+      "vote_count": 20
+    },
+    {
+      "adult": false,
+      "backdrop_path": "/uxGoKyTnXylK5M4z1hyyaWbmBV7.jpg",
+      "genre_ids": [
+        28,
+        35,
+        18
+      ],
+      "id": 1234139,
+      "title": "ஜெயிலர் 2",
+      "original_language": "ta",
+      "original_title": "ஜெயிலர் 2",
+      "overview": "",
+      "popularity": 62.6382,
+      "poster_path": "/upwdEyhhYZ7pT2hD535fr2MGfpx.jpg",
+      "release_date": "2026-10-14",
+      "softcore": false,
+      "video": false,
+      "vote_average": 8,
+      "vote_count": 40
+    },
+    {
+      "adult": false,
+      "backdrop_path": "/9y9o686DsQg0KzPtERzcW7Cf8IE.jpg",
+      "genre_ids": [
+        16,
+        14,
+        12,
+        10751,
+        35
+      ],
+      "id": 1117898,
+      "title": "O Gatola da Cartola",
+      "original_language": "en",
+      "original_title": "The Cat in the Hat",
+      "overview": "O Gatola da Cartola assume sua tarefa mais difícil até agora no I.I.I.I. — Instituto para Instituir a Imaginação e a Inspiração: animar e alegrar Gabby e Sebastian, dois irmãos com dificuldade para se adaptar à cidade para a qual acabaram de se mudar. Conhecido por levar as situações longe demais, esta pode ser a última chance de o agente do caos provar seu valor... ou perder seu chapéu mágico!",
+      "popularity": 61.1401,
+      "poster_path": "/sAUr79TPVXMmZrpsqGh6xTH9jy6.jpg",
+      "release_date": "2026-10-31",
+      "softcore": false,
+      "video": false,
+      "vote_average": 7,
+      "vote_count": 29
+    },
+    {
+      "adult": false,
+      "backdrop_path": "/3k7GzxOdLZkN3eZsuhLi2eRzkXO.jpg",
+      "genre_ids": [
+        28,
+        53,
+        878
+      ],
+      "id": 1384216,
+      "title": "Ponto Sem Retorno",
+      "original_language": "en",
+      "original_title": "The Dog Stars",
+      "overview": "Após a população mundial ter sido devastada por uma pandemia, um homem vive uma existência solitária em um hangar de aviões no Colorado com seu cachorro e um pistoleiro taciturno com quem fez amizade. Quando uma transmissão misteriosa surge no rádio enquanto ele pilota seu velho Cessna, isso desencadeia uma busca pela origem do som.",
+      "popularity": 60.2167,
+      "poster_path": "/1C2qbfUW3lTzb8vpZeG8pjYzW3Q.jpg",
+      "release_date": "2026-08-26",
+      "softcore": false,
+      "video": false,
+      "vote_average": 7.161,
+      "vote_count": 1018
+    },
+    {
+      "adult": false,
+      "backdrop_path": "/cfT29Im5VDvjE0RpyKOSdCKZal7.jpg",
+      "genre_ids": [
+        28,
+        53,
+        80
+      ],
+      "id": 155,
+      "title": "Batman: O Cavaleiro das Trevas",
+      "original_language": "en",
+      "original_title": "The Dark Knight",
+      "overview": "Após dois anos desde o surgimento do Batman, os criminosos de Gotham City têm muito o que temer. Com a ajuda do tenente James Gordon e do promotor público Harvey Dent, Batman luta contra o crime organizado. Acuados com o combate, os chefes do crime aceitam a proposta feita pelo Coringa e o contratam para combater o Homem-Morcego.",
+      "popularity": 59.9238,
+      "poster_path": "/dutnVGV9ljCZh84bkTE1TVZ4s4Y.jpg",
+      "release_date": "2008-07-16",
+      "softcore": false,
+      "video": false,
+      "vote_average": 8.5,
+      "vote_count": 37419
+    },
+    {
+      "adult": false,
+      "backdrop_path": "/jdJsnhHfkIi3J7jwfiCFT4gXNx5.jpg",
+      "genre_ids": [
+        28,
+        35,
+        12
+      ],
+      "id": 1148365,
+      "title": "Matchbox - O Filme",
+      "original_language": "en",
+      "original_title": "Matchbox the Movie",
+      "overview": "Quando um grupo de antigos amigos de infância se reencontra, o encontro toma um rumo inesperado ao se depararem com uma perigosa trama internacional e precisarem salvar o mundo.",
+      "popularity": 59.2153,
+      "poster_path": "/hgPJA0NTmXYpPA3cgh4ZrI1PubL.jpg",
+      "release_date": "2026-10-05",
+      "softcore": false,
+      "video": false,
+      "vote_average": 7.517,
+      "vote_count": 647
+    },
+    {
+      "adult": false,
+      "backdrop_path": "/aLKeC5KEC4YQEwyZcXOivHJHlq4.jpg",
+      "genre_ids": [
+        53
+      ],
+      "id": 1659441,
+      "title": "Savage Prey",
+      "original_language": "en",
+      "original_title": "Savage Prey",
+      "overview": "",
+      "popularity": 58.9289,
+      "poster_path": "/sw51DrxbE1PuJxiqfl3dsZHA3tX.jpg",
+      "release_date": "2026-08-09",
+      "softcore": false,
+      "video": false,
+      "vote_average": 7.5,
+      "vote_count": 5
+    },
+    {
+      "adult": false,
+      "backdrop_path": "/g6yVfiCdVITgpMRY1R9VHRxR4uu.jpg",
+      "genre_ids": [
+        27,
+        878
+      ],
+      "id": 1644210,
+      "title": "Robotica",
+      "original_language": "en",
+      "original_title": "Robotica",
+      "overview": "",
+      "popularity": 58.4011,
+      "poster_path": "/fZD9b4RRmFWwYVn6MCcrHebTDDc.jpg",
+      "release_date": "2026-08-01",
+      "softcore": false,
+      "video": false,
+      "vote_average": 4.571,
+      "vote_count": 7
+    },
+    {
+      "adult": false,
+      "backdrop_path": "/rueyXwlewVPAP5NkqCUJx4RjhqB.jpg",
+      "genre_ids": [
+        35,
+        12,
+        10751,
+        16
+      ],
+      "id": 1204680,
+      "title": "Coyote vs. Acme",
+      "original_language": "en",
+      "original_title": "Coyote vs. Acme",
+      "overview": "Após décadas de falhas catastróficas com os produtos ACME em sua caçada ao Papa-Léguas, Wile E. Coyote decide que é hora de buscar justiça e processar a corporação. Ao lado de um advogado azarado, Coyote trava uma batalha jurídica épica contra o impiedoso CEO da companhia. Enquanto enfrentam o sistema, a dupla desenvolve uma amizade improvável e luta para provar que a culpa de tantos desastres nunca foi do instinto, mas sim de defeitos de fabricação.",
+      "popularity": 57.836,
+      "poster_path": "/eZX2GyAJt5k0bL4OJbZGDvvxESD.jpg",
+      "release_date": "2026-08-20",
+      "softcore": false,
+      "video": false,
+      "vote_average": 8.187,
+      "vote_count": 1505
+    },
+    {
+      "adult": false,
+      "backdrop_path": "/8sNiAPPYU14PUepFNeSNGUTiHW.jpg",
+      "genre_ids": [
+        12,
+        18,
+        878
+      ],
+      "id": 157336,
+      "title": "Interestelar",
+      "original_language": "en",
+      "original_title": "Interstellar",
+      "overview": "As reservas naturais da Terra estão chegando ao fim e um grupo de astronautas recebe a missão de verificar possíveis planetas para receberem a população mundial, possibilitando a continuação da espécie. Cooper é chamado para liderar o grupo e aceita a missão sabendo que pode nunca mais ver os filhos. Ao lado de Brand, Jenkins e Doyle, ele seguirá em busca de um novo lar.",
+      "popularity": 57.3876,
+      "poster_path": "/tR1XVa5bxgdh2bRw2u0DzrgkO2l.jpg",
+      "release_date": "2014-11-04",
+      "softcore": false,
+      "video": false,
+      "vote_average": 8.493,
+      "vote_count": 41940
+    }
+  ],
+  "total_pages": 1001,
+  "total_results": 20001
+}

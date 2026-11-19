@@ -1,0 +1,460 @@
+{
+  "page": 2,
+  "results": [
+    {
+      "adult": false,
+      "backdrop_path": "/d87JXX3DLkRJMfm5StCmmnmhHuX.jpg",
+      "genre_ids": [
+        18,
+        35
+      ],
+      "id": 76331,
+      "origin_country": [
+        "US"
+      ],
+      "original_language": "en",
+      "original_name": "Succession",
+      "overview": "Acompanhe a história da família Roy, composta por Logan e seus quatro filhos, que controla um dos maiores conglomerados de meios de comunicação e entretenimento do mundo.",
+      "popularity": 1226.5371,
+      "poster_path": "/z0XiwdrCQ9yVIr4O0pxzaAYRxdW.jpg",
+      "first_air_date": "2018-06-03",
+      "softcore": false,
+      "name": "Succession",
+      "vote_average": 8.3,
+      "vote_count": 1858
+    },
+    {
+      "adult": false,
+      "backdrop_path": "/mKikck71CvVISUSTLk29fwRbH4y.jpg",
+      "genre_ids": [
+        35,
+        10765
+      ],
+      "id": 83631,
+      "origin_country": [
+        "US"
+      ],
+      "original_language": "en",
+      "original_name": "What We Do in the Shadows",
+      "overview": "Um olhar sobre a vida cotidiana de quatro vampiros que estão juntos há centenas de anos. Após a visita de seu senhor e líder sombrio, eles são lembrados de seu propósito em vir a Nova York há mais de um século.",
+      "popularity": 1194.4566,
+      "poster_path": "/cWsC3SWssTIBVxA2nZenacBgYh2.jpg",
+      "first_air_date": "2019-03-27",
+      "softcore": false,
+      "name": "O Que Fazemos Nas Sombras",
+      "vote_average": 7.999,
+      "vote_count": 1106
+    },
+    {
+      "adult": false,
+      "backdrop_path": "/8MQeyFsWrp2ILjbumtxrinmk7t4.jpg",
+      "genre_ids": [
+        10765,
+        35,
+        18
+      ],
+      "id": 4620,
+      "origin_country": [
+        "US"
+      ],
+      "original_language": "en",
+      "original_name": "Eureka",
+      "overview": "A cidade de Eureka, no noroeste do Pacífico, está escondendo um misterioso segredo. O governo tem relocado os gênios do mundo e suas famílias para esta cidade rústica há anos, onde a inovação e o caos têm vivido de mãos dadas. O marechal americano Jack Carter se depara com essa estranha cidade depois de destruir seu carro e ficar encalhado ali. Quando os habitantes da cidade se lançam sobre uma criação científica desconhecida, Carter pula para tentar restaurar a ordem e, consequentemente, aprende um dos segredos mais bem guardados do país.",
+      "popularity": 1149.5056,
+      "poster_path": "/f2l5hUk63hPqYTucnFy2HmElFV0.jpg",
+      "first_air_date": "2006-07-18",
+      "softcore": false,
+      "name": "Eureka",
+      "vote_average": 7.736,
+      "vote_count": 753
+    },
+    {
+      "adult": false,
+      "backdrop_path": "/iMFsQ7yyToYg7SkS9Ml0by9UJ0X.jpg",
+      "genre_ids": [
+        18
+      ],
+      "id": 2025,
+      "origin_country": [
+        "US"
+      ],
+      "original_language": "en",
+      "original_name": "Beverly Hills, 90210",
+      "overview": "Acompanhe os conflitos, tragédias, romances e dilemas de um grupo de jovens que moram na cidade rica e elitista de Beverly Hills, desde o ensino médio até a vida adulta. Eles se tornam amigos e inimigos, se apaixonam e se decepcionam, passam por triângulos amorosos e outras complicações românticas, têm problemas familiares e precisam tomar decisões sobre o futuro.",
+      "popularity": 1114.3118,
+      "poster_path": "/HPGrWzYfFpIvQQtTl38YMUcjGM.jpg",
+      "first_air_date": "1990-10-04",
+      "softcore": false,
+      "name": "Barrados no Baile",
+      "vote_average": 7.249,
+      "vote_count": 871
+    },
+    {
+      "adult": false,
+      "backdrop_path": "/1xRfgONYmK3T6FSmbtcuo8eyxVt.jpg",
+      "genre_ids": [
+        35
+      ],
+      "id": 18347,
+      "origin_country": [
+        "US"
+      ],
+      "original_language": "en",
+      "original_name": "Community",
+      "overview": "Sempre foi dito que universidades comunitárias são um meio escolar para perdedores, um workshop de auto-estima para donas-de-casa recém divorciadas e um lugar onde pessoas velhas vão para manter sua mente ocupada enquanto esperam pela morte. Bem, no Greendale Community College… Isso tudo é verdade! “Community” é focada em um grupo de desviados, onde o líder é um advogado que teve o grau revogado. Eles formam um grupo de estudo, onde acabam aprendendo mais sobre si mesmo, do que sobre a matéria cursada.",
+      "popularity": 1082.5253,
+      "poster_path": "/3KUjDt8XY7w2Ku70UE0SECmv1zP.jpg",
+      "first_air_date": "2009-09-17",
+      "softcore": false,
+      "name": "Community",
+      "vote_average": 7.991,
+      "vote_count": 2242
+    },
+    {
+      "adult": false,
+      "backdrop_path": "/yYpQV25I7XB6S0POJOScPjxYWV5.jpg",
+      "genre_ids": [
+        16,
+        10759,
+        10765
+      ],
+      "id": 60572,
+      "origin_country": [
+        "JP"
+      ],
+      "original_language": "ja",
+      "original_name": "ポケットモンスター",
+      "overview": "Explore o mundo de Pokémon com Ash Ketchum e seu parceiro Pikachu enquanto eles fazem novos amigos, encontram Pokémon poderosos e buscam o objetivo supremo de Ash: Tornar-se um Mestre Pokémon!",
+      "popularity": 958.7326,
+      "poster_path": "/ck1nfqYxMkiGvBVztIuM6b7fHoC.jpg",
+      "first_air_date": "1997-04-01",
+      "softcore": false,
+      "name": "Pokémon",
+      "vote_average": 7.984,
+      "vote_count": 2312
+    },
+    {
+      "adult": false,
+      "backdrop_path": "/794lCiKgncQg4tE2FDY8GVcEubZ.jpg",
+      "genre_ids": [
+        16,
+        10759,
+        18,
+        10765,
+        35
+      ],
+      "id": 64414,
+      "origin_country": [
+        "FR"
+      ],
+      "original_language": "fr",
+      "original_name": "Wakfu",
+      "overview": "Wakfu se passa mil anós após Dofus, em um mundo destruido pela fúria de Orgrest, o ogro. \n\nA história começa com Yugo, um jovem de uma classe desconhecida, que vai junto a um amigo de seu pai, o Enutrof Ruel, em busca de sua família verdadeira e também para salvar seu \"pai\" que sofre com o ataque de seres bastante esquisitos.",
+      "popularity": 814.9834,
+      "poster_path": "/hXx5KsyUynyH6f6sxyqpOQgLBNb.jpg",
+      "first_air_date": "2008-10-30",
+      "softcore": false,
+      "name": "Wakfu",
+      "vote_average": 8.248,
+      "vote_count": 135
+    },
+    {
+      "adult": false,
+      "backdrop_path": "/yJbwyPLBietHPuYDPNJerzNLt50.jpg",
+      "genre_ids": [
+        10759,
+        18
+      ],
+      "id": 97079,
+      "origin_country": [
+        "SE"
+      ],
+      "original_language": "sv",
+      "original_name": "Hamilton",
+      "overview": "",
+      "popularity": 754.1479,
+      "poster_path": "/3RKFjYh488MzbZEJbo6A9RTqC80.jpg",
+      "first_air_date": "2020-01-01",
+      "softcore": false,
+      "name": "Agente Hamilton",
+      "vote_average": 6.3,
+      "vote_count": 48
+    },
+    {
+      "adult": false,
+      "backdrop_path": "/lJEItmoc7bdqvA0yS5quuBIwW0N.jpg",
+      "genre_ids": [
+        18,
+        35
+      ],
+      "id": 2398,
+      "origin_country": [
+        "US"
+      ],
+      "original_language": "en",
+      "original_name": "Girlfriends",
+      "overview": "",
+      "popularity": 728.7712,
+      "poster_path": "/buFnsyWEg4pPR7dco5Vbsm6HCIY.jpg",
+      "first_air_date": "2000-09-11",
+      "softcore": false,
+      "name": "Girlfriends",
+      "vote_average": 7.12,
+      "vote_count": 50
+    },
+    {
+      "adult": false,
+      "backdrop_path": "/5k3JpB88vubqYVSHHiAhk2T8z17.jpg",
+      "genre_ids": [
+        16,
+        35,
+        10762,
+        10751
+      ],
+      "id": 2153,
+      "origin_country": [
+        "US",
+        "CA"
+      ],
+      "original_language": "en",
+      "original_name": "Arthur",
+      "overview": "Conta as aventuras e desventuras de um porquinho-da-terra de oito anos, cujo maior charme é ser apenas uma criança normal. Acompanhado da irmã e dos amigos, ele consegue resolver os problemas que aparecem, sempre com imaginação, bondade e muito humor.",
+      "popularity": 571.3174,
+      "poster_path": "/nYN8okmcsmhd4bGVcqifZ5OCumB.jpg",
+      "first_air_date": "1996-10-07",
+      "softcore": false,
+      "name": "Arthur",
+      "vote_average": 6.979,
+      "vote_count": 194
+    },
+    {
+      "adult": false,
+      "backdrop_path": "/iq4BjyVsDxzg24XnjoGP0Xi2Tz5.jpg",
+      "genre_ids": [
+        9648,
+        18,
+        80
+      ],
+      "id": 4177,
+      "origin_country": [
+        "US"
+      ],
+      "original_language": "en",
+      "original_name": "Perry Mason",
+      "overview": "Los Angeles, 1932. Atormentado por seu casamento fracassado e passado traumático na guerra, o advogado criminal Perry Mason (Matthew Rhys) se vê diante de uma chance de redenção, quando o sequestro de uma criança tem um desfecho trágico.",
+      "popularity": 544.5379,
+      "poster_path": "/sK6JvgNFP1ClT4aF4nPAZiDpAdk.jpg",
+      "first_air_date": "1957-09-21",
+      "softcore": false,
+      "name": "Perry Mason",
+      "vote_average": 7.697,
+      "vote_count": 142
+    },
+    {
+      "adult": false,
+      "backdrop_path": "/A4NwkQXTXElE5iAsne5RpvS8R2Z.jpg",
+      "genre_ids": [
+        18
+      ],
+      "id": 1416,
+      "origin_country": [
+        "US"
+      ],
+      "original_language": "en",
+      "original_name": "Grey's Anatomy",
+      "overview": "Os médicos do Grey Sloan Memorial Hospital lidam diariamente com casos e consequências de vida ou morte. É um no outro que eles encontram apoio, conforto, amizade e, às vezes, até mais que amizade... Juntos, eles descobrem o quanto a vida profissional e a pessoal podem ser complicadas e se misturarem no meio do caminho.",
+      "popularity": 532.4523,
+      "poster_path": "/vrChGRs0DsoCoaeHif8PlZY637Q.jpg",
+      "first_air_date": "2005-03-27",
+      "softcore": false,
+      "name": "Grey's Anatomy",
+      "vote_average": 8.199,
+      "vote_count": 11143
+    },
+    {
+      "adult": false,
+      "backdrop_path": "/2UElp7Dkm3SiB9ZEdKEWNmAOijB.jpg",
+      "genre_ids": [
+        10759,
+        16,
+        35,
+        10765,
+        10751
+      ],
+      "id": 61923,
+      "origin_country": [
+        "US"
+      ],
+      "original_language": "en",
+      "original_name": "Star vs. the Forces of Evil",
+      "overview": "Guerreira intergaláctica Star Borboleta chega na Terra para viver com a família Diaz. Ela continua lutando contra vilões de todas as dimensões  e ainda no ensino médio, tudo isso principalmente para proteger sua varinha extremamente poderosa, um objeto que ainda a pertence por direito por ser princesa de mewni.",
+      "popularity": 506.6285,
+      "poster_path": "/mNJyeOwLHOw0vDPbtcWeA1q4Wmt.jpg",
+      "first_air_date": "2015-01-18",
+      "softcore": false,
+      "name": "Star vs. As Forças do Mal",
+      "vote_average": 8.36,
+      "vote_count": 1546
+    },
+    {
+      "adult": false,
+      "backdrop_path": "/lQp79IOcrLdPps9BvnKPvOeX6pD.jpg",
+      "genre_ids": [
+        10759,
+        18,
+        10765,
+        9648
+      ],
+      "id": 61928,
+      "origin_country": [
+        "US"
+      ],
+      "original_language": "en",
+      "original_name": "Lucha Underground",
+      "overview": "",
+      "popularity": 478.7294,
+      "poster_path": "/by1AztJ9I1gjWKPL3XdYxiFOU5T.jpg",
+      "first_air_date": "2014-10-28",
+      "softcore": false,
+      "name": "Lucha Underground",
+      "vote_average": 7.1,
+      "vote_count": 31
+    },
+    {
+      "adult": false,
+      "backdrop_path": "/hINekSpbcBxjnjGqmIm6I4bz2ab.jpg",
+      "genre_ids": [
+        10767,
+        35
+      ],
+      "id": 22980,
+      "origin_country": [
+        "US"
+      ],
+      "original_language": "en",
+      "original_name": "Watch What Happens Live with Andy Cohen",
+      "overview": "",
+      "popularity": 451.1183,
+      "poster_path": "/onSD9UXfJwrMXWhq7UY7hGF2S1h.jpg",
+      "first_air_date": "2009-07-16",
+      "softcore": false,
+      "name": "Watch What Happens Live with Andy Cohen",
+      "vote_average": 4.892,
+      "vote_count": 102
+    },
+    {
+      "adult": false,
+      "backdrop_path": "/FNeJtRUd5XID186SHzjNNneP3f.jpg",
+      "genre_ids": [
+        18,
+        10766
+      ],
+      "id": 61733,
+      "origin_country": [
+        "US"
+      ],
+      "original_language": "en",
+      "original_name": "Empire",
+      "overview": "Lucious Lyon saiu das ruas e construiu um império musical com a gravadora Empire. Desde que descobriu uma doença, cria uma competição entre seus filhos pelo comando da empresa.",
+      "popularity": 449.8677,
+      "poster_path": "/8Uz4oB6Sa84AZEFif2ZOg2m6K0k.jpg",
+      "first_air_date": "2015-01-07",
+      "softcore": false,
+      "name": "Empire: Fama e Poder",
+      "vote_average": 7.135,
+      "vote_count": 779
+    },
+    {
+      "adult": false,
+      "backdrop_path": "/8ZerYKvIaNUJZvAHXYTQu4qTwFw.jpg",
+      "genre_ids": [
+        10765,
+        10759,
+        18,
+        80
+      ],
+      "id": 48866,
+      "origin_country": [
+        "US"
+      ],
+      "original_language": "en",
+      "original_name": "The 100",
+      "overview": "100 anos no futuro, quando a Terra foi abandonada devido à radioatividade, os últimos humanos sobreviventes vivem em uma arca que orbita o planeta - mas a arca não vai durar para sempre. Assim, o regime repressivo escolhe 100 delinquentes juvenis descartáveis para enviar à Terra para ver se o planeta ainda é habitável.",
+      "popularity": 449.8361,
+      "poster_path": "/cfhfcEt4bOXuVZkTC0nNBpqqiWb.jpg",
+      "first_air_date": "2014-03-19",
+      "softcore": false,
+      "name": "Os 100",
+      "vote_average": 7.9,
+      "vote_count": 8892
+    },
+    {
+      "adult": false,
+      "backdrop_path": "/bk7QdAIUqkGpZO5GUX4AMB2AZIB.jpg",
+      "genre_ids": [
+        10767
+      ],
+      "id": 82873,
+      "origin_country": [
+        "US"
+      ],
+      "original_language": "en",
+      "original_name": "The Kelly Clarkson Show",
+      "overview": "",
+      "popularity": 437.6442,
+      "poster_path": "/sBix25bie9UQFzbarN51DpFO5ky.jpg",
+      "first_air_date": "2019-09-09",
+      "softcore": false,
+      "name": "The Kelly Clarkson Show",
+      "vote_average": 6.197,
+      "vote_count": 76
+    },
+    {
+      "adult": false,
+      "backdrop_path": "/lnVWmFvLv2pTZGsuAJytiqKu541.jpg",
+      "genre_ids": [
+        18,
+        9648
+      ],
+      "id": 253376,
+      "origin_country": [
+        "US",
+        "GB"
+      ],
+      "original_language": "en",
+      "original_name": "The Girlfriend",
+      "overview": "A Laura tem tudo: uma carreira brilhante, um marido amoroso e um filho precioso, o Daniel. Mas a vida perfeita desmorona quando o Daniel apresenta a Cherry, uma namorada que muda tudo. Após um começo tenso, a Laura fica convencida de que a Cherry esconde algo. Será que ela é uma manipuladora ambiciosa, ou a Laura está paranoica? A verdade é uma questão de perspectiva.",
+      "popularity": 429.8148,
+      "poster_path": "/wUu11RqotaShM8s9GfpMChYMG5S.jpg",
+      "first_air_date": "2025-09-10",
+      "softcore": false,
+      "name": "A Namorada Ideal",
+      "vote_average": 7.129,
+      "vote_count": 171
+    },
+    {
+      "adult": false,
+      "backdrop_path": "/8693rGsfkROQjiwlJD8O2WQV1Et.jpg",
+      "genre_ids": [
+        10759,
+        10765
+      ],
+      "id": 2119,
+      "origin_country": [
+        "US"
+      ],
+      "original_language": "en",
+      "original_name": "Airwolf",
+      "overview": "Conta a história de Michael Coldsmith-Briggs III, que é o comandante de uma divisão especial da CIA, chamada de \"A Firma\", que construiu o Águia de Fogo. Ele convoca o piloto Stringfellow Hawke, para recuperar a aeronave desaparecida na Líbia. Hawke vive em uma cabana no topo de uma montanha, isolado. Seu único companheiro é seu cão, Tet. Hawke é um veterano da guerra do Vietnã, onde perdeu seu irmão, desaparecido em combate, desde então vive recluso. Ele tem como único amigo e companheiro de aventuras no Águia de Fogo, o veterano Dominic Santini, uma espécie de mentor. Ao retornar da Líbia, após derrotar o criador do Águia de Fogo, Hawke e Dominic passam a usar o helicóptero como uma espécie de supermáquina alada para combater o crime.",
+      "popularity": 407.6155,
+      "poster_path": "/uSlnBIJsCkfXcHP7P9cOzmBIk4t.jpg",
+      "first_air_date": "1984-01-22",
+      "softcore": false,
+      "name": "Águia de Fogo",
+      "vote_average": 7.598,
+      "vote_count": 503
+    }
+  ],
+  "total_pages": 1001,
+  "total_results": 20001
+}
