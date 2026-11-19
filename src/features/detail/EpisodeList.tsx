@@ -1,6 +1,6 @@
 import type { ReactNode } from 'react';
 import { saoPauloIsoDate } from '@/features/tmdb/dates';
-import { tmdbImage } from '@/features/tmdb/images';
+import { stillSrcSet, tmdbImage } from '@/features/tmdb/images';
 import type { EpisodeSummary, SeasonDetails } from '@/features/tmdb/types';
 import { formatDate, formatRuntime } from '@/lib/format';
 import { EmptyState } from '@/ui/EmptyState';
@@ -14,6 +14,9 @@ function Still({ episode }: { episode: EpisodeSummary }) {
       {src ? (
         <img
           src={src}
+          srcSet={stillSrcSet(episode.stillPath)}
+          // Full card width on mobile (container 32px + card padding 32px + borders 2px), 13rem beside the text from sm.
+          sizes="(min-width: 640px) 13rem, calc(100vw - 66px)"
           alt=""
           width={300}
           height={169}

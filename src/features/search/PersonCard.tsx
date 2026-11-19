@@ -1,5 +1,5 @@
 import Link from 'next/link';
-import { tmdbImage } from '@/features/tmdb/images';
+import { profileSrcSet, tmdbImage } from '@/features/tmdb/images';
 import type { PersonSummary } from '@/features/tmdb/types';
 import { departmentLabel, initials } from '@/lib/people';
 import { personHref } from '@/lib/slug';
@@ -13,7 +13,16 @@ export function PersonCard({ person }: { person: PersonSummary }) {
     >
       <span className="grid size-24 place-items-center overflow-hidden rounded-full border border-ink-600 bg-ink-800 transition-colors group-hover:border-amber motion-reduce:transition-none">
         {src ? (
-          <img src={src} alt="" width={185} height={185} loading="lazy" className="size-full object-cover" />
+          <img
+            src={src}
+            srcSet={profileSrcSet(person.profilePath)}
+            sizes="6rem"
+            alt=""
+            width={185}
+            height={185}
+            loading="lazy"
+            className="size-full object-cover"
+          />
         ) : (
           <span aria-hidden="true" className="font-display text-2xl text-ivory-muted">
             {initials(person.name)}

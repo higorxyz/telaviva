@@ -6,9 +6,8 @@ import { formatRating, formatYear } from '@/lib/format';
 import { mediaHref } from '@/lib/slug';
 import { MediaBadge } from '@/ui/MediaBadge';
 import { RatingRing } from '@/ui/RatingRing';
+import { GRID_SIZES } from './GridSkeleton';
 import { LinkPending } from './LinkPending';
-
-const DEFAULT_SIZES = '(min-width: 1536px) 12vw, (min-width: 1024px) 15vw, (min-width: 640px) 22vw, 30vw';
 
 /** Screen-reader name that starts with the title: "Duna (2021) — Série — Nota 8,0". */
 export function posterLabel(item: MediaSummary, meta: string | null): string {
@@ -24,13 +23,17 @@ export function posterLabel(item: MediaSummary, meta: string | null): string {
 export function PosterCard({
   item,
   priority = false,
-  sizes = DEFAULT_SIZES,
+  lcp = false,
+  sizes = GRID_SIZES,
   subtitle,
   actions,
   tabIndex,
 }: {
   item: MediaSummary;
+  /** Loads eagerly (above-the-fold posters). */
   priority?: boolean;
+  /** The page's likely LCP image: eager and fetched with high priority. At most one per page. */
+  lcp?: boolean;
   sizes?: string;
   subtitle?: string;
   actions?: ReactNode;
@@ -58,8 +61,8 @@ export function PosterCard({
               alt=""
               width={342}
               height={513}
-              loading={priority ? 'eager' : 'lazy'}
-              fetchPriority={priority ? 'high' : undefined}
+              loading={priority || lcp ? 'eager' : 'lazy'}
+              fetchPriority={lcp ? 'high' : undefined}
               decoding="async"
               className="size-full object-cover"
             />

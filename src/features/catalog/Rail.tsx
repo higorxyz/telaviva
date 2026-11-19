@@ -1,13 +1,15 @@
 'use client';
 
+import { ChevronLeft, ChevronRight } from 'lucide-react';
 import Link from 'next/link';
 import { useCallback, useEffect, useRef, useState, type FocusEvent, type KeyboardEvent, type PointerEvent } from 'react';
 import type { MediaSummary } from '@/features/tmdb/types';
 import { AccentTitle } from '@/ui/AccentTitle';
+import { cn } from '@/lib/cn';
 import { PosterCard } from './PosterCard';
+import { RAIL_ITEM_CLASS, RAIL_SIZES } from './sizes';
 
 const DRAG_THRESHOLD = 4;
-const CARD_SIZES = '(min-width: 1024px) 15vw, (min-width: 640px) 22vw, 38vw';
 
 export function Rail({
   id,
@@ -146,16 +148,15 @@ export function Rail({
           onClickCapture={onClickCapture}
           onKeyDown={onKeyDown}
           onFocus={onFocus}
-          className="flex snap-x snap-mandatory data-dragging:snap-none gap-3 overflow-x-auto overscroll-x-contain pb-4 [scrollbar-width:none] sm:gap-4 [&::-webkit-scrollbar]:hidden"
+          // The scroller clips vertically too: the padding (offset by negative margins, so nothing shifts) leaves
+          // room for the hover lift, its glow and the focus ring of the first and last posters.
+          className="-mx-3 -mt-3 flex snap-x snap-mandatory scroll-px-3 gap-3 overflow-x-auto overscroll-x-contain px-3 pt-3 pb-4 [scrollbar-width:none] data-dragging:snap-none sm:gap-4 [&::-webkit-scrollbar]:hidden"
         >
           {items.map((item, i) => (
-            <li
-              key={`${item.mediaType}-${item.id}`}
-              className="w-[38vw] max-w-44 shrink-0 snap-start sm:w-36 lg:w-40"
-            >
+            <li key={`${item.mediaType}-${item.id}`} className={cn(RAIL_ITEM_CLASS, 'shrink-0 snap-start')}>
               <PosterCard
                 item={item}
-                sizes={CARD_SIZES}
+                sizes={RAIL_SIZES}
                 priority={i < priorityCount}
                 tabIndex={i === Math.min(active, items.length - 1) ? 0 : -1}
               />
@@ -173,7 +174,11 @@ export function Rail({
                 side === 'start' ? 'left-1' : 'right-1'
               }`}
             >
-              <span aria-hidden="true">{side === 'start' ? '‹' : '›'}</span>
+              {side === 'start' ? (
+                <ChevronLeft aria-hidden="true" className="size-5" />
+              ) : (
+                <ChevronRight aria-hidden="true" className="size-5" />
+              )}
             </button>
           ) : null,
         )}

@@ -76,7 +76,8 @@ export function MediaGrid({
       <ul className={GRID_CLASS}>
         {items.map((item, i) => (
           <li key={`${item.mediaType}-${item.id}`}>
-            <PosterCard item={item} priority={i < 6} />
+            {/* First row (up to 8 columns) loads eagerly; only the first poster, the likely LCP, gets high priority. */}
+            <PosterCard item={item} priority={i < 8} lcp={i === 0} />
           </li>
         ))}
         {isFetchingNextPage

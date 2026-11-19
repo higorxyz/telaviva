@@ -1,11 +1,12 @@
 import Link from 'next/link';
-import { tmdbImage } from '@/features/tmdb/images';
+import { profileSrcSet, tmdbImage } from '@/features/tmdb/images';
 import type { CastMember } from '@/features/tmdb/types';
 import { personHref } from '@/lib/slug';
 
 export function CastRail({ cast }: { cast: CastMember[] }) {
   return (
-    <ul className="flex snap-x gap-4 overflow-x-auto pb-4 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+    // Padding offset by negative margins: the scroller clips vertically too, and the focus ring needs room.
+    <ul className="-mx-3 -mt-3 flex snap-x scroll-px-3 gap-4 overflow-x-auto px-3 pt-3 pb-4 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
       {cast.map((member) => {
         const src = tmdbImage(member.profilePath, 'w185');
         return (
@@ -18,6 +19,8 @@ export function CastRail({ cast }: { cast: CastMember[] }) {
                 {src ? (
                   <img
                     src={src}
+                    srcSet={profileSrcSet(member.profilePath)}
+                    sizes="(min-width: 640px) 8rem, 7rem"
                     alt=""
                     width={185}
                     height={278}

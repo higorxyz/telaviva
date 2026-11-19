@@ -18,7 +18,8 @@ export function SeasonPicker({
     <div className="mb-6">
       <SeasonSelect seasons={seasons} current={current} baseHref={baseHref} />
       <nav aria-label="Temporadas" className="max-sm:hidden">
-        <ul className="flex gap-2 overflow-x-auto pb-2 [scrollbar-width:thin]">
+        {/* 4px of padding (offset by negative margins) keeps the focus ring inside the scroller's clip. */}
+        <ul className="-mx-1 -mt-1 flex gap-2 overflow-x-auto px-1 pt-1 pb-2 [scrollbar-width:thin]">
           {seasons.map((s) => {
             const active = s.seasonNumber === current;
             return (

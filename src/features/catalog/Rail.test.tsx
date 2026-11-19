@@ -25,11 +25,21 @@ describe('Rail', () => {
     expect(screen.getAllByRole('listitem')).toHaveLength(5);
   });
 
-  it('only prioritizes the first priorityCount posters', () => {
+  it('loads only the first priorityCount posters eagerly and never competes with the hero for fetch priority', () => {
     const { rerender } = render(<Rail id="r" title={title} items={five} />);
-    expect(document.querySelectorAll('img[fetchpriority=high]')).toHaveLength(0);
+    expect(document.querySelectorAll('img[loading=eager]')).toHaveLength(0);
     rerender(<Rail id="r" title={title} items={five} priorityCount={2} />);
-    expect(document.querySelectorAll('img[fetchpriority=high]')).toHaveLength(2);
+    expect(document.querySelectorAll('img[loading=eager]')).toHaveLength(2);
+    expect(document.querySelectorAll('img[fetchpriority=high]')).toHaveLength(0);
+  });
+
+  it('states the rendered poster width in sizes so dense screens pick a sharper candidate', () => {
+    render(<Rail id="r" title={title} items={five} />);
+    const img = document.querySelector('img')!;
+    expect(img.getAttribute('sizes')).toBe(
+      '(min-width: 1536px) 224px, (min-width: 1280px) 208px, (min-width: 1024px) 192px, (min-width: 768px) 176px, (min-width: 640px) 160px, min(38vw, 176px)',
+    );
+    expect(img.closest('li')).toHaveClass('w-[38vw]', 'max-w-44', 'sm:w-40', 'md:w-44', 'lg:w-48', 'xl:w-52', '2xl:w-56');
   });
 
   it('has a single tab stop and moves focus with arrows, Home and End', () => {

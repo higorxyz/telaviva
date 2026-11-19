@@ -8,6 +8,7 @@ import { Button } from '@/ui/Button';
 import { EmptyState } from '@/ui/EmptyState';
 import { ErrorState } from '@/ui/ErrorState';
 import { GridSkeleton } from '@/features/catalog/GridSkeleton';
+import { gridSizes } from '@/features/catalog/sizes';
 import { fetchSearchPage } from './api';
 import { PersonCard } from './PersonCard';
 import { saveRecent } from './recent';
@@ -16,6 +17,7 @@ export type SearchTab = 'all' | 'movie' | 'tv' | 'person';
 
 const MAX_PAGE = 500;
 const MEDIA_GRID = 'grid grid-cols-3 gap-3 sm:grid-cols-4 sm:gap-4 md:grid-cols-5 lg:grid-cols-6 xl:grid-cols-7';
+const MEDIA_SIZES = gridSizes([3, 4, 5, 6, 7, 7]);
 const MAX_AUTO_LOADS = 3;
 
 const EMPTY_COPY: Record<SearchTab, (q: string) => string> = {
@@ -108,7 +110,7 @@ export function SearchResults({ query, tab }: { query: string; tab: SearchTab })
   }
 
   const render = (item: SearchItem, i: number) =>
-    item.mediaType === 'person' ? <PersonCard person={item} /> : <PosterCard item={item} priority={i < 6} />;
+    item.mediaType === 'person' ? <PersonCard person={item} /> : <PosterCard item={item} priority={i < 7} sizes={MEDIA_SIZES} />;
 
   return (
     <div
