@@ -1,5 +1,5 @@
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { render, screen, waitFor, within } from '@testing-library/react';
+import { act, render, screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { http, HttpResponse } from 'msw';
 import { afterEach, beforeAll, describe, expect, it, vi } from 'vitest';
@@ -54,7 +54,7 @@ function setup(initial: LibraryState, qs = '', opts: { hold?: boolean } = {}) {
       </ToastProvider>
     </QueryClientProvider>,
   );
-  return { user };
+  return { user, client };
 }
 
 const sample = stateOf({
@@ -203,6 +203,35 @@ describe('LibraryView', () => {
     setup(stateOf({ items: [entry('movie', 9, aba === 'quero-ver' ? 'watched' : 'want')] }), `aba=${aba}`);
     expect(await screen.findByRole('heading', { name: title })).toBeInTheDocument();
     expect(screen.getByRole('link', { name: 'Descobrir' })).toHaveAttribute('href', '/descobrir');
+  });
+
+  it('keeps the tab when the last series in progress leaves Assistindo', async () => {
+    progress({});
+    const { client } = setup(
+      stateOf({ items: [entry('tv', 3, 'watching', { title: 'Severance' }), entry('movie', 1, 'want')] }),
+    );
+    expect(await screen.findByRole('link', { name: /Severance/ })).toBeInTheDocument();
+    act(() => {
+      client.setQueryData(['library'], stateOf({ items: [entry('tv', 3, 'want', { title: 'Severance' })] }));
+    });
+    expect(await screen.findByText('Nenhuma série em andamento')).toBeInTheDocument();
+    expect(screen.getByRole('tab', { name: /Assistindo/ })).toHaveAttribute('aria-selected', 'true');
+  });
+
+  it('keeps Quero ver when a series starts, until the user changes tab', async () => {
+    progress({});
+    const { client, user } = setup(stateOf({ items: [entry('movie', 1, 'want', { title: 'Matrix' })] }));
+    expect(await screen.findByRole('link', { name: /Matrix/ })).toBeInTheDocument();
+    act(() => {
+      client.setQueryData(
+        ['library'],
+        stateOf({ items: [entry('movie', 1, 'want', { title: 'Matrix' }), entry('tv', 3, 'watching')] }),
+      );
+    });
+    await waitFor(() => expect(screen.getByRole('tab', { name: /Assistindo/ })).toHaveTextContent('Assistindo · 1'));
+    expect(screen.getByRole('tab', { name: /Quero ver/ })).toHaveAttribute('aria-selected', 'true');
+    await user.click(screen.getByRole('tab', { name: /Assistindo/ }));
+    expect(screen.getByRole('tab', { name: /Assistindo/ })).toHaveAttribute('aria-selected', 'true');
   });
 
   it('hides the stats strip when the library is empty', async () => {

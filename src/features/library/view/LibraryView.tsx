@@ -1,5 +1,6 @@
 'use client';
 
+import { useState } from 'react';
 import { GridSkeleton } from '@/features/catalog/GridSkeleton';
 import { Skeleton } from '@/ui/Skeleton';
 import { useLibrary } from '../hooks';
@@ -25,7 +26,11 @@ export function LibrarySkeleton() {
 export function LibraryView() {
   const { state, ready } = useLibrary();
   const hasWatching = state?.items.some((i) => i.status === 'watching') ?? false;
-  const [query, update] = useLibraryQuery(hasWatching);
+  // The default tab is decided once, when the library first loads. Later changes (moving the last series out of
+  // Assistindo from a card) must not switch the tab under the user's hands.
+  const [frozen, setFrozen] = useState<boolean | null>(null);
+  if (ready && frozen === null) setFrozen(hasWatching);
+  const [query, update] = useLibraryQuery(frozen ?? hasWatching);
   const items = state ? selectItems(state, query) : [];
   // Only the tabs that show progress ask TMDb for it.
   const tvIds =
