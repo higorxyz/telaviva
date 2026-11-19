@@ -69,6 +69,8 @@ export function resolve(pathname: string, params: URLSearchParams, authorization
     if (id === 999999999) return notFound;
     return withId(params.get('language') === 'en-US' ? 'movie-550-en' : 'movie-550', id);
   }
+  const recommendations = /^(movie|tv)\/\d+\/recommendations$/.exec(p);
+  if (recommendations) return ok(recommendations[1] === 'movie' ? 'discover-movie-page-2' : 'discover-tv-page-2');
   const season = /^tv\/(\d+)\/season\/(\d+)$/.exec(p);
   if (season) {
     if (Number(season[1]) === 999999999) return notFound;
