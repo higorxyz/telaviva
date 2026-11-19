@@ -169,3 +169,21 @@ describe('discover / genres / providers', () => {
     expect(list[0]).toHaveProperty('logoPath');
   });
 });
+
+describe('filtro de adultos nas listas', () => {
+  it('remove itens adult=true do discover, trending e busca', async () => {
+    const first = discoverMovies.results[0]!;
+    respond('discover/movie', { ...discoverMovies, results: [{ ...first, id: 9001, adult: true }, ...discoverMovies.results] });
+    expect((await discover('movie', {}, 1)).results.some((r) => r.id === 9001)).toBe(false);
+
+    const t = trendingAll.results[0]!;
+    respond('trending/all/day', { ...trendingAll, results: [{ ...t, id: 9002, adult: true }, ...trendingAll.results] });
+    expect((await getTrending('all', 'day', 1)).results.some((r) => r.id === 9002)).toBe(false);
+
+    respond('search/multi', {
+      ...searchMatrix,
+      results: [{ media_type: 'person', id: 9003, name: 'X', adult: true }, { ...t, id: 9004, adult: true }],
+    });
+    expect((await searchMulti('x', 1)).results).toEqual([]);
+  });
+});

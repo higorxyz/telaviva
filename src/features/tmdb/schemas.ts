@@ -13,6 +13,7 @@ const mediaCommon = {
   popularity: z.number().catch(0),
   genre_ids: z.array(z.number()).catch([]),
   original_language: z.string().catch(''),
+  adult: z.boolean().catch(false).default(false),
 };
 
 export const movieSchema = z.object({
@@ -43,6 +44,9 @@ export const tvPageSchema = pageSchema(tvSchema);
 export const genreListSchema = z.object({
   genres: z.array(z.object({ id: z.number(), name: z.string() })),
 });
+
+/** Adult titles never reach users, even when TMDb ignores include_adult (trending, credits, recommendations). */
+export const isSafe = (raw: { adult?: boolean }) => raw.adult !== true;
 
 export type RawMovie = z.infer<typeof movieSchema>;
 export type RawTv = z.infer<typeof tvSchema>;

@@ -6,6 +6,7 @@ import type {
   RawVideos,
 } from './detail-schemas';
 import { toMediaSummary } from './mappers';
+import { isSafe } from './schemas';
 import type {
   CastMember,
   EpisodeSummary,
@@ -81,7 +82,7 @@ export function toMovieDetails(raw: RawMovieDetail): MovieDetails {
     trailer: pickTrailer(toVideos(raw.videos)),
     cast: toCast(cast, (i) => cast[i]!.character),
     providers: toProviders(raw['watch/providers']),
-    recommendations: (raw.recommendations?.results ?? []).map((r) => toMediaSummary(r, 'movie')),
+    recommendations: (raw.recommendations?.results ?? []).filter(isSafe).map((r) => toMediaSummary(r, 'movie')),
     imdbId: raw.imdb_id,
     budget: raw.budget,
     revenue: raw.revenue,
@@ -100,7 +101,7 @@ export function toTvDetails(raw: RawTvDetail): TvDetails {
     trailer: pickTrailer(toVideos(raw.videos)),
     cast: toCast(cast, (i) => cast[i]!.roles[0]?.character ?? ''),
     providers: toProviders(raw['watch/providers']),
-    recommendations: (raw.recommendations?.results ?? []).map((r) => toMediaSummary(r, 'tv')),
+    recommendations: (raw.recommendations?.results ?? []).filter(isSafe).map((r) => toMediaSummary(r, 'tv')),
     status: raw.status,
     inProduction: raw.in_production,
     numberOfSeasons: raw.number_of_seasons,

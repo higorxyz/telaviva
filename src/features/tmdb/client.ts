@@ -2,6 +2,9 @@ import 'server-only';
 import type { z } from 'zod';
 import { env } from '@/lib/env';
 
+/** Upper bound for one TMDb request, so a hung upstream never stalls a render. */
+export const TIMEOUT_MS = 8000;
+
 export type TmdbParams = Record<string, string | number | boolean | undefined | null>;
 
 /** `status` is the HTTP status, or 0 when the request never got a response (network failure). */
@@ -53,14 +56,24 @@ export async function tmdbFetch<S extends z.ZodType>(
   try {
     res = await fetch(buildUrl(path, params), {
       headers: { Authorization: `Bearer ${env.TMDB_READ_TOKEN}`, Accept: 'application/json' },
+      signal: AbortSignal.timeout(TIMEOUT_MS),
     });
   } catch (cause) {
-    const reason = cause instanceof Error ? cause.message : 'falha de rede';
+    // DOMException is not always an Error subclass, so check the name structurally.
+    const name = typeof cause === 'object' && cause !== null && 'name' in cause ? String(cause.name) : '';
+    const timedOut = name === 'TimeoutError' || name === 'AbortError';
+    const reason = timedOut ? 'tempo esgotado' : cause instanceof Error ? cause.message : 'falha de rede';
     throw new TmdbError(`Falha ao chamar o TMDb (${path}): ${reason}`, 0, path);
   }
   if (!res.ok) throw new TmdbError(await errorMessage(res), res.status, path);
 
-  const parsed = schema.safeParse(await res.json());
+  let body: unknown;
+  try {
+    body = await res.json();
+  } catch {
+    throw new TmdbError(`Resposta não JSON do TMDb em ${path}`, res.status, path);
+  }
+  const parsed = schema.safeParse(body);
   if (!parsed.success) {
     throw new Error(`Resposta inesperada do TMDb em ${path}: ${parsed.error.message}`);
   }

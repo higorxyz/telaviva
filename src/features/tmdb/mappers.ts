@@ -1,4 +1,4 @@
-import type { RawMovie, RawPage, RawTv } from './schemas';
+import { isSafe, type RawMovie, type RawPage, type RawTv } from './schemas';
 import type { MediaSummary, MediaType, Paginated } from './types';
 
 export function toMediaSummary(raw: RawMovie | RawTv, mediaType: MediaType): MediaSummary {
@@ -30,12 +30,12 @@ export function toMediaSummary(raw: RawMovie | RawTv, mediaType: MediaType): Med
   };
 }
 
-export function toPaginated<R, T>(raw: RawPage<R>, map: (r: R) => T): Paginated<T> {
+export function toPaginated<R extends { adult?: boolean }, T>(raw: RawPage<R>, map: (r: R) => T): Paginated<T> {
   return {
     page: raw.page,
     totalPages: raw.total_pages,
     totalResults: raw.total_results,
-    results: raw.results.map(map),
+    results: raw.results.filter(isSafe).map(map),
   };
 }
 

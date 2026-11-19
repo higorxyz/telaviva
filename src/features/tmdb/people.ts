@@ -2,7 +2,7 @@ import { cacheLife, cacheTag } from 'next/cache';
 import { isTmdbNotFound, TmdbError, tmdbFetch } from './client';
 import { biographyOnlySchema, personSchema } from './detail-schemas';
 import { toMediaSummary, withTextFallback } from './mappers';
-import { movieSchema, tvSchema } from './schemas';
+import { isSafe, movieSchema, tvSchema } from './schemas';
 import type { MediaSummary, PersonCredit, PersonDetails } from './types';
 
 const MAX_IMAGES = 12;
@@ -17,10 +17,10 @@ function parseCredit(
   let summary: MediaSummary | null = null;
   if (r.media_type === 'movie') {
     const p = movieSchema.safeParse(raw);
-    summary = p.success ? toMediaSummary(p.data, 'movie') : null;
+    summary = p.success && isSafe(p.data) ? toMediaSummary(p.data, 'movie') : null;
   } else if (r.media_type === 'tv') {
     const p = tvSchema.safeParse(raw);
-    summary = p.success ? toMediaSummary(p.data, 'tv') : null;
+    summary = p.success && isSafe(p.data) ? toMediaSummary(p.data, 'tv') : null;
   }
   if (!summary) return null;
   const role = r[roleKey];

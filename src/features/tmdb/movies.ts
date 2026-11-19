@@ -119,6 +119,11 @@ async function loadMovieDetails(id: number): Promise<MovieDetails | null> {
       { append_to_response: MOVIE_APPEND, include_video_language: 'pt,en,null' },
       movieDetailSchema,
     );
+    // Adult titles behave as not found (404).
+    if (raw.adult) {
+      cacheLife('tmdbDetail');
+      return null;
+    }
     const movie = await withOverviewFallback(toMovieDetails(raw), () =>
       tmdbFetch(`movie/${id}`, { language: 'en-US' }, overviewOnlySchema),
     );

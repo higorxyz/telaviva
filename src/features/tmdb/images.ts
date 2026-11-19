@@ -34,6 +34,5 @@ export function backdropSrcSet(path: string | null): string | undefined {
   return srcSet(path, [
     ['w780', 780],
     ['w1280', 1280],
-    ['original', 1920],
   ]);
 }

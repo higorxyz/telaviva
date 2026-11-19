@@ -18,11 +18,11 @@ describe('srcSets', () => {
     expect(set).toContain('/w500/a.jpg 500w');
     expect(set).toContain('/w780/a.jpg 780w');
   });
-  it('backdropSrcSet usa 780, 1280 e original como 1920w', () => {
+  it('backdropSrcSet usa 780 e 1280, sem original', () => {
     const set = backdropSrcSet('/b.jpg');
     expect(set).toContain('/w780/b.jpg 780w');
     expect(set).toContain('/w1280/b.jpg 1280w');
-    expect(set).toContain('/original/b.jpg 1920w');
+    expect(set).not.toContain('/original/');
   });
   it('devolve undefined sem caminho', () => {
     expect(posterSrcSet(null)).toBeUndefined();

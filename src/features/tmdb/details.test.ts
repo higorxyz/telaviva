@@ -160,3 +160,32 @@ describe('getPerson', () => {
     expect(langs).toEqual(['pt-BR', 'en-US']);
   });
 });
+
+describe('conteúdo adulto', () => {
+  it('detalhe de filme ou série adulto vira 404 e recomendações adultas somem', async () => {
+    server.use(
+      http.get(`${BASE}/movie/77`, () => HttpResponse.json({ ...movie550, id: 77, adult: true })),
+      http.get(`${BASE}/tv/78`, () => HttpResponse.json({ ...tv1399, id: 78, adult: true })),
+    );
+    expect(isTmdbNotFound(await getMovieDetails(77).catch((e: unknown) => e))).toBe(true);
+    expect(isTmdbNotFound(await getTvDetails(78).catch((e: unknown) => e))).toBe(true);
+
+    const recs = movie550.recommendations.results;
+    lastRequest('movie/550', {
+      ...movie550,
+      recommendations: { ...movie550.recommendations, results: [{ ...recs[0], id: 4242, adult: true }, ...recs] },
+    });
+    const m = await getMovieDetails(550);
+    expect(m.recommendations.some((r) => r.id === 4242)).toBe(false);
+  });
+
+  it('créditos adultos da pessoa somem', async () => {
+    const cast = person287.combined_credits.cast;
+    lastRequest('person/287', {
+      ...person287,
+      combined_credits: { ...person287.combined_credits, cast: [{ ...cast[0], id: 4343, adult: true }, ...cast] },
+    });
+    const p = await getPerson(287);
+    expect(p.credits.some((c) => c.id === 4343)).toBe(false);
+  });
+});

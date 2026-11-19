@@ -45,6 +45,11 @@ async function loadTvDetails(id: number): Promise<TvDetails | null> {
       { append_to_response: TV_APPEND, include_video_language: 'pt,en,null' },
       tvDetailSchema,
     );
+    // Adult titles behave as not found (404).
+    if (raw.adult) {
+      cacheLife('tmdbDetail');
+      return null;
+    }
     const tv = await withOverviewFallback(toTvDetails(raw), () =>
       tmdbFetch(`tv/${id}`, { language: 'en-US' }, overviewOnlySchema),
     );

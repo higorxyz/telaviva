@@ -1,5 +1,5 @@
 import { http, HttpResponse } from 'msw';
-import { describe, expect, it } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import { z } from 'zod';
 import { server } from '@/test/server';
 import { isTmdbNotFound, TmdbError, tmdbFetch } from './client';
@@ -90,5 +90,27 @@ describe('tmdbFetch', () => {
   it('resposta fora do schema lança erro com o path', async () => {
     server.use(http.get(`${BASE}/movie/4`, () => HttpResponse.json({ id: 'abc' })));
     await expect(tmdbFetch('movie/4', {}, schema)).rejects.toThrow(/movie\/4/);
+  });
+
+  it('envia um signal com timeout e mapeia o estouro para TmdbError status 0', async () => {
+    const spy = vi.spyOn(AbortSignal, 'timeout');
+    const fetchSpy = vi.spyOn(globalThis, 'fetch').mockImplementationOnce((_url, init) => {
+      expect(init?.signal).toBeInstanceOf(AbortSignal);
+      return Promise.reject(new DOMException('The operation timed out.', 'TimeoutError'));
+    });
+    const error = await tmdbFetch('movie/5', {}, schema).catch((e: unknown) => e);
+    expect(spy).toHaveBeenCalledWith(8000);
+    expect(error).toBeInstanceOf(TmdbError);
+    expect(error).toMatchObject({ status: 0, path: 'movie/5' });
+    expect((error as Error).message).toContain('tempo esgotado');
+    spy.mockRestore();
+    fetchSpy.mockRestore();
+  });
+
+  it('2xx com corpo não JSON vira TmdbError com o path', async () => {
+    server.use(http.get(`${BASE}/movie/6`, () => new HttpResponse('<html>oops</html>', { status: 200 })));
+    const error = await tmdbFetch('movie/6', {}, schema).catch((e: unknown) => e);
+    expect(error).toBeInstanceOf(TmdbError);
+    expect(error).toMatchObject({ status: 200, path: 'movie/6' });
   });
 });
