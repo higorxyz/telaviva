@@ -81,6 +81,13 @@ describe('PosterCard library action', () => {
     expect(screen.getByRole('link').contains(button)).toBe(false);
   });
 
+  it('is tabbable in a grid and out of the tab order when the card has a roving tabIndex', async () => {
+    const { rerender } = render(wrap(<PosterCard item={movie({ title: 'Duna' })} />));
+    expect(await screen.findByRole('button', { name: /Adicionar/ })).not.toHaveAttribute('tabindex');
+    rerender(wrap(<PosterCard item={movie({ title: 'Duna' })} tabIndex={0} />));
+    expect(screen.getByRole('button', { name: /Adicionar/ })).toHaveAttribute('tabindex', '-1');
+  });
+
   it('skips the library action when libraryAction is false', async () => {
     render(wrap(<PosterCard item={movie()} libraryAction={false} />));
     await new Promise((r) => setTimeout(r, 20));

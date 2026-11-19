@@ -12,13 +12,13 @@ const REMOVED = { message: 'Removido da sua lista' };
 
 const CIRCLE = 'grid size-8 place-items-center rounded-full bg-ink-950/60 backdrop-blur-sm';
 
-/** Quick "Quero ver" on a poster: icon only. Renders nothing without a library or before it loads. */
-export function CardLibraryAction({ item }: { item: MediaSummary }) {
+/** Quick "Quero ver" on a poster: icon only. `tabIndex` -1 keeps it out of a roving tab stop. Renders nothing without a library or before it loads. */
+export function CardLibraryAction({ item, tabIndex }: { item: MediaSummary; tabIndex?: number }) {
   const hasLibrary = useHasLibrary();
-  return hasLibrary ? <Action item={item} /> : null;
+  return hasLibrary ? <Action item={item} tabIndex={tabIndex} /> : null;
 }
 
-function Action({ item }: { item: MediaSummary }) {
+function Action({ item, tabIndex }: { item: MediaSummary; tabIndex?: number }) {
   const ref: TitleRef = { mediaType: item.mediaType, tmdbId: item.id };
   const { ready, status } = useLibraryStatus(ref);
   const { run } = useLibraryActions();
@@ -41,6 +41,7 @@ function Action({ item }: { item: MediaSummary }) {
       type="button"
       aria-label={`${wanted ? 'Remover' : 'Adicionar'} ${item.title} ${wanted ? 'de' : 'a'} Quero ver`}
       aria-pressed={wanted ? true : undefined}
+      tabIndex={tabIndex}
       onClick={(event) => {
         event.stopPropagation();
         if (wanted) run({ type: 'remove', ref }, { undoable: REMOVED });

@@ -52,7 +52,7 @@ export function PosterCard({
   const year = formatYear(item.releaseDate);
   const meta = subtitle ?? year;
   const src = tmdbImage(item.posterPath, 'w342');
-  const corner = actions ?? (libraryAction ? <CardLibraryAction item={item} /> : null);
+  const corner = actions ?? (libraryAction ? <CardLibraryAction item={item} tabIndex={tabIndex === undefined ? undefined : -1} /> : null);
 
   return (
     <div className="group relative">

@@ -1,6 +1,13 @@
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { createEvent, fireEvent, render, screen } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
+import type { ReactNode } from 'react';
 import { describe, expect, it } from 'vitest';
+import { LibraryProvider } from '@/features/library/LibraryProvider';
+import type { LibraryRepository } from '@/features/library/repository';
+import { EMPTY_LIBRARY } from '@/features/library/types';
 import { movie } from '@/test/media';
+import { ToastProvider } from '@/ui/toast/ToastProvider';
 import { Rail } from './Rail';
 
 const five = [1, 2, 3, 4, 5].map((id) => movie({ id, title: `Filme ${id}` }));
@@ -98,5 +105,47 @@ describe('Rail', () => {
       fireEvent(link, event);
       expect(event.defaultPrevented).toBe(true);
     });
+  });
+});
+
+describe('Rail with quick actions', () => {
+  const repository: LibraryRepository = {
+    persistent: true,
+    load: async () => EMPTY_LIBRARY,
+    apply: async () => EMPTY_LIBRARY,
+    subscribe: () => () => {},
+  };
+  const wrap = (node: ReactNode) => (
+    <QueryClientProvider client={new QueryClient()}>
+      <ToastProvider>
+        <LibraryProvider repository={repository}>
+          <button type="button">Antes</button>
+          {node}
+          <button type="button">Depois</button>
+        </LibraryProvider>
+      </ToastProvider>
+    </QueryClientProvider>
+  );
+
+  it('keeps the quick actions out of the tab order: one stop per rail', async () => {
+    const user = userEvent.setup();
+    render(wrap(<Rail id="r" title={title} items={five} />));
+    const buttons = await screen.findAllByRole('button', { name: /^Adicionar/ });
+    expect(buttons).toHaveLength(5);
+    buttons.forEach((b) => expect(b).toHaveAttribute('tabindex', '-1'));
+    screen.getByRole('button', { name: 'Antes' }).focus();
+    await user.tab();
+    expect(screen.getByRole('link', { name: /Filme 1/ })).toHaveFocus();
+    await user.tab();
+    expect(screen.getByRole('button', { name: 'Depois' })).toHaveFocus();
+  });
+
+  it('still moves between posters with the arrow keys', async () => {
+    render(wrap(<Rail id="r" title={title} items={five} />));
+    await screen.findAllByRole('button', { name: /^Adicionar/ });
+    const links = screen.getAllByRole('link');
+    links[0]!.focus();
+    fireEvent.keyDown(links[0]!, { key: 'ArrowRight' });
+    expect(links[1]).toHaveFocus();
   });
 });
