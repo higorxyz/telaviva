@@ -70,21 +70,21 @@ test.describe('mobile', () => {
     await expect(page.getByRole('navigation', { name: 'Seções' })).toBeHidden();
   });
 
-  test('the tab bar never covers the TMDb attribution at the bottom of the page', async ({ page }) => {
+  test('the tab bar never covers the credits row at the bottom of the page', async ({ page }) => {
     await page.goto('/filmes');
-    const attribution = page.getByText('Este produto usa a API do TMDB, mas não é endossado ou certificado pelo TMDB.');
+    const attribution = page.getByRole('contentinfo').getByText(/Powered by/);
     const tabBar = page.getByRole('navigation', { name: 'Navegação principal' });
     await expect(attribution).toBeAttached();
-    // Rails stream in and grow the page, so re-scroll to the very bottom on every check.
+    // Rails stream in and resize the page, so re-scroll to the very bottom and measure in the same check:
+    // a separate in-viewport assertion afterwards races the layout shifts.
     await expect
       .poll(async () => {
         await page.evaluate(() => window.scrollTo(0, document.documentElement.scrollHeight));
         const a = (await attribution.boundingBox())!;
         const t = (await tabBar.boundingBox())!;
-        return { clears: a.y + a.height <= t.y, a: Math.round(a.y + a.height), t: Math.round(t.y) };
+        return { visible: a.y >= 0 && a.y + a.height <= t.y, a: Math.round(a.y + a.height), t: Math.round(t.y) };
       })
-      .toMatchObject({ clears: true });
-    await expect(attribution).toBeInViewport();
+      .toMatchObject({ visible: true });
   });
 });
 

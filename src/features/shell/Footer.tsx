@@ -54,7 +54,7 @@ function SocialLink({ href, label, children }: { href: string; label: string; ch
 
 export function Footer() {
   return (
-    // Bottom padding clears the fixed mobile TabBar (h-14 + safe area), so the TMDb attribution stays visible.
+    // Bottom padding clears the fixed mobile TabBar (h-14 + safe area), so the credits row stays visible.
     <footer className="mt-24 border-t border-ink-600 bg-ink-900 pb-[calc(3.5rem+env(safe-area-inset-bottom))] md:pb-0">
       <div
         className={cn(
@@ -106,10 +106,26 @@ export function Footer() {
             'flex flex-col gap-4 py-6 text-xs text-ivory-muted md:flex-row md:items-center md:justify-between',
           )}
         >
-          <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:gap-4">
-            <img src="/brand/tmdb.svg" alt="TMDB" width={137} height={18} className="h-3.5 w-auto self-start sm:self-auto" />
-            <p>Este produto usa a API do TMDB, mas não é endossado ou certificado pelo TMDB.</p>
-          </div>
+          <p>
+            Powered by{' '}
+            <a
+              href="https://www.themoviedb.org/"
+              target="_blank"
+              rel="noopener noreferrer"
+              className={cn('rounded font-semibold text-amber hover:underline', FOCUS)}
+            >
+              TMDB API
+            </a>{' '}
+            &amp;{' '}
+            <a
+              href="https://www.justwatch.com/br"
+              target="_blank"
+              rel="noopener noreferrer"
+              className={cn('rounded font-semibold text-ivory hover:underline', FOCUS)}
+            >
+              JustWatch
+            </a>
+          </p>
           <p>
             Feito por <span className="text-ivory">Higor Batista</span>
           </p>
