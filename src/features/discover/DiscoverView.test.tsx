@@ -255,8 +255,9 @@ describe('DiscoverView', () => {
     const user = setup('');
     await screen.findByRole('link', { name: /Matrix/ });
     await user.click(trigger('Ano'));
-    await user.selectOptions(within(panel('Ano')).getByLabelText('De'), '2020');
-    await user.selectOptions(within(panel('Ano')).getByLabelText('Até'), '2010');
+    // Same tick, so both edits settle into one apply regardless of machine load.
+    fireEvent.change(within(panel('Ano')).getByLabelText('De'), { target: { value: '2020' } });
+    fireEvent.change(within(panel('Ano')).getByLabelText('Até'), { target: { value: '2010' } });
     await vi.waitFor(() => expect(lastUrl(replace)).toBe('/descobrir?de=2010&ate=2020'));
     await vi.waitFor(() => expect(seen).toHaveLength(2));
     expect(seen[1].toString()).toBe('de=2010&ate=2020&page=1');
