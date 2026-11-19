@@ -51,7 +51,9 @@ export function DetailHero({
 }) {
   const backdrop = tmdbImage(item.backdropPath, 'w1280');
   return (
-    <section aria-label={`Sobre ${item.title}`} className="relative isolate overflow-hidden bg-ink-950">
+    // No overflow clipping (every layer is inset-0): the rating and status popovers open under their triggers and
+    // may reach past the hero's bottom edge. z-10 keeps such a popover above the content that follows.
+    <section aria-label={`Sobre ${item.title}`} className="relative isolate z-10 bg-ink-950">
       {backdrop ? (
         <EagerImage
           src={backdrop}
