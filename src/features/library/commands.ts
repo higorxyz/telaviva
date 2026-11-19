@@ -1,5 +1,6 @@
-import type { TvProgressInfo } from './progress';
+import { airedEpisodes, seriesProgress, type TvProgressInfo } from './progress';
 import type {
+  EpisodeMark,
   LibraryItem,
   LibraryState,
   LibraryStatus,
@@ -92,11 +93,69 @@ function rate(state: LibraryState, ref: TitleRef, score: number, snapshot: Title
   return rated;
 }
 
+function addMarks(
+  episodes: EpisodeMark[],
+  tvId: number,
+  refs: { seasonNumber: number; episodeNumber: number }[],
+  now: string,
+  refresh: boolean,
+): EpisodeMark[] {
+  const out = [...episodes];
+  for (const r of refs) {
+    const idx = out.findIndex(
+      (e) => e.tvId === tvId && e.seasonNumber === r.seasonNumber && e.episodeNumber === r.episodeNumber,
+    );
+    if (idx === -1) {
+      out.push({ tvId, seasonNumber: r.seasonNumber, episodeNumber: r.episodeNumber, watchedAt: now });
+    } else if (refresh) {
+      out[idx] = { ...out[idx]!, watchedAt: now };
+    }
+  }
+  return out;
+}
+
+function setEpisodes(
+  state: LibraryState,
+  command: Extract<LibraryCommand, { type: 'setEpisodes' }>,
+  now: string,
+): LibraryState {
+  const { tvId, marks, watched, snapshot, progress } = command;
+  const ref: TitleRef = { mediaType: 'tv', tmdbId: tvId };
+  const episodes = watched
+    ? addMarks(state.episodes, tvId, marks, now, true)
+    : state.episodes.filter(
+        (e) => !(e.tvId === tvId && marks.some((m) => m.seasonNumber === e.seasonNumber && m.episodeNumber === e.episodeNumber)),
+      );
+  const next = { ...state, episodes };
+  const existing = findItem(next, ref);
+  const hasMarks = episodes.some((e) => e.tvId === tvId);
+  const finished = seriesProgress(progress, episodes).kind === 'finished';
+
+  let status: LibraryStatus | null = null;
+  if (finished) status = 'watched';
+  else if (existing?.status === 'watched') status = 'watching';
+  else if (hasMarks && (!existing || existing.status === 'want')) status = 'watching';
+
+  if (!existing) {
+    return status ? upsertItem(next, ref, status, snapshot, now) : next;
+  }
+  // Same status keeps watchedAt; a change sets or clears it.
+  return upsertItem(next, ref, status ?? existing.status, snapshot, now);
+}
+
 /** Pure reducer: applies one command and never mutates the input state. */
 export function applyCommand(state: LibraryState, command: LibraryCommand, now: string): LibraryState {
   switch (command.type) {
-    case 'setStatus':
-      return upsertItem(state, command.ref, command.status, command.snapshot, now);
+    case 'setStatus': {
+      let base = state;
+      if (command.ref.mediaType === 'tv' && command.status === 'watched' && command.progress) {
+        base = {
+          ...state,
+          episodes: addMarks(state.episodes, command.ref.tmdbId, airedEpisodes(command.progress), now, false),
+        };
+      }
+      return upsertItem(base, command.ref, command.status, command.snapshot, now);
+    }
     case 'remove':
       return {
         ...state,
@@ -111,6 +170,6 @@ export function applyCommand(state: LibraryState, command: LibraryCommand, now: 
     case 'unrate':
       return { ...state, ratings: state.ratings.filter((r) => !same(r, command.ref)) };
     case 'setEpisodes':
-      throw new Error('not implemented');
+      return setEpisodes(state, command, now);
   }
 }
