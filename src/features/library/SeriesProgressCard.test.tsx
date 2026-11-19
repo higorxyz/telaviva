@@ -78,7 +78,7 @@ function setup(
     <QueryClientProvider client={client}>
       <ToastProvider>
         <LibraryProvider repository={repository}>
-          <SeriesProgressCard tvId={7} title="Série X" info={cardInfo} snapshot={snapshot} />
+          <SeriesProgressCard tvId={7} info={cardInfo} snapshot={snapshot} />
         </LibraryProvider>
       </ToastProvider>
     </QueryClientProvider>,
@@ -87,6 +87,31 @@ function setup(
 }
 
 describe('SeriesProgressCard', () => {
+  it('labels the region with a unique id per instance', async () => {
+    season({});
+    const state = marked(5);
+    const repository: LibraryRepository = {
+      persistent: true,
+      load: async () => state,
+      apply: async () => state,
+      subscribe: () => () => {},
+    };
+    const client = new QueryClient({ defaultOptions: { queries: { retry: false } } });
+    render(
+      <QueryClientProvider client={client}>
+        <ToastProvider>
+          <LibraryProvider repository={repository}>
+            <SeriesProgressCard tvId={7} info={info} snapshot={snapshot} />
+            <SeriesProgressCard tvId={7} info={info} snapshot={snapshot} />
+          </LibraryProvider>
+        </ToastProvider>
+      </QueryClientProvider>,
+    );
+    const regions = await screen.findAllByRole('region', { name: 'Seu progresso' });
+    expect(regions).toHaveLength(2);
+    expect(regions[0].getAttribute('aria-labelledby')).not.toBe(regions[1].getAttribute('aria-labelledby'));
+  });
+
   it('renders nothing before the library loads', () => {
     season({});
     setup(marked(5), info, { hold: true });

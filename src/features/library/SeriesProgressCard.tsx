@@ -1,7 +1,7 @@
 'use client';
 
 import { Check } from 'lucide-react';
-import type { ReactNode } from 'react';
+import { useId, type ReactNode } from 'react';
 import { formatDate } from '@/lib/format';
 import { buttonClasses } from '@/ui/Button';
 import { useLibraryActions, useLibraryEntry } from './hooks';
@@ -10,13 +10,15 @@ import type { TitleSnapshot } from './types';
 import { useSeason } from './useSeason';
 
 function Shell({ children }: { children: ReactNode }) {
+  // Unique per instance: Next keeps the previous page mounted in a hidden Activity, so a fixed id would repeat.
+  const headingId = useId();
   return (
     <section
       role="region"
-      aria-labelledby="seu-progresso"
+      aria-labelledby={headingId}
       className="mt-6 max-w-3xl rounded-xl border border-amber/40 bg-ink-900 p-4 font-sans"
     >
-      <h3 id="seu-progresso" className="font-display text-xl text-ivory">
+      <h3 id={headingId} className="font-display text-xl text-ivory">
         Seu progresso
       </h3>
       {children}
@@ -51,7 +53,6 @@ export function SeriesProgressCard({
   snapshot,
 }: {
   tvId: number;
-  title: string;
   info: TvProgressInfo;
   snapshot: TitleSnapshot;
 }) {
