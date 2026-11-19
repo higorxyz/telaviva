@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { genreHref, mediaHref, parseIdFromSlug, personHref, toSlug } from './slug';
+import { genreHref, mediaHref, mediaTypeToTipo, parseIdFromSlug, personHref, toSlug } from './slug';
 
 describe('toSlug', () => {
   it('converte títulos em slugs', () => {
@@ -38,5 +38,12 @@ describe('hrefs', () => {
   });
   it('genreHref', () => {
     expect(genreHref({ mediaType: 'movie', id: 28, name: 'Ação' })).toBe('/genero/filme/28-acao');
+  });
+});
+
+describe('mediaTypeToTipo', () => {
+  it('movie vira filme e tv vira serie', () => {
+    expect(mediaTypeToTipo('movie')).toBe('filme');
+    expect(mediaTypeToTipo('tv')).toBe('serie');
   });
 });

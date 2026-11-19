@@ -30,7 +30,8 @@ export async function HubGenres({ media }: { media: MediaType }) {
       <ul className="flex flex-wrap gap-2">
         {genres.map((g) => (
           <li key={g.id}>
-            <Link href={genreHref({ mediaType: media, ...g })} className={CHIP}>
+            {/* ~19 chips: prefetching them all on every hub visit would cost a render each (and mobile data). */}
+            <Link href={genreHref({ mediaType: media, ...g })} prefetch={false} className={CHIP}>
               {g.name}
             </Link>
           </li>

@@ -1,5 +1,5 @@
 import { render, screen } from '@testing-library/react';
-import { describe, expect, it } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import { movie, tv } from '@/test/media';
 import { PosterCard } from './PosterCard';
 
@@ -42,10 +42,22 @@ describe('PosterCard', () => {
     expect(screen.getByRole('link')).toHaveAccessibleName('Sem nota');
   });
 
-  it('renders a hidden pending hint inside the link', () => {
+  it('idle cards run no pending animation', () => {
     render(<PosterCard item={movie()} />);
-    const hint = screen.getByRole('link').querySelector('[aria-hidden="true"].opacity-0');
-    expect(hint).not.toBeNull();
-    expect(hint).not.toHaveAttribute('data-pending');
+    expect(screen.queryByTestId('link-pending')).toBeNull();
+  });
+});
+
+describe('LinkPending', () => {
+  it('shows the amber bar only while the link is pending', async () => {
+    vi.resetModules();
+    vi.doMock('next/link', async (importOriginal) => ({
+      ...(await importOriginal<typeof import('next/link')>()),
+      useLinkStatus: () => ({ pending: true }),
+    }));
+    const { LinkPending } = await import('./LinkPending');
+    render(<LinkPending />);
+    expect(screen.getByTestId('link-pending')).toHaveClass('bg-amber');
+    vi.doUnmock('next/link');
   });
 });

@@ -2,9 +2,6 @@ import 'server-only';
 import type { z } from 'zod';
 import { env } from '@/lib/env';
 
-/** Upper bound for one TMDb request, so a hung upstream never stalls a render. */
-export const TIMEOUT_MS = 8000;
-
 export type TmdbParams = Record<string, string | number | boolean | undefined | null>;
 
 /** `status` is the HTTP status, or 0 when the request never got a response (network failure). */
@@ -56,7 +53,8 @@ export async function tmdbFetch<S extends z.ZodType>(
   try {
     res = await fetch(buildUrl(path, params), {
       headers: { Authorization: `Bearer ${env.TMDB_READ_TOKEN}`, Accept: 'application/json' },
-      signal: AbortSignal.timeout(TIMEOUT_MS),
+      // Upper bound per request (default 8 s), so a hung TMDb never stalls a render.
+      signal: AbortSignal.timeout(env.TMDB_TIMEOUT_MS),
     });
   } catch (cause) {
     // DOMException is not always an Error subclass, so check the name structurally.

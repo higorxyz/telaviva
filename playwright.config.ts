@@ -32,6 +32,9 @@ export default defineConfig({
         TMDB_API_BASE_URL: 'http://127.0.0.1:4010/3',
         TMDB_READ_TOKEN: 'e2e',
         NEXT_PUBLIC_SITE_URL: 'http://localhost:3100',
+        // One local Node process absorbs the cold-start prefetch storm of 6 browsers; its event-loop lag can exceed
+        // the 8 s production TMDb timeout and turn slow-but-fine renders into uncached errors. The mock never hangs.
+        TMDB_TIMEOUT_MS: '60000',
       },
     },
   ],
