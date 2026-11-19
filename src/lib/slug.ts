@@ -17,8 +17,13 @@ export function parseIdFromSlug(slug: string): number | null {
 
 type MediaType = 'movie' | 'tv';
 
+/** The pt-BR URL segment for a media type: movie -> filme, tv -> serie. */
+export function mediaTypeToTipo(media: MediaType): 'filme' | 'serie' {
+  return media === 'movie' ? 'filme' : 'serie';
+}
+
 export function mediaHref(m: { mediaType: MediaType; id: number; title: string }): string {
-  return `/${m.mediaType === 'movie' ? 'filme' : 'serie'}/${m.id}-${toSlug(m.title)}`;
+  return `/${mediaTypeToTipo(m.mediaType)}/${m.id}-${toSlug(m.title)}`;
 }
 
 export function personHref(p: { id: number; name: string }): string {
@@ -26,5 +31,5 @@ export function personHref(p: { id: number; name: string }): string {
 }
 
 export function genreHref(g: { mediaType: MediaType; id: number; name: string }): string {
-  return `/genero/${g.mediaType === 'movie' ? 'filme' : 'serie'}/${g.id}-${toSlug(g.name)}`;
+  return `/genero/${mediaTypeToTipo(g.mediaType)}/${g.id}-${toSlug(g.name)}`;
 }

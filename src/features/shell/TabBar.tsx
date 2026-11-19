@@ -21,10 +21,18 @@ export function TabBar() {
                 href={href}
                 aria-current={active ? 'page' : undefined}
                 className={cn(
-                  'flex h-14 flex-col items-center justify-center gap-1 text-[11px] font-medium transition-colors motion-reduce:transition-none',
-                  active ? 'text-amber' : 'text-ivory-muted',
+                  'relative flex h-14 flex-col items-center justify-center gap-1 text-[11px] transition-colors motion-reduce:transition-none',
+                  active ? 'font-bold text-amber' : 'font-medium text-ivory-muted',
                 )}
               >
+                {/* Non-color cue for the current tab (WCAG 1.4.1): indicator bar plus a bolder label. */}
+                {active ? (
+                  <span
+                    aria-hidden="true"
+                    data-testid="tab-indicator"
+                    className="absolute top-0 left-1/2 h-0.5 w-8 -translate-x-1/2 rounded-full bg-amber"
+                  />
+                ) : null}
                 <Icon aria-hidden="true" className="size-5" />
                 {label}
               </Link>

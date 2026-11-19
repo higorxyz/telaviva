@@ -24,11 +24,17 @@ function ViewSkeleton() {
 
 export default async function DescobrirPage() {
   // Cached TMDb catalogs; the URL-driven view below streams in behind the Suspense boundary.
+  // The provider catalog is optional: without it the panel just has no "Onde assistir" picker.
+  const providers = (media: 'movie' | 'tv') =>
+    getWatchProviderCatalog(media).catch((error: unknown) => {
+      console.error(`[descobrir] provider catalog (${media}) failed:`, error);
+      return [];
+    });
   const [movieGenres, tvGenres, movieProviders, tvProviders] = await Promise.all([
     getGenres('movie'),
     getGenres('tv'),
-    getWatchProviderCatalog('movie'),
-    getWatchProviderCatalog('tv'),
+    providers('movie'),
+    providers('tv'),
   ]);
   const catalog = {
     genres: { movie: movieGenres, tv: tvGenres },

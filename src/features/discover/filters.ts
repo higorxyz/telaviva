@@ -1,5 +1,6 @@
 import type { TmdbParams } from '@/features/tmdb/client';
 import type { MediaType } from '@/features/tmdb/types';
+import { mediaTypeToTipo } from '@/lib/slug';
 
 // Pure and client-safe: TmdbParams is a type-only import (erased), nothing server-only runs here.
 
@@ -83,7 +84,7 @@ export function parseFilters(sp: URLSearchParams): DiscoverFilters {
 /** Omits defaults; param order is stable so equal filters give equal strings (used as keys). */
 export function filtersToSearchParams(f: DiscoverFilters): URLSearchParams {
   const sp = new URLSearchParams();
-  if (f.media === 'tv') sp.set('tipo', 'serie');
+  if (f.media === 'tv') sp.set('tipo', mediaTypeToTipo(f.media));
   if (f.genres.length) sp.set('generos', f.genres.join(','));
   if (f.yearFrom !== undefined) sp.set('de', String(f.yearFrom));
   if (f.yearTo !== undefined) sp.set('ate', String(f.yearTo));

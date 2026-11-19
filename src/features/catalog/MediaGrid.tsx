@@ -4,7 +4,9 @@ import { useInfiniteQuery } from '@tanstack/react-query';
 import { useEffect, useMemo, useRef } from 'react';
 import type { MediaSummary, Paginated } from '@/features/tmdb/types';
 import { Button } from '@/ui/Button';
+import { EmptyState } from '@/ui/EmptyState';
 import { Skeleton } from '@/ui/Skeleton';
+import { GRID_CLASS } from './GridSkeleton';
 import { PosterCard } from './PosterCard';
 
 const MAX_PAGE = 500;
@@ -65,9 +67,13 @@ export function MediaGrid({
     return () => observer.disconnect();
   }, [canLoad, fetchNextPage, data.pages.length]);
 
+  if (items.length === 0 && !hasNextPage) {
+    return <EmptyState title="Nada por aqui ainda." description="Volte mais tarde para ver novos títulos." />;
+  }
+
   return (
     <div>
-      <ul className="grid grid-cols-3 gap-3 sm:grid-cols-4 sm:gap-4 md:grid-cols-5 lg:grid-cols-6 xl:grid-cols-7 2xl:grid-cols-8">
+      <ul className={GRID_CLASS}>
         {items.map((item, i) => (
           <li key={`${item.mediaType}-${item.id}`}>
             <PosterCard item={item} priority={i < 6} />

@@ -36,7 +36,7 @@ describe('getMovieList', () => {
 
   it('now_playing: janela -120/+14 dias, votos >= 40, região BR, sem adultos', async () => {
     const req = respond('discover/movie', discoverMovies);
-    await getMovieList('now_playing');
+    await getMovieList('now_playing', 1);
     const p = req.url!.searchParams;
     expect(p.get('release_date.gte')).toBe('2026-07-20');
     expect(p.get('release_date.lte')).toBe('2026-12-01');
@@ -47,7 +47,7 @@ describe('getMovieList', () => {
 
   it('upcoming: +1 a +450 dias com lançamento tipo 2|3', async () => {
     const req = respond('discover/movie', discoverMovies);
-    await getMovieList('upcoming');
+    await getMovieList('upcoming', 1);
     const p = req.url!.searchParams;
     expect(p.get('release_date.gte')).toBe('2026-11-18');
     expect(p.get('release_date.lte')).toBe('2028-02-10');
@@ -64,7 +64,7 @@ describe('getMovieList', () => {
     ];
     for (const [list, expected] of cases) {
       const req = respond('discover/movie', discoverMovies);
-      await getMovieList(list);
+      await getMovieList(list, 1);
       for (const [k, v] of Object.entries(expected)) expect(req.url!.searchParams.get(k)).toBe(v);
       expect(req.url!.searchParams.get('include_adult')).toBe('false');
     }
@@ -72,7 +72,7 @@ describe('getMovieList', () => {
 
   it('popular usa movie/popular na região BR', async () => {
     const req = respond('movie/popular', discoverMovies);
-    const page = await getMovieList('popular');
+    const page = await getMovieList('popular', 1);
     expect(req.url!.searchParams.get('region')).toBe('BR');
     expect(page.results.length).toBeGreaterThan(0);
   });
@@ -81,7 +81,7 @@ describe('getMovieList', () => {
 describe('getTvList', () => {
   it('top_rated usa discover com votos >= 500 e sem adultos', async () => {
     const req = respond('discover/tv', { ...discoverMovies, results: [] });
-    await getTvList('top_rated');
+    await getTvList('top_rated', 1);
     expect(req.url!.searchParams.get('vote_count.gte')).toBe('500');
     expect(req.url!.searchParams.get('include_adult')).toBe('false');
   });
@@ -97,7 +97,7 @@ describe('getTvList', () => {
 describe('getTrending', () => {
   it('all mantém apenas filmes e séries', async () => {
     const req = respond('trending/all/day', trendingAll);
-    const page = await getTrending('all', 'day');
+    const page = await getTrending('all', 'day', 1);
     expect(page.results.length).toBeGreaterThan(0);
     expect(page.results.every((r) => r.mediaType === 'movie' || r.mediaType === 'tv')).toBe(true);
     expect(req.url!.searchParams.has('include_adult')).toBe(false);
@@ -105,7 +105,7 @@ describe('getTrending', () => {
 
   it('tv fixa o mediaType', async () => {
     respond('trending/tv/week', trendingTv);
-    const page = await getTrending('tv', 'week');
+    const page = await getTrending('tv', 'week', 1);
     expect(page.results.every((r) => r.mediaType === 'tv')).toBe(true);
   });
 });
@@ -113,7 +113,7 @@ describe('getTrending', () => {
 describe('searchMulti', () => {
   it('mapeia filmes, séries e pessoas e envia include_adult=false', async () => {
     const req = respond('search/multi', searchMatrix);
-    const page = await searchMulti('matrix');
+    const page = await searchMulti('matrix', 1);
     expect(req.url!.searchParams.get('query')).toBe('matrix');
     expect(req.url!.searchParams.get('include_adult')).toBe('false');
     expect(page.results.some((r) => r.mediaType === 'movie')).toBe(true);

@@ -2,13 +2,16 @@ import Link from 'next/link';
 import { cn } from '@/lib/cn';
 import { PAGE_CONTAINER } from '@/ui/container';
 import { NAV_ITEMS } from './nav';
+
+const FOOTER_LINKS = [...NAV_ITEMS.slice(0, 4), { href: '/generos', label: 'Gêneros' }, ...NAV_ITEMS.slice(4)];
 import { Wordmark } from './Wordmark';
 
 const external = { target: '_blank', rel: 'noopener noreferrer' } as const;
 
 export function Footer() {
   return (
-    <footer className="mt-24 border-t border-ink-600 bg-ink-900">
+    // Bottom padding clears the fixed mobile TabBar (h-14 + safe area), so the TMDb attribution stays visible.
+    <footer className="mt-24 border-t border-ink-600 bg-ink-900 pb-[calc(3.5rem+env(safe-area-inset-bottom))] md:pb-0">
       <div className={cn(PAGE_CONTAINER, 'grid gap-10 py-12 md:grid-cols-[1fr_auto_auto]')}>
         <div className="space-y-3">
           <Wordmark />
@@ -16,7 +19,7 @@ export function Footer() {
         </div>
         <nav aria-label="Rodapé">
           <ul className="space-y-2 text-sm">
-            {NAV_ITEMS.map((item) => (
+            {FOOTER_LINKS.map((item) => (
               <li key={item.href}>
                 <Link href={item.href} className="text-ivory-muted transition-colors hover:text-ivory">
                   {item.label}

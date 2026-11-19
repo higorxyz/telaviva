@@ -68,7 +68,7 @@ function listParams(list: Exclude<MovieListKey, 'popular'>): TmdbParams {
   }
 }
 
-export async function getMovieList(list: MovieListKey, page = 1): Promise<Paginated<MediaSummary>> {
+export async function getMovieList(list: MovieListKey, page: number): Promise<Paginated<MediaSummary>> {
   'use cache';
   cacheLife('tmdbHot');
   cacheTag('tmdb', `movie-list:${list}`);
@@ -89,7 +89,7 @@ const mixedPageSchema = pageSchema(z.unknown());
 export async function getTrending(
   media: MediaType | 'all',
   window: 'day' | 'week',
-  page = 1,
+  page: number,
 ): Promise<Paginated<MediaSummary>> {
   'use cache';
   cacheLife('tmdbHot');

@@ -5,23 +5,7 @@ export type CreditFilter = 'all' | 'acting' | 'crew';
 
 const NO_DATE = 'Sem data';
 
-const DEPARTMENTS: Record<string, string> = {
-  Acting: 'Atuação',
-  Directing: 'Direção',
-  Writing: 'Roteiro',
-  Production: 'Produção',
-  Sound: 'Som',
-  Camera: 'Fotografia',
-  Editing: 'Edição',
-  Art: 'Direção de arte',
-  'Costume & Make-Up': 'Figurino e maquiagem',
-  'Visual Effects': 'Efeitos visuais',
-  Crew: 'Equipe',
-};
-
-export function departmentLabel(d: string): string {
-  return DEPARTMENTS[d] ?? d;
-}
+export { departmentLabel } from '@/lib/people';
 
 /** Whole years between the birthday and the death date (or `today`). Dates are `YYYY-MM-DD`. */
 export function age(birthday: string, deathday: string | null, today: Date = new Date()): number {

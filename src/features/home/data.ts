@@ -8,10 +8,14 @@ import type { MediaSummary } from '@/features/tmdb/types';
 
 async function sources() {
   const [trending, popular, topRated] = await Promise.allSettled([
-    getTrending('all', 'day'),
-    getMovieList('popular'),
-    getMovieList('top_rated'),
+    getTrending('all', 'day', 1),
+    getMovieList('popular', 1),
+    getMovieList('top_rated', 1),
   ]);
+  // Every source down: throw, so ISR keeps the last good page instead of caching a blank home.
+  if ([trending, popular, topRated].every((r) => r.status === 'rejected')) {
+    throw new Error('[home] every featured source failed');
+  }
   const items = (r: PromiseSettledResult<{ results: MediaSummary[] }>) =>
     r.status === 'fulfilled' ? r.value.results : [];
   return [

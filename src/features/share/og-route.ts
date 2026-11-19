@@ -6,17 +6,11 @@ import { getMovieDetails } from '@/features/tmdb/movies';
 import { getPerson } from '@/features/tmdb/people';
 import { getTvDetails } from '@/features/tmdb/tv';
 import { formatYear } from '@/lib/format';
+import { departmentLabel } from '@/lib/people';
 import { brandCard, ogCard, type OgCardProps } from './og';
 import { toDataUri } from './og-assets';
 
 const joinParts = (...parts: (string | null | undefined)[]) => parts.filter(Boolean).join(' · ');
-
-const DEPARTMENTS: Record<string, string> = {
-  Acting: 'Atuação',
-  Directing: 'Direção',
-  Writing: 'Roteiro',
-  Production: 'Produção',
-};
 
 const loaders: Record<CanonicalKind, (id: number) => Promise<OgCardProps>> = {
   async filme(id) {
@@ -43,7 +37,7 @@ const loaders: Record<CanonicalKind, (id: number) => Promise<OgCardProps>> = {
     const p = await getPerson(id);
     return {
       title: p.name,
-      subtitle: DEPARTMENTS[p.knownForDepartment ?? ''] ?? p.knownForDepartment ?? 'Pessoa',
+      subtitle: p.knownForDepartment ? departmentLabel(p.knownForDepartment) : 'Pessoa',
       rating: null,
       backdrop: null,
       poster: tmdbImage(p.profilePath, 'w342'),

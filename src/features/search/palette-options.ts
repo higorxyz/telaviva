@@ -1,4 +1,5 @@
 import { formatYear } from '@/lib/format';
+import { departmentLabel } from '@/lib/people';
 import { mediaHref, personHref } from '@/lib/slug';
 import type { SearchItem } from '@/features/tmdb/types';
 
@@ -30,7 +31,7 @@ function toOption(item: SearchItem, id: string): PaletteOption {
       id,
       href: personHref(item),
       label: item.name,
-      hint: item.knownForDepartment ?? 'Pessoa',
+      hint: item.knownForDepartment ? departmentLabel(item.knownForDepartment) : 'Pessoa',
       image: item.profilePath,
       round: true,
     };

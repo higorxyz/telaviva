@@ -1,7 +1,8 @@
 import type { Metadata } from 'next';
 import { pageMeta } from '@/features/share/page-meta';
 import { Suspense } from 'react';
-import { HeroSection, HeroSkeleton, HomeRails, RailsSkeleton } from '@/features/home/HomeSections';
+import { RailsSkeleton } from '@/features/catalog/RailsSkeleton';
+import { HeroSection, HeroSkeleton, HomeRails } from '@/features/home/HomeSections';
 import { PAGE_CONTAINER } from '@/ui/container';
 import { cn } from '@/lib/cn';
 

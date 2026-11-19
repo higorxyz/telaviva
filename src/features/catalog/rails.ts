@@ -42,23 +42,24 @@ export function dedupeRails(
 export type Source = {
   id: string;
   title: RailInput['title'];
-  href: string;
+  /** Mixed movie+series rails have no list page, so no "Ver tudo". */
+  href?: string;
   fetch: () => Promise<Paginated<MediaSummary>>;
 };
 
 // Order is the dedupe priority.
 const SOURCES: Source[] = [
-  { id: 'bombando-hoje', title: { lead: 'Bombando', accent: 'hoje' }, href: '/filmes/em-alta', fetch: () => getTrending('all', 'day') },
-  { id: 'em-cartaz', title: { lead: 'Nos', accent: 'cinemas' }, href: '/filmes/em-cartaz', fetch: () => getMovieList('now_playing') },
-  { id: 'series-em-alta', title: { lead: 'Séries', accent: 'em alta' }, href: '/series/em-alta', fetch: () => getTrending('tv', 'week') },
-  { id: 'streaming-br', title: { lead: 'No streaming', accent: 'no Brasil' }, href: '/filmes/no-streaming', fetch: () => getMovieList('streaming_br') },
-  { id: 'series-no-ar', title: { lead: 'Séries', accent: 'no ar esta semana' }, href: '/series/em-exibicao', fetch: () => getTvList('on_the_air') },
-  { id: 'joias-escondidas', title: { lead: 'Joias', accent: 'escondidas' }, href: '/filmes/joias-escondidas', fetch: () => getMovieList('hidden_gems') },
-  { id: 'classicos-validados', title: { lead: 'Clássicos', accent: 'validados' }, href: '/filmes/mais-bem-avaliados', fetch: () => getMovieList('top_rated') },
-  { id: 'series-aclamadas', title: { lead: 'Séries', accent: 'aclamadas' }, href: '/series/mais-bem-avaliadas', fetch: () => getTvList('top_rated') },
-  { id: 'curtos-para-hoje', title: { lead: 'Curtos', accent: 'para hoje' }, href: '/filmes/curtos', fetch: () => getMovieList('short') },
-  { id: 'grandes-bilheterias', title: { lead: 'Grandes', accent: 'bilheterias' }, href: '/filmes/blockbusters', fetch: () => getMovieList('blockbusters') },
-  { id: 'em-breve', title: { lead: 'Em', accent: 'breve' }, href: '/filmes/em-breve', fetch: () => getMovieList('upcoming') },
+  { id: 'bombando-hoje', title: { lead: 'Bombando', accent: 'hoje' }, fetch: () => getTrending('all', 'day', 1) },
+  { id: 'em-cartaz', title: { lead: 'Nos', accent: 'cinemas' }, href: '/filmes/em-cartaz', fetch: () => getMovieList('now_playing', 1) },
+  { id: 'series-em-alta', title: { lead: 'Séries', accent: 'em alta' }, href: '/series/em-alta', fetch: () => getTrending('tv', 'week', 1) },
+  { id: 'streaming-br', title: { lead: 'No streaming', accent: 'no Brasil' }, href: '/filmes/no-streaming', fetch: () => getMovieList('streaming_br', 1) },
+  { id: 'series-no-ar', title: { lead: 'Séries', accent: 'no ar esta semana' }, href: '/series/em-exibicao', fetch: () => getTvList('on_the_air', 1) },
+  { id: 'joias-escondidas', title: { lead: 'Joias', accent: 'escondidas' }, href: '/filmes/joias-escondidas', fetch: () => getMovieList('hidden_gems', 1) },
+  { id: 'classicos-validados', title: { lead: 'Clássicos', accent: 'validados' }, href: '/filmes/mais-bem-avaliados', fetch: () => getMovieList('top_rated', 1) },
+  { id: 'series-aclamadas', title: { lead: 'Séries', accent: 'aclamadas' }, href: '/series/mais-bem-avaliadas', fetch: () => getTvList('top_rated', 1) },
+  { id: 'curtos-para-hoje', title: { lead: 'Curtos', accent: 'para hoje' }, href: '/filmes/curtos', fetch: () => getMovieList('short', 1) },
+  { id: 'grandes-bilheterias', title: { lead: 'Grandes', accent: 'bilheterias' }, href: '/filmes/blockbusters', fetch: () => getMovieList('blockbusters', 1) },
+  { id: 'em-breve', title: { lead: 'Em', accent: 'breve' }, href: '/filmes/em-breve', fetch: () => getMovieList('upcoming', 1) },
 ];
 
 /** Loads every source; a rejected one drops only its own rail (logged under `scope`). Sources are cached, this is not. */
@@ -73,6 +74,12 @@ export async function settleRails(sources: Source[], scope: string): Promise<Rai
     }
     rails.push({ id: source.id, title: source.title, href: source.href, items: result.value.results });
   });
+  return rails;
+}
+
+/** Zero rails means TMDb is down: throw so ISR keeps the last good page and a cold miss shows error.tsx. */
+export function requireRails<T>(rails: T[], scope: string): T[] {
+  if (rails.length === 0) throw new Error(`[${scope}] no rail could be loaded`);
   return rails;
 }
 

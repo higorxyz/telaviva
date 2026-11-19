@@ -73,6 +73,7 @@ export function ProviderPicker({
           );
         })}
       </div>
+      <p className="mt-2 font-sans text-xs text-ivory-muted">Dados de streaming fornecidos por JustWatch.</p>
     </div>
   );
 }

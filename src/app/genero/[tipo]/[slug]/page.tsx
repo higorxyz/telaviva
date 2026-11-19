@@ -1,5 +1,6 @@
 import type { Metadata } from 'next';
 import { Suspense } from 'react';
+import { GridSkeleton } from '@/features/catalog/GridSkeleton';
 import { MediaGrid } from '@/features/catalog/MediaGrid';
 import { PageHeader } from '@/features/catalog/PageHeader';
 import { parseFilters, toTmdbParams } from '@/features/discover/filters';
@@ -10,7 +11,6 @@ import { getGenres } from '@/features/tmdb/genres';
 import { OG_BASE } from '@/features/share/page-meta';
 import { genreHref } from '@/lib/slug';
 import { PAGE_CONTAINER } from '@/ui/container';
-import { Skeleton } from '@/ui/Skeleton';
 
 type Props = PageProps<'/genero/[tipo]/[slug]'>;
 
@@ -35,19 +35,6 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     alternates: { canonical: href },
     openGraph: { type: 'website', ...OG_BASE, title, description, url: href },
   };
-}
-
-function GridSkeleton() {
-  return (
-    <ul aria-hidden="true" className="grid grid-cols-3 gap-3 sm:grid-cols-4 sm:gap-4 md:grid-cols-5 lg:grid-cols-6 xl:grid-cols-7 2xl:grid-cols-8">
-      {Array.from({ length: 16 }, (_, i) => (
-        <li key={i}>
-          <Skeleton className="aspect-[2/3] w-full rounded-lg" />
-          <Skeleton className="mt-2 h-4 w-3/4" />
-        </li>
-      ))}
-    </ul>
-  );
 }
 
 export default async function GeneroPage({ params }: Props) {

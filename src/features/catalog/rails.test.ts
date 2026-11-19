@@ -5,7 +5,8 @@ import trendingAll from '@/test/fixtures/trending-all-day.json';
 import trendingTv from '@/test/fixtures/trending-tv-week.json';
 import { movie, tv } from '@/test/media';
 import { server } from '@/test/server';
-import { buildHomeRails, dedupeRails, type RailInput } from './rails';
+import { getFeatured } from '@/features/home/data';
+import { buildHomeRails, dedupeRails, requireRails, type RailInput } from './rails';
 
 const BASE = 'https://api.themoviedb.org/3';
 const many = (from: number, n: number, make = movie) => Array.from({ length: n }, (_, i) => make({ id: from + i }));
@@ -80,5 +81,32 @@ describe('buildHomeRails', () => {
     const keys = rails.flatMap((r) => r.items.map((i) => `${i.mediaType}:${i.id}`));
     expect(new Set(keys).size).toBe(keys.length);
     expect(keys).not.toContain('movie:1263337');
+  });
+});
+
+describe('falha total do TMDb', () => {
+  it('requireRails lança quando nenhum trilho sobrou (ISR mantém a última página boa)', () => {
+    expect(() => requireRails([], 'home')).toThrow(/no rail/);
+    expect(requireRails([1], 'home')).toEqual([1]);
+  });
+
+  it('getFeatured lança quando todas as fontes falham, em vez de cachear uma home vazia', async () => {
+    const spy = vi.spyOn(console, 'error').mockImplementation(() => {});
+    server.use(
+      http.get(`${BASE}/trending/all/day`, () => new HttpResponse(null, { status: 500 })),
+      http.get(`${BASE}/movie/popular`, () => new HttpResponse(null, { status: 500 })),
+      http.get(`${BASE}/discover/movie`, () => new HttpResponse(null, { status: 500 })),
+    );
+    await expect(getFeatured()).rejects.toThrow(/every featured source failed/);
+    spy.mockRestore();
+  });
+
+  it('sem nenhuma fonte, buildHomeRails volta vazio e requireRails transforma isso em erro', async () => {
+    const spy = vi.spyOn(console, 'error').mockImplementation(() => {});
+    server.use(http.get(`${BASE}/*`, () => new HttpResponse(null, { status: 503 })));
+    const rails = await buildHomeRails();
+    expect(rails).toEqual([]);
+    expect(() => requireRails(rails, 'home')).toThrow();
+    spy.mockRestore();
   });
 });

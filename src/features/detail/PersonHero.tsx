@@ -1,16 +1,8 @@
 import type { ReactNode } from 'react';
 import { tmdbImage } from '@/features/tmdb/images';
 import type { PersonDetails } from '@/features/tmdb/types';
+import { initials } from '@/lib/people';
 import { AccentTitle } from '@/ui/AccentTitle';
-
-function initials(name: string): string {
-  return name
-    .split(/\s+/)
-    .filter(Boolean)
-    .slice(0, 2)
-    .map((w) => w[0]!.toUpperCase())
-    .join('');
-}
 
 export function PersonPhoto({ person }: { person: Pick<PersonDetails, 'name' | 'profilePath'> }) {
   const src = tmdbImage(person.profilePath, 'h632');

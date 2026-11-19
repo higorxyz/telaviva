@@ -66,4 +66,10 @@ describe('MediaGrid', () => {
     expect(screen.getByText('Você chegou ao fim')).toBeInTheDocument();
     expect(screen.queryByRole('button', { name: 'Carregar mais' })).toBeNull();
   });
+
+  it('shows an empty state instead of the end message when the first page is empty', () => {
+    renderGrid(page(1, 1, []));
+    expect(screen.getByRole('heading', { name: 'Nada por aqui ainda.' })).toBeInTheDocument();
+    expect(screen.queryByText('Você chegou ao fim')).toBeNull();
+  });
 });

@@ -24,7 +24,8 @@ describe('departmentLabel', () => {
   it('maps known departments and passes others through', () => {
     expect(departmentLabel('Directing')).toBe('Direção');
     expect(departmentLabel('Costume & Make-Up')).toBe('Figurino e maquiagem');
-    expect(departmentLabel('Lighting')).toBe('Lighting');
+    expect(departmentLabel('Lighting')).toBe('Iluminação');
+    expect(departmentLabel('Unknown')).toBe('Unknown');
   });
 });
 

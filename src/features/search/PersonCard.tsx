@@ -1,16 +1,8 @@
 import Link from 'next/link';
 import { tmdbImage } from '@/features/tmdb/images';
 import type { PersonSummary } from '@/features/tmdb/types';
+import { departmentLabel, initials } from '@/lib/people';
 import { personHref } from '@/lib/slug';
-
-function initials(name: string): string {
-  return name
-    .split(/\s+/)
-    .filter(Boolean)
-    .slice(0, 2)
-    .map((w) => w[0]!.toUpperCase())
-    .join('');
-}
 
 export function PersonCard({ person }: { person: PersonSummary }) {
   const src = tmdbImage(person.profilePath, 'w185');
@@ -29,7 +21,7 @@ export function PersonCard({ person }: { person: PersonSummary }) {
         )}
       </span>
       <span className="line-clamp-2 text-sm font-medium text-ivory">{person.name}</span>
-      {person.knownForDepartment ? <span className="text-xs text-ivory-muted">{person.knownForDepartment}</span> : null}
+      {person.knownForDepartment ? <span className="text-xs text-ivory-muted">{departmentLabel(person.knownForDepartment)}</span> : null}
     </Link>
   );
 }

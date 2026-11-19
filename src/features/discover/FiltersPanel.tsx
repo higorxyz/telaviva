@@ -36,11 +36,13 @@ export function FiltersPanel({
       <VotesSelect f={draft} patch={patch} />
       {draft.media === 'movie' ? <RuntimeSlider f={draft} patch={patch} /> : null}
       <LanguageSelect f={draft} patch={patch} />
-      <ProviderPicker
-        providers={catalog.providers[draft.media]}
-        selected={draft.providers}
-        onChange={(providers) => patch({ providers })}
-      />
+      {catalog.providers[draft.media].length > 0 ? (
+        <ProviderPicker
+          providers={catalog.providers[draft.media]}
+          selected={draft.providers}
+          onChange={(providers) => patch({ providers })}
+        />
+      ) : null}
       <SortSelect f={draft} patch={patch} />
       <div className="sticky bottom-0 -mx-1 bg-ink-900 px-1 py-3">
         <Button type="submit" variant="primary" className="w-full">

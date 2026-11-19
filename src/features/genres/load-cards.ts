@@ -12,7 +12,7 @@ export async function loadGenreCards(media: MediaType): Promise<GenreCardData[]>
   const genres = await getGenres(media);
   return Promise.all(
     genres.map(async (g) => {
-      const page = await discover(media, toTmdbParams(parseFilters(new URLSearchParams({ tipo: tipoOf(media), generos: String(g.id) })))).catch(() => null);
+      const page = await discover(media, toTmdbParams(parseFilters(new URLSearchParams({ tipo: tipoOf(media), generos: String(g.id) }))), 1).catch(() => null);
       return {
         id: g.id,
         name: g.name,

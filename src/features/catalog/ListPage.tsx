@@ -1,7 +1,7 @@
 import { notFound } from 'next/navigation';
 import { Suspense } from 'react';
-import { Skeleton } from '@/ui/Skeleton';
 import { PAGE_CONTAINER } from '@/ui/container';
+import { GridSkeleton } from './GridSkeleton';
 import { MediaGrid } from './MediaGrid';
 import { PageHeader } from './PageHeader';
 import { CATALOG_LISTS } from './lists';
@@ -18,19 +18,6 @@ export function listIdsOf(kind: Kind): string[] {
 export function listMeta(kind: Kind, lista: string) {
   const id = `${kind}/${lista}`;
   return isCatalogListId(id) ? CATALOG_LIST_META[id] : null;
-}
-
-function GridSkeleton() {
-  return (
-    <ul aria-hidden="true" className="grid grid-cols-3 gap-3 sm:grid-cols-4 sm:gap-4 md:grid-cols-5 lg:grid-cols-6 xl:grid-cols-7 2xl:grid-cols-8">
-      {Array.from({ length: 16 }, (_, i) => (
-        <li key={i}>
-          <Skeleton className="aspect-[2/3] w-full rounded-lg" />
-          <Skeleton className="mt-2 h-4 w-3/4" />
-        </li>
-      ))}
-    </ul>
-  );
 }
 
 /** Full list page: header plus an infinite grid seeded with the first page. */

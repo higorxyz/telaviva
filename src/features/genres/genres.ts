@@ -1,5 +1,5 @@
 import type { Genre, MediaType } from '@/features/tmdb/types';
-import { parseIdFromSlug } from '@/lib/slug';
+import { mediaTypeToTipo, parseIdFromSlug } from '@/lib/slug';
 
 export type Tipo = 'filme' | 'serie';
 
@@ -8,9 +8,7 @@ export function mediaOfTipo(tipo: string): MediaType | null {
   return tipo === 'filme' ? 'movie' : tipo === 'serie' ? 'tv' : null;
 }
 
-export function tipoOf(media: MediaType): Tipo {
-  return media === 'movie' ? 'filme' : 'serie';
-}
+export const tipoOf: (media: MediaType) => Tipo = mediaTypeToTipo;
 
 /** Looks a genre up by the id in its `${id}-${slug}` segment; the name part is ignored (the page redirects to the canonical one). */
 export function findGenre(genres: Genre[], slug: string): Genre | null {

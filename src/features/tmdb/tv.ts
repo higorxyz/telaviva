@@ -10,7 +10,7 @@ import type { MediaSummary, Paginated, SeasonDetails, TvDetails } from './types'
 
 export type TvListKey = 'airing_today' | 'on_the_air' | 'popular' | 'top_rated';
 
-export async function getTvList(list: TvListKey, page = 1): Promise<Paginated<MediaSummary>> {
+export async function getTvList(list: TvListKey, page: number): Promise<Paginated<MediaSummary>> {
   'use cache';
   cacheLife('tmdbHot');
   cacheTag('tmdb', `tv-list:${list}`);

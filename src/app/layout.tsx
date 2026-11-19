@@ -49,7 +49,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           </a>
           <Grain />
           <Header />
-          <main id="conteudo" className="pb-20 md:pb-0">
+          <main id="conteudo">
             {children}
           </main>
           <Footer />

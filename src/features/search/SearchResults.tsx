@@ -6,7 +6,8 @@ import { PosterCard } from '@/features/catalog/PosterCard';
 import type { SearchItem } from '@/features/tmdb/types';
 import { Button } from '@/ui/Button';
 import { EmptyState } from '@/ui/EmptyState';
-import { Skeleton } from '@/ui/Skeleton';
+import { ErrorState } from '@/ui/ErrorState';
+import { GridSkeleton } from '@/features/catalog/GridSkeleton';
 import { fetchSearchPage } from './api';
 import { PersonCard } from './PersonCard';
 import { saveRecent } from './recent';
@@ -14,6 +15,7 @@ import { saveRecent } from './recent';
 export type SearchTab = 'all' | 'movie' | 'tv' | 'person';
 
 const MAX_PAGE = 500;
+const MEDIA_GRID = 'grid grid-cols-3 gap-3 sm:grid-cols-4 sm:gap-4 md:grid-cols-5 lg:grid-cols-6 xl:grid-cols-7';
 const MAX_AUTO_LOADS = 3;
 
 const EMPTY_COPY: Record<SearchTab, (q: string) => string> = {
@@ -79,12 +81,13 @@ export function SearchResults({ query, tab }: { query: string; tab: SearchTab })
     void fetchNextPage();
   };
 
-  if (isPending) return <ResultsSkeleton />;
+  if (isPending) return <GridSkeleton count={14} className={MEDIA_GRID} />;
   if (isError && !data) {
     return (
-      <EmptyState
+      <ErrorState
         title="Não foi possível buscar agora"
-        action={<Button variant="ghost" onClick={() => void refetch()}>Tentar novamente</Button>}
+        description="Verifique sua conexão e tente de novo."
+        onRetry={() => void refetch()}
       />
     );
   }
@@ -117,7 +120,7 @@ export function SearchResults({ query, tab }: { query: string; tab: SearchTab })
         className={
           tab === 'person'
             ? 'grid grid-cols-2 gap-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6'
-            : 'grid grid-cols-3 gap-3 sm:grid-cols-4 sm:gap-4 md:grid-cols-5 lg:grid-cols-6 xl:grid-cols-7'
+            : MEDIA_GRID
         }
       >
         {items.map((item, i) => (
@@ -134,18 +137,5 @@ export function SearchResults({ query, tab }: { query: string; tab: SearchTab })
         ) : null}
       </div>
     </div>
-  );
-}
-
-function ResultsSkeleton() {
-  return (
-    <ul aria-hidden="true" className="grid grid-cols-3 gap-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 xl:grid-cols-7">
-      {Array.from({ length: 14 }, (_, i) => (
-        <li key={i}>
-          <Skeleton className="aspect-[2/3] w-full rounded-lg" />
-          <Skeleton className="mt-2 h-4 w-3/4" />
-        </li>
-      ))}
-    </ul>
   );
 }

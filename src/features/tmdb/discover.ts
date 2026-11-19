@@ -23,7 +23,8 @@ export async function fetchDiscover(
 export async function discover(
   media: MediaType,
   params: TmdbParams,
-  page = 1,
+  /** Always explicit: 'use cache' keys on the passed arguments, so callers must agree on it. */
+  page: number,
 ): Promise<Paginated<MediaSummary>> {
   'use cache';
   cacheLife('tmdbHot');

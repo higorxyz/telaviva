@@ -11,4 +11,13 @@ describe('TabBar', () => {
     expect(screen.getAllByRole('link')).toHaveLength(5);
     expect(screen.getByRole('link', { name: 'Filmes' })).toHaveAttribute('aria-current', 'page');
   });
+
+  it('marks the active tab with more than color: an indicator bar and a bold label', () => {
+    render(<TabBar />);
+    const active = screen.getByRole('link', { name: 'Filmes' });
+    expect(screen.getAllByTestId('tab-indicator')).toHaveLength(1);
+    expect(active).toContainElement(screen.getByTestId('tab-indicator'));
+    expect(active).toHaveClass('font-bold');
+    expect(screen.getByRole('link', { name: 'Séries' })).not.toHaveClass('font-bold');
+  });
 });
