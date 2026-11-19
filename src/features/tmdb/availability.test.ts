@@ -1,13 +1,15 @@
 import { http, HttpResponse } from 'msw';
-import { describe, expect, it, vi } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { movie, tv } from '@/test/media';
 import { onlyEvenAvailableInBr } from '@/test/providers';
 import { server } from '@/test/server';
 import {
+  availabilityInBr,
   BR_AVAILABLE_MONETIZATION,
   brAvailabilityParams,
   filterAvailableInBr,
-  isAvailableInBr,
+  MAX_PROVIDER_LOOKUPS_IN_FLIGHT,
+  screenAvailableInBr,
 } from './availability';
 
 const BASE = 'https://api.themoviedb.org/3';
@@ -16,6 +18,13 @@ const provider = { provider_id: 8, provider_name: 'Netflix', logo_path: '/n.png'
 function providersFor(media: 'movie' | 'tv', id: number, results: Record<string, unknown>) {
   server.use(http.get(`${BASE}/${media}/${id}/watch/providers`, () => HttpResponse.json({ id, results })));
 }
+const failWith = (status: number, headers?: Record<string, string>) => () =>
+  HttpResponse.json({ status_message: 'x' }, { status, headers });
+
+beforeEach(() => {
+  vi.spyOn(console, 'error').mockImplementation(() => {});
+});
+afterEach(() => vi.restoreAllMocks());
 
 describe('brAvailabilityParams', () => {
   it('asks for any BR offer: subscription, free, ads, rent or buy', () => {
@@ -27,8 +36,8 @@ describe('brAvailabilityParams', () => {
   });
 });
 
-describe('isAvailableInBr', () => {
-  it('is true when BR has a rent offer, and asks in pt-BR', async () => {
+describe('availabilityInBr', () => {
+  it('is yes when BR has a rent offer, and asks in pt-BR', async () => {
     const seen: { url?: URL } = {};
     server.use(
       http.get(`${BASE}/movie/5001/watch/providers`, ({ request }) => {
@@ -36,45 +45,51 @@ describe('isAvailableInBr', () => {
         return HttpResponse.json({ id: 5001, results: { BR: { link: 'x', rent: [provider] } } });
       }),
     );
-    expect(await isAvailableInBr('movie', 5001)).toBe(true);
+    expect(await availabilityInBr('movie', 5001)).toBe('yes');
     expect(seen.url!.searchParams.get('language')).toBe('pt-BR');
   });
 
-  it('is true for a series with only a free offer', async () => {
+  it('is yes for a series with only a free offer', async () => {
     providersFor('tv', 5002, { BR: { free: [provider] } });
-    expect(await isAvailableInBr('tv', 5002)).toBe(true);
+    expect(await availabilityInBr('tv', 5002)).toBe('yes');
   });
 
-  it('is false when BR only has empty lists', async () => {
+  it('is no when BR only has empty lists, or only other regions have offers', async () => {
     providersFor('movie', 5003, { BR: { link: 'x', flatrate: [], rent: [], buy: [] } });
-    expect(await isAvailableInBr('movie', 5003)).toBe(false);
-  });
-
-  it('is false when only other regions have offers', async () => {
     providersFor('movie', 5004, { US: { flatrate: [provider] }, PT: { buy: [provider] } });
-    expect(await isAvailableInBr('movie', 5004)).toBe(false);
+    expect(await availabilityInBr('movie', 5003)).toBe('no');
+    expect(await availabilityInBr('movie', 5004)).toBe('no');
   });
 
-  it('is false on a TMDb 404 or a server error, never throwing', async () => {
-    const errors = vi.spyOn(console, 'error').mockImplementation(() => {});
+  it('is no on a TMDb 404, and unknown (logged, never thrown) on a failure or a lasting 429', async () => {
     server.use(
-      http.get(`${BASE}/movie/5005/watch/providers`, () => HttpResponse.json({ status_message: 'nf' }, { status: 404 })),
-      http.get(`${BASE}/movie/5006/watch/providers`, () => HttpResponse.json({ status_message: 'boom' }, { status: 500 })),
+      http.get(`${BASE}/movie/5005/watch/providers`, failWith(404)),
+      http.get(`${BASE}/movie/5006/watch/providers`, failWith(500)),
+      http.get(`${BASE}/movie/5007/watch/providers`, failWith(429, { 'retry-after': '0' })),
     );
-    expect(await isAvailableInBr('movie', 5005)).toBe(false);
-    expect(await isAvailableInBr('movie', 5006)).toBe(false);
-    // Only the real failure is logged; a 404 just means TMDb has no such title.
-    expect(errors).toHaveBeenCalledTimes(1);
-    errors.mockRestore();
+    expect(await availabilityInBr('movie', 5005)).toBe('no');
+    expect(await availabilityInBr('movie', 5006)).toBe('unknown');
+    expect(await availabilityInBr('movie', 5007)).toBe('unknown');
+    expect(console.error).toHaveBeenCalledTimes(2);
   });
 });
 
-describe('filterAvailableInBr', () => {
+describe('screenAvailableInBr / filterAvailableInBr', () => {
   it('keeps only available titles, in their original order, for movies and series', async () => {
     onlyEvenAvailableInBr();
     const items = [movie({ id: 12 }), tv({ id: 7 }), tv({ id: 4 }), movie({ id: 3 }), movie({ id: 2 })];
     const result = await filterAvailableInBr(items);
     expect(result.map((i) => `${i.mediaType}:${i.id}`)).toEqual(['movie:12', 'tv:4', 'movie:2']);
+    expect(await screenAvailableInBr(items)).toEqual({ items: result, unknown: false });
+  });
+
+  it('fails open: a title whose lookup failed is kept, and the screen reports it', async () => {
+    onlyEvenAvailableInBr();
+    server.use(http.get(`${BASE}/movie/9/watch/providers`, failWith(500)));
+    const items = [movie({ id: 2 }), movie({ id: 9 }), movie({ id: 3 })];
+    const screened = await screenAvailableInBr(items);
+    expect(screened.items.map((i) => i.id)).toEqual([2, 9]);
+    expect(screened.unknown).toBe(true);
   });
 
   it('respects limit and stops asking once it is reached', async () => {
@@ -86,7 +101,7 @@ describe('filterAvailableInBr', () => {
     expect(asked).toHaveLength(10);
   });
 
-  it('asks at most 10 titles at a time', async () => {
+  it(`keeps at most ${MAX_PROVIDER_LOOKUPS_IN_FLIGHT} provider lookups in flight, across parallel callers`, async () => {
     let inFlight = 0;
     let peak = 0;
     server.use(
@@ -98,9 +113,12 @@ describe('filterAvailableInBr', () => {
         return HttpResponse.json({ id: Number(params.id), results: { BR: { flatrate: [provider] } } });
       }),
     );
-    const items = Array.from({ length: 25 }, (_, i) => movie({ id: 300 + i }));
-    expect(await filterAvailableInBr(items)).toHaveLength(25);
-    expect(peak).toBeLessThanOrEqual(10);
+    const list = (from: number) => Array.from({ length: 25 }, (_, i) => movie({ id: from + i }));
+    const [a, b, c] = await Promise.all([filterAvailableInBr(list(300)), filterAvailableInBr(list(400)), filterAvailableInBr(list(500))]);
+    expect([a.length, b.length, c.length]).toEqual([25, 25, 25]);
+    expect(MAX_PROVIDER_LOOKUPS_IN_FLIGHT).toBe(8);
+    expect(peak).toBeLessThanOrEqual(8);
+    expect(peak).toBeGreaterThan(1);
   });
 
   it('returns an empty list for no input or a zero limit', async () => {

@@ -1,6 +1,6 @@
 import { cacheLife, cacheTag } from 'next/cache';
 import { sortByWeightedRating } from '@/features/catalog/curation';
-import { availablePage, brAvailabilityParams, withAvailableRecommendations } from './availability';
+import { availablePage, brAvailabilityParams, screenedCacheLife, withAvailableRecommendations } from './availability';
 import { isTmdbNotFound, TmdbError, tmdbFetch } from './client';
 import { toEpisode, toTvDetails } from './detail-mappers';
 import { overviewOnlySchema, seasonSchema, tvDetailSchema } from './detail-schemas';
@@ -13,9 +13,9 @@ export type TvListKey = 'airing_today' | 'on_the_air' | 'popular' | 'top_rated';
 
 export async function getTvList(list: TvListKey, page: number): Promise<Paginated<MediaSummary>> {
   'use cache';
-  cacheLife('tmdbHot');
   cacheTag('tmdb', `tv-list:${list}`);
   if (list === 'top_rated') {
+    cacheLife('tmdbHot');
     const result = await fetchDiscover(
       'tv',
       { 'vote_count.gte': 500, sort_by: 'vote_average.desc', ...brAvailabilityParams() },
@@ -29,7 +29,9 @@ export async function getTvList(list: TvListKey, page: number): Promise<Paginate
     tvPageSchema,
   );
   // These endpoints have no watch filter: the feed post-filters them to titles available in Brazil.
-  return availablePage(toPaginated(raw, (r) => toMediaSummary(r, 'tv')));
+  const screened = await availablePage(toPaginated(raw, (r) => toMediaSummary(r, 'tv')));
+  screenedCacheLife(screened.unknown, 'tmdbHot');
+  return screened.page;
 }
 
 const TV_APPEND = 'videos,aggregate_credits,content_ratings,watch/providers,recommendations';
@@ -52,13 +54,13 @@ async function loadTvDetails(id: number): Promise<TvDetails | null> {
       cacheLife('tmdbDetail');
       return null;
     }
-    const tv = await withAvailableRecommendations(
+    const screened = await withAvailableRecommendations(
       await withOverviewFallback(toTvDetails(raw), () =>
         tmdbFetch(`tv/${id}`, { language: 'en-US' }, overviewOnlySchema),
       ),
     );
-    cacheLife('tmdbDetail');
-    return tv;
+    screenedCacheLife(screened.unknown, 'tmdbDetail');
+    return screened.details;
   } catch (error) {
     if (isTmdbNotFound(error)) {
       // A transient 404 must not stick for the full detail lifetime.

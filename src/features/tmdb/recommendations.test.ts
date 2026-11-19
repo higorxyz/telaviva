@@ -17,7 +17,7 @@ describe('getRecommendationsFor', () => {
         return HttpResponse.json(moviePage as Record<string, unknown>);
       }),
     );
-    const result = await getRecommendationsFor('movie', 9101);
+    const result = await getRecommendationsFor('movie', 9101, 20);
     expect(result.length).toBeGreaterThan(0);
     expect(result.every((r) => r.mediaType === 'movie')).toBe(true);
     expect(seen.url!.searchParams.get('page')).toBe('1');
@@ -26,7 +26,7 @@ describe('getRecommendationsFor', () => {
 
   it('maps tv results with mediaType tv', async () => {
     server.use(http.get(`${BASE}/tv/9102/recommendations`, () => HttpResponse.json(tvPage as Record<string, unknown>)));
-    const result = await getRecommendationsFor('tv', 9102);
+    const result = await getRecommendationsFor('tv', 9102, 20);
     expect(result.length).toBeGreaterThan(0);
     expect(result.every((r) => r.mediaType === 'tv')).toBe(true);
   });
@@ -34,7 +34,7 @@ describe('getRecommendationsFor', () => {
   it('filters adult results', async () => {
     const page = { ...moviePage, results: moviePage.results.map((r, i) => (i === 0 ? { ...r, adult: true } : r)) };
     server.use(http.get(`${BASE}/movie/9103/recommendations`, () => HttpResponse.json(page as Record<string, unknown>)));
-    const result = await getRecommendationsFor('movie', 9103);
+    const result = await getRecommendationsFor('movie', 9103, 20);
     expect(result.map((r) => r.id)).not.toContain(moviePage.results[0]!.id);
     expect(result).toHaveLength(moviePage.results.length - 1);
   });
@@ -42,7 +42,7 @@ describe('getRecommendationsFor', () => {
   it('keeps only titles available in Brazil, in order', async () => {
     onlyEvenAvailableInBr();
     server.use(http.get(`${BASE}/movie/9105/recommendations`, () => HttpResponse.json(moviePage as Record<string, unknown>)));
-    const result = await getRecommendationsFor('movie', 9105);
+    const result = await getRecommendationsFor('movie', 9105, 20);
     expect(result.length).toBeGreaterThan(0);
     expect(result.map((r) => r.id)).toEqual(moviePage.results.map((r) => r.id).filter((id) => id % 2 === 0));
   });
@@ -51,6 +51,6 @@ describe('getRecommendationsFor', () => {
     server.use(
       http.get(`${BASE}/movie/9104/recommendations`, () => HttpResponse.json({ status_message: 'nf' }, { status: 404 })),
     );
-    expect(await getRecommendationsFor('movie', 9104)).toEqual([]);
+    expect(await getRecommendationsFor('movie', 9104, 20)).toEqual([]);
   });
 });

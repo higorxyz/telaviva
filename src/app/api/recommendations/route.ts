@@ -7,6 +7,9 @@ import { getRecommendationsFor } from '@/features/tmdb/recommendations';
 import type { MediaSummary } from '@/features/tmdb/types';
 
 const MIN_RESULTS = 10;
+/** Seeds asked at once, and available titles kept per seed: bounds the provider lookups one request can start. */
+const SEED_BATCH = 4;
+const RECS_PER_SEED = 10;
 
 const bodySchema = z.object({
   seeds: z
@@ -39,7 +42,13 @@ export async function POST(request: Request) {
   const seeds: Seed[] = parsed.data.seeds;
   const exclude = new Set(parsed.data.exclude);
 
-  const settled = await Promise.allSettled(seeds.map((s) => getRecommendationsFor(s.mediaType, s.tmdbId)));
+  const settled: PromiseSettledResult<MediaSummary[]>[] = [];
+  for (let start = 0; start < seeds.length; start += SEED_BATCH) {
+    const batch = seeds.slice(start, start + SEED_BATCH);
+    settled.push(
+      ...(await Promise.allSettled(batch.map((s) => getRecommendationsFor(s.mediaType, s.tmdbId, RECS_PER_SEED)))),
+    );
+  }
   const bySeed = new Map<string, MediaSummary[]>();
   settled.forEach((outcome, i) => {
     const s = seeds[i]!;

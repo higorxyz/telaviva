@@ -1,7 +1,7 @@
 import { cacheLife, cacheTag } from 'next/cache';
 import { z } from 'zod';
 import { refine, sortByWeightedRating } from '@/features/catalog/curation';
-import { availablePage, brAvailabilityParams, withAvailableRecommendations } from './availability';
+import { availablePage, brAvailabilityParams, screenedCacheLife, withAvailableRecommendations } from './availability';
 import { isTmdbNotFound, TmdbError, tmdbFetch, type TmdbParams } from './client';
 import { saoPauloIsoDate } from './dates';
 import { toMovieDetails } from './detail-mappers';
@@ -76,14 +76,19 @@ function listParams(list: Exclude<MovieListKey, 'popular'>): TmdbParams {
 
 export async function getMovieList(list: MovieListKey, page: number): Promise<Paginated<MediaSummary>> {
   'use cache';
-  cacheLife('tmdbHot');
   cacheTag('tmdb', `movie-list:${list}`);
   if (list === 'popular') {
     const raw = await tmdbFetch('movie/popular', { region: 'BR', page }, moviePageSchema);
     const result = toPaginated(raw, (r) => toMediaSummary(r, 'movie'));
     // movie/popular has no watch filter, so its page is post-filtered (after refine: fewer titles to ask about).
-    return availablePage({ ...result, results: refine(result.results, { requireImage: true, minOverviewLength: 20 }) });
+    const screened = await availablePage({
+      ...result,
+      results: refine(result.results, { requireImage: true, minOverviewLength: 20 }),
+    });
+    screenedCacheLife(screened.unknown, 'tmdbHot');
+    return screened.page;
   }
+  cacheLife('tmdbHot');
   const result = await fetchDiscover('movie', listParams(list), page);
   if (list === 'top_rated') return { ...result, results: sortByWeightedRating(result.results) };
   // Unreleased titles often lack a synopsis, so upcoming only requires an image.
@@ -99,7 +104,6 @@ export async function getTrending(
   page: number,
 ): Promise<Paginated<MediaSummary>> {
   'use cache';
-  cacheLife('tmdbHot');
   cacheTag('tmdb', `trending:${media}`);
   // trending does not accept include_adult.
   const raw = await tmdbFetch(`trending/${media}/${window}`, { page }, mixedPageSchema);
@@ -109,7 +113,9 @@ export async function getTrending(
     )
     .filter((i): i is MediaSummary => i !== null);
   // Trending has no watch filter: the feed post-filters it to titles available in Brazil.
-  return availablePage({ page: raw.page, totalPages: raw.total_pages, totalResults: raw.total_results, results });
+  const screened = await availablePage({ page: raw.page, totalPages: raw.total_pages, totalResults: raw.total_results, results });
+  screenedCacheLife(screened.unknown, 'tmdbHot');
+  return screened.page;
 }
 
 const MOVIE_APPEND = 'videos,credits,release_dates,watch/providers,recommendations,external_ids';
@@ -132,13 +138,13 @@ async function loadMovieDetails(id: number): Promise<MovieDetails | null> {
       cacheLife('tmdbDetail');
       return null;
     }
-    const movie = await withAvailableRecommendations(
+    const screened = await withAvailableRecommendations(
       await withOverviewFallback(toMovieDetails(raw), () =>
         tmdbFetch(`movie/${id}`, { language: 'en-US' }, overviewOnlySchema),
       ),
     );
-    cacheLife('tmdbDetail');
-    return movie;
+    screenedCacheLife(screened.unknown, 'tmdbDetail');
+    return screened.details;
   } catch (error) {
     if (isTmdbNotFound(error)) {
       // A transient 404 must not stick for the full detail lifetime.

@@ -7,65 +7,109 @@ import type { MediaSummary, MediaType, Paginated } from './types';
 // The constant lives in a client-safe module (the Descobrir filters need it in the browser); this is its entry point.
 export { BR_AVAILABLE_MONETIZATION, brAvailabilityParams } from './availability-params';
 
+export type Availability = 'yes' | 'no' | 'unknown';
+
 /** The offer lists that count, derived from the constant so the post-filter and discover never disagree. */
 const KINDS = BR_AVAILABLE_MONETIZATION.split('|');
 const CHUNK = 10;
+/** Provider lookups in flight per server instance, across every caller (TMDb allows about 40 requests/s per IP). */
+export const MAX_PROVIDER_LOOKUPS_IN_FLIGHT = 8;
 
 // Only BR matters; anything malformed there reads as "no offers" instead of failing the whole answer.
 const providersSchema = z.object({
   results: z.object({ BR: z.record(z.string(), z.unknown()).optional().catch(undefined) }).catch({}),
 });
 
+let inFlight = 0;
+const waiting: Array<() => void> = [];
+
+/** Runs `task` once a lookup slot is free; a finished task hands its slot straight to the next waiter. */
+async function withLookupSlot<T>(task: () => Promise<T>): Promise<T> {
+  if (inFlight < MAX_PROVIDER_LOOKUPS_IN_FLIGHT) inFlight += 1;
+  else await new Promise<void>((resolve) => waiting.push(resolve));
+  try {
+    return await task();
+  } finally {
+    const next = waiting.shift();
+    if (next) next();
+    else inFlight -= 1;
+  }
+}
+
 /**
  * Whether a title can be watched in Brazil (`${media}/${id}/watch/providers`). Errors lose their class across the
- * cache boundary, so a 404 or a failure is answered as `false`, never thrown, and kept only briefly.
+ * cache boundary, so the answer is a value: a 404 is 'no', any other failure (a lasting 429 included) is 'unknown',
+ * kept only briefly, never thrown.
  */
-export async function isAvailableInBr(media: MediaType, id: number): Promise<boolean> {
+export async function availabilityInBr(media: MediaType, id: number): Promise<Availability> {
   'use cache';
   cacheTag('tmdb', `${media}:${id}`);
   try {
-    const raw = await tmdbFetch(`${media}/${id}/watch/providers`, {}, providersSchema);
+    const raw = await withLookupSlot(() => tmdbFetch(`${media}/${id}/watch/providers`, {}, providersSchema));
     cacheLife('tmdbDetail');
     const br = raw.results.BR;
-    return br !== undefined && KINDS.some((kind) => Array.isArray(br[kind]) && br[kind].length > 0);
+    return br !== undefined && KINDS.some((kind) => Array.isArray(br[kind]) && br[kind].length > 0) ? 'yes' : 'no';
   } catch (error) {
     if (isTmdbNotFound(error)) {
       // A transient 404 must not stick for the full detail lifetime.
       cacheLife('hours');
-    } else {
-      console.error(`[availability] ${media} ${id} failed:`, error);
-      cacheLife('minutes');
+      return 'no';
     }
-    return false;
+    console.error(`[availability] ${media} ${id} failed:`, error);
+    cacheLife('minutes');
+    return 'unknown';
   }
 }
 
 /**
- * The titles available in Brazil, in their original order. Asks at most CHUNK titles at a time (each answer is
- * cached on its own) and stops as soon as `limit` titles are found.
+ * The titles available in Brazil, in their original order. A title whose lookup failed is kept (fail open) and
+ * `unknown` says so, so the caller can cache its result briefly. Asks at most CHUNK titles at a time and stops as
+ * soon as `limit` titles are kept.
  */
-export async function filterAvailableInBr(
+export async function screenAvailableInBr(
   items: MediaSummary[],
   opts: { limit?: number } = {},
-): Promise<MediaSummary[]> {
+): Promise<{ items: MediaSummary[]; unknown: boolean }> {
   const limit = opts.limit ?? Infinity;
   const kept: MediaSummary[] = [];
+  let unknown = false;
   for (let start = 0; start < items.length && kept.length < limit; start += CHUNK) {
     const chunk = items.slice(start, start + CHUNK);
-    const available = await Promise.all(chunk.map((item) => isAvailableInBr(item.mediaType, item.id)));
+    const answers = await Promise.all(chunk.map((item) => availabilityInBr(item.mediaType, item.id)));
     chunk.forEach((item, i) => {
-      if (available[i] && kept.length < limit) kept.push(item);
+      if (answers[i] === 'no' || kept.length >= limit) return;
+      if (answers[i] === 'unknown') unknown = true;
+      kept.push(item);
     });
   }
-  return kept;
+  return { items: kept, unknown };
+}
+
+export async function filterAvailableInBr(items: MediaSummary[], opts: { limit?: number } = {}): Promise<MediaSummary[]> {
+  return (await screenAvailableInBr(items, opts)).items;
 }
 
 /** A list page with only its available titles; page numbers and totals stay TMDb's, so pagination still works. */
-export async function availablePage(page: Paginated<MediaSummary>): Promise<Paginated<MediaSummary>> {
-  return { ...page, results: await filterAvailableInBr(page.results) };
+export async function availablePage(page: Paginated<MediaSummary>): Promise<{ page: Paginated<MediaSummary>; unknown: boolean }> {
+  const screened = await screenAvailableInBr(page.results);
+  return { page: { ...page, results: screened.items }, unknown: screened.unknown };
 }
 
 /** Details whose "Você também pode gostar" keeps only titles available in Brazil (the title itself is never hidden). */
-export async function withAvailableRecommendations<T extends { recommendations: MediaSummary[] }>(details: T): Promise<T> {
-  return { ...details, recommendations: await filterAvailableInBr(details.recommendations) };
+export async function withAvailableRecommendations<T extends { recommendations: MediaSummary[] }>(
+  details: T,
+): Promise<{ details: T; unknown: boolean }> {
+  const screened = await screenAvailableInBr(details.recommendations);
+  return { details: { ...details, recommendations: screened.items }, unknown: screened.unknown };
+}
+
+/**
+ * The cache profile of a function that screened titles: its normal one, or 'minutes' when a lookup failed, so a
+ * TMDb hiccup is retried soon instead of living for the outer lifetime. Call it once, after the screening.
+ */
+export function screenedCacheLife(unknown: boolean, profile: 'tmdbHot' | 'tmdbDetail'): void {
+  // One literal per call: cacheLife's typed overloads take a single profile name, not a union.
+  if (unknown) cacheLife('minutes');
+  else if (profile === 'tmdbHot') cacheLife('tmdbHot');
+  else cacheLife('tmdbDetail');
 }

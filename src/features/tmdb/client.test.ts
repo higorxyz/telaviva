@@ -2,7 +2,7 @@ import { http, HttpResponse } from 'msw';
 import { describe, expect, it, vi } from 'vitest';
 import { z } from 'zod';
 import { server } from '@/test/server';
-import { isTmdbNotFound, TmdbError, tmdbFetch } from './client';
+import { isTmdbNotFound, retryDelay, TmdbError, tmdbFetch } from './client';
 
 const BASE = 'https://api.themoviedb.org/3';
 const schema = z.object({ id: z.number() });
@@ -112,5 +112,66 @@ describe('tmdbFetch', () => {
     const error = await tmdbFetch('movie/6', {}, schema).catch((e: unknown) => e);
     expect(error).toBeInstanceOf(TmdbError);
     expect(error).toMatchObject({ status: 200, path: 'movie/6' });
+  });
+
+  describe('429 (rate limit)', () => {
+    /** Answers 429 `times` times (with `retryAfter` when given), then 200; counts the requests. */
+    function limited(id: number, times: number, retryAfter?: string) {
+      const seen = { count: 0 };
+      server.use(
+        http.get(`${BASE}/movie/${id}`, () => {
+          seen.count += 1;
+          if (seen.count > times) return HttpResponse.json({ id });
+          const headers = retryAfter === undefined ? undefined : { 'retry-after': retryAfter };
+          return HttpResponse.json({ status_message: 'rate limited' }, { status: 429, headers });
+        }),
+      );
+      return seen;
+    }
+    it('retries after a 429 and returns the later success', async () => {
+      const seen = limited(7001, 1, '0');
+      expect(await tmdbFetch('movie/7001', {}, schema)).toEqual({ id: 7001 });
+      expect(seen.count).toBe(2);
+    });
+
+    it('gives up after 2 retries with the 429 error', async () => {
+      const seen = limited(7002, 5, '0');
+      const error = await tmdbFetch('movie/7002', {}, schema).catch((e: unknown) => e);
+      expect(error).toBeInstanceOf(TmdbError);
+      expect(error).toMatchObject({ status: 429, path: 'movie/7002' });
+      expect(seen.count).toBe(3);
+    });
+
+    it('waits 300 ms then 900 ms without Retry-After, and honours Retry-After (seconds or date) capped at 2 s', () => {
+      const res = (retryAfter?: string) =>
+        new Response(null, { status: 429, headers: retryAfter === undefined ? {} : { 'retry-after': retryAfter } });
+      expect(retryDelay(res(), 0)).toBe(300);
+      expect(retryDelay(res(), 1)).toBe(900);
+      expect(retryDelay(res('1'), 0)).toBe(1000);
+      expect(retryDelay(res('30'), 1)).toBe(2000);
+      expect(retryDelay(res('0'), 1)).toBe(0);
+      expect(retryDelay(res(new Date(Date.now() + 60_000).toUTCString()), 0)).toBe(2000);
+      expect(retryDelay(res('soon'), 1)).toBe(900);
+    });
+
+    it('waits the backoff for real between attempts', async () => {
+      const seen = limited(7006, 1);
+      const started = Date.now();
+      await tmdbFetch('movie/7006', {}, schema);
+      expect(seen.count).toBe(2);
+      expect(Date.now() - started).toBeGreaterThanOrEqual(290);
+    });
+
+    it('does not retry other errors', async () => {
+      let count = 0;
+      server.use(
+        http.get(`${BASE}/movie/7005`, () => {
+          count += 1;
+          return new HttpResponse('boom', { status: 500 });
+        }),
+      );
+      await tmdbFetch('movie/7005', {}, schema).catch(() => {});
+      expect(count).toBe(1);
+    });
   });
 });

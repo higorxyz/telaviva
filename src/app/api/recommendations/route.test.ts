@@ -89,6 +89,31 @@ describe('POST /api/recommendations', () => {
     expect(results.every((r) => r.id % 2 === 0)).toBe(true);
   });
 
+  it('asks the seeds 4 at a time and screens at most 10 available titles per seed', async () => {
+    let inFlight = 0;
+    let peak = 0;
+    const lookups: string[] = [];
+    server.use(
+      http.get(`${BASE}/movie/:id/recommendations`, async () => {
+        inFlight += 1;
+        peak = Math.max(peak, inFlight);
+        await new Promise((r) => setTimeout(r, 10));
+        inFlight -= 1;
+        return HttpResponse.json(moviePage);
+      }),
+      http.get(`${BASE}/:media/:id/watch/providers`, ({ params }) => {
+        lookups.push(String(params.id));
+        return HttpResponse.json({ id: Number(params.id), results: { BR: { flatrate: [{ provider_id: 8, provider_name: 'N', logo_path: null }] } } });
+      }),
+    );
+    const seeds = Array.from({ length: 12 }, (_, i) => seed(7100 + i));
+    const res = await call({ seeds, exclude: [] });
+    expect(res.status).toBe(200);
+    expect(peak).toBe(4);
+    // Every title is available, so each seed stops after its first chunk of 10 lookups.
+    expect(lookups).toHaveLength(12 * 10);
+  });
+
   it.each([
     ['not json', '{oops', true],
     ['no seeds', { seeds: [], exclude: [] }, false],
