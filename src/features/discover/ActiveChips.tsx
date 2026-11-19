@@ -56,7 +56,7 @@ export function ActiveChips({
                 pending.current = -1;
                 onClear();
               }}
-              className="h-9 px-3 text-sm text-ivory-muted underline underline-offset-4 hover:text-ivory focus-visible:outline-2 focus-visible:outline-amber"
+              className="h-9 px-3 text-sm text-ivory-muted underline hover:text-ivory focus-visible:outline-2 focus-visible:outline-amber"
             >
               Limpar tudo
             </button>

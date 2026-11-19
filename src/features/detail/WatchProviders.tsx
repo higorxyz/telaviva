@@ -53,7 +53,7 @@ export function WatchProviders({ providers }: { providers: Providers }) {
               href={providers.link}
               target="_blank"
               rel="noopener noreferrer"
-              className="rounded text-ivory underline underline-offset-4 hover:text-amber"
+              className="rounded text-ivory underline hover:text-amber"
             >
               Ver opções no TMDb<span className="sr-only"> (abre em nova aba)</span>
             </a>

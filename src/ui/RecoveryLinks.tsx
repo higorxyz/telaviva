@@ -20,7 +20,7 @@ export function RecoveryLinks({ primary }: { primary?: { href: string; label: st
         <Link
           key={s.href}
           href={s.href}
-          className="rounded text-ivory-muted underline-offset-4 hover:text-ivory hover:underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-amber"
+          className="rounded text-ivory-muted hover:text-ivory hover:underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-amber"
         >
           {s.label}
         </Link>
