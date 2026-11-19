@@ -12,6 +12,34 @@ test('/filme/550 redirects (308) to the canonical URL', async ({ page, request }
   await expect(page.getByText('Dados de streaming fornecidos por JustWatch.')).toBeVisible();
 });
 
+test('leaving a title page stops its trailer, and Back shows the cover again', async ({ page, isMobile }) => {
+  const players = page.locator('iframe[src*="youtube-nocookie.com"]');
+  await page.goto('/filme/550-clube-da-luta');
+  await page.getByRole('button', { name: 'Assistir trailer de Clube da Luta' }).click();
+  await expect(players).toHaveCount(1);
+
+  // The header links live in the tab bar on mobile.
+  const nav = isMobile
+    ? page.getByRole('navigation', { name: 'Navegação principal' })
+    : page.getByRole('navigation', { name: 'Seções' });
+  await nav.getByRole('link', { name: 'Filmes', exact: true }).click();
+  await expect(page).toHaveURL('/filmes');
+  await expect(page.getByRole('heading', { level: 1 })).toBeVisible();
+  // The previous route stays mounted in a hidden <Activity>: no player may survive there, hidden or not.
+  await expect(players).toHaveCount(0);
+
+  await page.goBack();
+  await expect(page).toHaveURL(/\/filme\/550-clube-da-luta$/);
+  await expect(page.getByRole('button', { name: 'Assistir trailer de Clube da Luta' })).toBeVisible();
+  await expect(players).toHaveCount(0);
+});
+
+test('the trailer cover asks YouTube for the sharpest thumbnail first', async ({ page }) => {
+  await page.goto('/filme/550-clube-da-luta');
+  const cover = page.getByRole('button', { name: 'Assistir trailer de Clube da Luta' }).locator('img');
+  await expect(cover).toHaveAttribute('src', /\/maxresdefault\.jpg$/);
+});
+
 test('unknown title id renders the 404 page', async ({ page }) => {
   const response = await page.goto('/filme/999999999-x');
   expect(response?.status()).toBe(404);

@@ -1,5 +1,6 @@
-import { render, screen } from '@testing-library/react';
+import { act, render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
+import { Activity, type ReactNode } from 'react';
 import { beforeAll, describe, expect, it } from 'vitest';
 import type { Video } from '@/features/tmdb/types';
 import { HeroTrailer } from './HeroTrailer';
@@ -17,6 +18,9 @@ beforeAll(() => {
   };
 });
 
+const youtubeFrames = () =>
+  Array.from(document.querySelectorAll('iframe')).filter((f) => f.getAttribute('src')?.includes('youtube-nocookie.com'));
+
 describe('HeroTrailer', () => {
   it('abre o trailer no diálogo e descarrega o iframe ao fechar', async () => {
     const user = userEvent.setup();
@@ -30,5 +34,25 @@ describe('HeroTrailer', () => {
     await user.click(screen.getByRole('button', { name: /Fechar/ }));
     expect(document.querySelector('iframe')).toBeNull();
     expect(document.querySelector('dialog')).not.toHaveAttribute('open');
+  });
+
+  it('fecha o diálogo e para o vídeo quando a rota fica oculta numa Activity', async () => {
+    const user = userEvent.setup();
+    const tree = (mode: 'visible' | 'hidden'): ReactNode => (
+      <Activity mode={mode}>
+        <HeroTrailer video={video} title="Clube da Luta" />
+      </Activity>
+    );
+    const { rerender } = render(tree('visible'));
+    await user.click(screen.getByRole('button', { name: /Assistir trailer/ }));
+    expect(youtubeFrames()).toHaveLength(1);
+
+    act(() => rerender(tree('hidden')));
+    expect(document.querySelector('dialog')).not.toHaveAttribute('open');
+    expect(youtubeFrames()).toHaveLength(0);
+
+    act(() => rerender(tree('visible')));
+    expect(document.querySelector('dialog')).not.toHaveAttribute('open');
+    expect(youtubeFrames()).toHaveLength(0);
   });
 });

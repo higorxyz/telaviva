@@ -1,6 +1,7 @@
 'use client';
 
-import { useEffect, useRef, useState } from 'react';
+import { Play, X } from 'lucide-react';
+import { useEffect, useLayoutEffect, useRef, useState } from 'react';
 import type { Video } from '@/features/tmdb/types';
 import { buttonClasses } from '@/ui/Button';
 import { cn } from '@/lib/cn';
@@ -18,6 +19,16 @@ export function HeroTrailer({ video, title, className }: { video: Video; title: 
     if (!open && el.open) el.close();
   }, [open]);
 
+  // Leaving the route (browser Back included) hides it in a React <Activity> rather than unmounting it: close the
+  // dialog right away so the player stops, the page scroll unlocks, and the route comes back with it closed.
+  useLayoutEffect(() => {
+    const el = dialog.current;
+    return () => {
+      if (el?.open) el.close();
+      setOpen(false);
+    };
+  }, []);
+
   return (
     <>
       <button
@@ -26,7 +37,7 @@ export function HeroTrailer({ video, title, className }: { video: Video; title: 
         aria-haspopup="dialog"
         className={cn(buttonClasses({ variant: 'primary', size: 'lg' }), className)}
       >
-        <span aria-hidden="true">▶</span> Assistir trailer
+        <Play aria-hidden="true" className="size-5 fill-current" /> Assistir trailer
       </button>
       <dialog
         ref={dialog}
@@ -44,7 +55,7 @@ export function HeroTrailer({ video, title, className }: { video: Video; title: 
               onClick={() => setOpen(false)}
               className="absolute -top-12 right-0 inline-flex h-10 items-center gap-2 rounded-full border border-ivory/35 px-4 font-sans text-sm text-ivory hover:border-ivory/70 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-amber"
             >
-              Fechar <span aria-hidden="true">✕</span>
+              Fechar <X aria-hidden="true" className="size-4" />
             </button>
             <Trailer video={video} title={title} autoPlay />
           </div>
