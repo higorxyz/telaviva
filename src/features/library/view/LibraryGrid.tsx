@@ -7,7 +7,7 @@ import type { LibraryItem, LibraryState } from '../types';
 import type { LibraryTab } from './library-query';
 
 /** A minimal summary built from the saved snapshot, so the list never calls TMDb for its posters. */
-function toSummary(item: LibraryItem): MediaSummary {
+export function toSummary(item: LibraryItem): MediaSummary {
   return {
     id: item.tmdbId,
     mediaType: item.mediaType,

@@ -3,6 +3,7 @@ import { pageMeta } from '@/features/share/page-meta';
 import { Suspense } from 'react';
 import { RailsSkeleton } from '@/features/catalog/RailsSkeleton';
 import { HeroSection, HeroSkeleton, HomeRails } from '@/features/home/HomeSections';
+import { LibraryRails } from '@/features/home/LibraryRails';
 import { PAGE_CONTAINER } from '@/ui/container';
 import { cn } from '@/lib/cn';
 
@@ -19,6 +20,7 @@ export default function Home() {
         <HeroSection />
       </Suspense>
       <div className={cn(PAGE_CONTAINER, 'space-y-12 py-10 md:space-y-14 md:py-14')}>
+        <LibraryRails />
         <Suspense fallback={<RailsSkeleton />}>
           <HomeRails />
         </Suspense>

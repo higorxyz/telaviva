@@ -17,6 +17,8 @@ export function Rail({
   href,
   items,
   priorityCount = 0,
+  subtitleOf,
+  ringOf,
 }: {
   id: string;
   title: { lead: string; accent?: string };
@@ -24,6 +26,10 @@ export function Rail({
   items: MediaSummary[];
   /** Posters with index < priorityCount load eagerly (above-the-fold rail only). */
   priorityCount?: number;
+  /** Replaces the year under a poster; undefined falls back to the year. */
+  subtitleOf?: (item: MediaSummary) => string | undefined;
+  /** Overrides the corner ring of a poster (e.g. the personal rating); undefined keeps the TMDb average. */
+  ringOf?: (item: MediaSummary) => { value: number | null; tone: 'tmdb' | 'personal' } | undefined;
 }) {
   const label = [title.lead, title.accent].filter(Boolean).join(' ');
   const listRef = useRef<HTMLUListElement>(null);
@@ -152,16 +158,22 @@ export function Rail({
           // room for the hover lift, its glow and the focus ring of the first and last posters.
           className="-mx-3 -mt-3 flex snap-x snap-mandatory scroll-px-3 gap-3 overflow-x-auto overscroll-x-contain px-3 pt-3 pb-4 [scrollbar-width:none] data-dragging:snap-none sm:gap-4 [&::-webkit-scrollbar]:hidden"
         >
-          {items.map((item, i) => (
-            <li key={`${item.mediaType}-${item.id}`} className={cn(RAIL_ITEM_CLASS, 'shrink-0 snap-start')}>
-              <PosterCard
-                item={item}
-                sizes={RAIL_SIZES}
-                priority={i < priorityCount}
-                tabIndex={i === Math.min(active, items.length - 1) ? 0 : -1}
-              />
-            </li>
-          ))}
+          {items.map((item, i) => {
+            const ring = ringOf?.(item);
+            return (
+              <li key={`${item.mediaType}-${item.id}`} className={cn(RAIL_ITEM_CLASS, 'shrink-0 snap-start')}>
+                <PosterCard
+                  item={item}
+                  sizes={RAIL_SIZES}
+                  priority={i < priorityCount}
+                  tabIndex={i === Math.min(active, items.length - 1) ? 0 : -1}
+                  subtitle={subtitleOf?.(item)}
+                  ringValue={ring?.value}
+                  ringTone={ring?.tone}
+                />
+              </li>
+            );
+          })}
         </ul>
         {(['start', 'end'] as const).map((side) =>
           overflow[side] ? (

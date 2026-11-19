@@ -108,6 +108,23 @@ describe('Rail', () => {
   });
 });
 
+describe('Rail per-item props', () => {
+  it('passes subtitleOf and ringOf to each card', () => {
+    render(
+      <Rail
+        id="r"
+        title={title}
+        items={five.slice(0, 2)}
+        subtitleOf={(item) => (item.id === 1 ? 'Próximo: T2E5' : undefined)}
+        ringOf={(item) => (item.id === 1 ? { value: 9, tone: 'personal' } : undefined)}
+      />,
+    );
+    expect(screen.getByText('Próximo: T2E5')).toBeInTheDocument();
+    expect(screen.getByRole('img', { name: 'Sua nota 9,0 de 10' })).toBeInTheDocument();
+    expect(screen.getByRole('img', { name: 'Nota 7,5 de 10' })).toBeInTheDocument();
+  });
+});
+
 describe('Rail with quick actions', () => {
   const repository: LibraryRepository = {
     persistent: true,
