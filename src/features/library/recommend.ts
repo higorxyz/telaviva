@@ -14,29 +14,39 @@ const GENRE_FACTOR = 3;
 const GENRE_CAP = 30;
 
 /** Seed weight: a personal rating wins over the status. */
+function weightOfScore(score: number): number {
+  if (score >= 8) return 2;
+  if (score >= 5) return 1;
+  return -1.5;
+}
+
 function weightOf(item: LibraryItem, score: number | undefined): number {
-  if (score !== undefined) {
-    if (score >= 8) return 2;
-    if (score >= 5) return 1;
-    return -1.5;
-  }
+  if (score !== undefined) return weightOfScore(score);
   return item.status === 'want' ? 0.5 : 1;
 }
 
 /** Up to 8 positive seeds (highest weight, then most recent) and up to 4 negative ones. */
 export function pickSeeds(state: LibraryState): Seed[] {
   const scores = new Map(state.ratings.map((r) => [itemKey(r), r.score]));
-  const all = state.items.map((item) => ({
-    item,
+  const all: { seed: Seed; updatedAt: string }[] = state.items.map((item) => ({
+    updatedAt: item.updatedAt,
     seed: {
       mediaType: item.mediaType,
       tmdbId: item.tmdbId,
       weight: weightOf(item, scores.get(itemKey(item))),
       genreIds: item.snapshot.genreIds,
-    } satisfies Seed,
+    },
   }));
-  const byRecency = (a: (typeof all)[number], b: (typeof all)[number]) =>
-    b.item.updatedAt.localeCompare(a.item.updatedAt);
+  // Ratings without an item still carry taste; they have no snapshot, so no genres.
+  const itemKeys = new Set(state.items.map(itemKey));
+  for (const r of state.ratings) {
+    if (itemKeys.has(itemKey(r))) continue;
+    all.push({
+      updatedAt: r.updatedAt,
+      seed: { mediaType: r.mediaType, tmdbId: r.tmdbId, weight: weightOfScore(r.score), genreIds: [] },
+    });
+  }
+  const byRecency = (a: (typeof all)[number], b: (typeof all)[number]) => b.updatedAt.localeCompare(a.updatedAt);
   const positive = all
     .filter((s) => s.seed.weight > 0)
     .sort((a, b) => b.seed.weight - a.seed.weight || byRecency(a, b))

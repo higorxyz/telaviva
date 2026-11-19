@@ -98,12 +98,12 @@ const item = (id: number, status: LibraryItem['status'], updatedAt: string, medi
   watchedAt: null,
   snapshot: { title: 'x', posterPath: null, releaseDate: null, genreIds: [id] },
 });
-const rating = (id: number, score: number): Rating => ({
-  mediaType: 'movie',
+const rating = (id: number, score: number, mediaType: 'movie' | 'tv' = 'movie', updatedAt = '2026-01-01T00:00:00.000Z'): Rating => ({
+  mediaType,
   tmdbId: id,
   score,
-  ratedAt: '2026-01-01T00:00:00.000Z',
-  updatedAt: '2026-01-01T00:00:00.000Z',
+  ratedAt: updatedAt,
+  updatedAt,
 });
 const lib = (items: LibraryItem[], ratings: Rating[] = []): LibraryState => ({ ...EMPTY_LIBRARY, items, ratings });
 
@@ -140,5 +140,22 @@ describe('pickSeeds', () => {
     // 1 has weight 2; the rest (weight 1) fill by most recent updatedAt: 12..6.
     expect(positive).toEqual([1, 12, 11, 10, 9, 8, 7, 6]);
     expect(seeds.filter((s) => s.weight < 0).map((s) => s.tmdbId)).toEqual([105, 104, 103, 102]);
+  });
+
+  it('makes a series rated 9 with no item a positive seed without genres', () => {
+    expect(pickSeeds(lib([], [rating(7, 9, 'tv')]))).toEqual([{ mediaType: 'tv', tmdbId: 7, weight: 2, genreIds: [] }]);
+  });
+
+  it('makes a series rated 2 with no item a negative seed', () => {
+    expect(pickSeeds(lib([], [rating(7, 2, 'tv')]))).toEqual([{ mediaType: 'tv', tmdbId: 7, weight: -1.5, genreIds: [] }]);
+  });
+
+  it('applies the limits across item and rating-only seeds', () => {
+    const items = [item(1, 'watched', '2026-01-01'), item(2, 'watched', '2026-01-02')];
+    const rated = Array.from({ length: 10 }, (_, i) => rating(200 + i, 6, 'tv', `2026-03-${String(i + 1).padStart(2, '0')}`));
+    const neg = Array.from({ length: 5 }, (_, i) => rating(300 + i, 1, 'tv', `2026-04-${String(i + 1).padStart(2, '0')}`));
+    const seeds = pickSeeds(lib(items, [...rated, ...neg]));
+    expect(seeds.filter((s) => s.weight > 0).map((s) => s.tmdbId)).toEqual([209, 208, 207, 206, 205, 204, 203, 202]);
+    expect(seeds.filter((s) => s.weight < 0).map((s) => s.tmdbId)).toEqual([304, 303, 302, 301]);
   });
 });
