@@ -439,3 +439,43 @@
 - [ ] **Step 4: Olhar o resultado.** Com o build real em `next start -p 3300`, use o Playwright MCP para capturar em 1440×900 e 390×844: o detalhe do filme com as ações; a série com o cartão de progresso e episódios marcados; a Minha lista em cada aba; a home com os trilhos pessoais; o painel de nota aberto; e o toast. Confira contraste, alvos de 44 px, nenhum aviso no console e nenhum erro de hidratação. Corrija e olhe de novo. Encerre o servidor por PID.
 - [ ] **Step 5: Detector do Impeccable** nos arquivos alterados: `"C:/Users/higorxyz/.claude/plugins/cache/impeccable/impeccable/4.9.2/skills/impeccable/scripts/impeccable" detect --json --changed`. Corrija os achados reais.
 - [ ] **Step 6: Commit.** `git commit -m "test: cover the guest library end to end"`
+
+---
+
+### Task 15: Feed disponível no Brasil (executar antes da Task 14)
+
+Pedido do autor (2026-11-19): o "feed" (trilhos, listas, gêneros e recomendações) deve priorizar o que dá para assistir no Brasil sem VPN. Títulos indisponíveis continuam existindo no site, mas só aparecem quando procurados: na busca por nome, na página da pessoa, por link direto, ou em Descobrir com o filtro desligado.
+
+**Definição:** "disponível no Brasil" = tem pelo menos um provedor em `watch_region=BR` com monetização `flatrate`, `free`, `ads`, `rent` ou `buy`. Use a constante `BR_AVAILABLE_MONETIZATION = 'flatrate|free|ads|rent|buy'` num único lugar (`src/features/tmdb/availability.ts`). Se o autor quiser só assinatura e grátis depois, é só mudar essa linha.
+
+**Arquivos:**
+- Criar: `src/features/tmdb/availability.ts`
+- Modificar: `src/features/tmdb/movies.ts`, `src/features/tmdb/tv.ts` (listas), `src/features/catalog/rails.ts`, `src/features/catalog/lists.ts`, `src/features/genres/load-cards.ts`, `src/app/genero/[tipo]/[slug]/page.tsx` e a rota `/api/discover` (o endpoint de gênero precisa do mesmo filtro na paginação), `src/features/discover/filters.ts` e a toolbar de Descobrir (novo filtro), `src/features/tmdb/recommendations.ts` (Task 5), o mapeamento das recomendações do detalhe (`src/features/tmdb/detail-mappers.ts` ou equivalente), `e2e/mock-tmdb.ts`
+- Testes: `src/features/tmdb/availability.test.ts` e os testes existentes afetados (atualizar as expectativas de parâmetros)
+
+**Interfaces:**
+- Produz:
+  - `BR_AVAILABLE_MONETIZATION` e `brAvailabilityParams(): TmdbParams` → `{ watch_region: 'BR', with_watch_monetization_types: BR_AVAILABLE_MONETIZATION }`
+  - `isAvailableInBr(media: MediaType, id: number): Promise<boolean>`: `'use cache'`, `cacheLife('tmdbDetail')`, `cacheTag('tmdb', '${media}:${id}')`, endpoint `${media}/${id}/watch/providers`. True se `results.BR` tiver alguma das listas `flatrate`/`free`/`ads`/`rent`/`buy` não vazia. Erro ou 404 → false.
+  - `filterAvailableInBr(items: MediaSummary[], opts?: { limit?: number }): Promise<MediaSummary[]>`: `Promise.all` de `isAvailableInBr`, mantém a ordem e respeita `limit`.
+
+**Regras por superfície:**
+1. **Listas baseadas em discover** (`top_rated`, `hidden_gems`, `short`, `blockbusters`, `top_rated` de TV, cards e páginas de gênero, e a paginação de `/api/discover` usada pelos gêneros): somam `brAvailabilityParams()` aos parâmetros. `streaming_br` continua só `flatrate`.
+2. **Isentas:** `now_playing` ("Nos cinemas") e `upcoming` ("Em breve").
+3. **Listas sem discover** (`getTrending`, `popular`, `on_the_air`, `airing_today`): pós-filtro com `filterAvailableInBr`. Para que o trilho continue com pelo menos 6 títulos depois da deduplicação, as fontes da home e dos hubs buscam as páginas 1 e 2 quando a página 1 filtrada tiver menos de 12 títulos. A paginação dessas listas em `/api/catalog` também filtra cada página. Página vazia é aceitável no fim, mas nunca no começo: busque a próxima página até 3 vezes.
+4. **Recomendações:** as da página de detalhe (seção "Recomendados") e as de `getRecommendationsFor` (Task 5/12) passam por `filterAvailableInBr`. O enchimento por tendências da Task 12 também é filtrado.
+5. **Descobrir:** novo parâmetro de URL `disponivel` (padrão ligado; `disponivel=0` desliga). Controle "Disponível no Brasil" (toggle `aria-pressed`) na toolbar. Ligado → soma `brAvailabilityParams()`, a menos que o usuário já tenha escolhido provedores em "Onde assistir" (aí o filtro de provedor já basta). Chips e "Limpar tudo" seguem o padrão atual. "Limpar tudo" volta ao padrão, que é ligado.
+6. **Sem filtro:** busca (`/buscar`, paleta Ctrl+K, `/api/search`), página da pessoa (filmografia) e acesso direto a qualquer `/filme/...` ou `/serie/...`.
+7. **Destaque da home** (hero): escolhe só entre os títulos disponíveis (pós-filtro na fonte do destaque).
+
+- [ ] **Step 1: Escrever os testes que falham.**
+  - `availability.test.ts` (MSW): BR com `rent` → true; BR só com lista vazia → false; sem BR → false; 404 → false; `filterAvailableInBr` mantém a ordem e respeita `limit`.
+  - Parâmetros: `listParams('top_rated')` inclui `watch_region=BR` e a monetização; `now_playing` e `upcoming` não incluem.
+  - Rails: fonte de tendências com títulos indisponíveis → o trilho só tem os disponíveis e busca a página 2 quando faltar.
+  - Descobrir: padrão ligado soma os parâmetros; `disponivel=0` não soma; com provedores escolhidos não soma; o chip aparece só quando desligado (o estado não padrão).
+  - Recomendações do detalhe filtradas.
+  - Mock: `^(movie|tv)/\d+/watch/providers$` responde BR com `flatrate` para ids pares e sem BR para ids ímpares, para os testes E2E verem os dois casos.
+- [ ] **Step 2: Rodar e ver falhar.** `npm test` → FAIL nos novos.
+- [ ] **Step 3: Implementar.**
+- [ ] **Step 4: Rodar e ver passar.** `npm test`, `npm run lint`, `npm run typecheck`, `npm run build`. Rode `npm run e2e` e ajuste as expectativas E2E que dependiam de títulos agora filtrados.
+- [ ] **Step 5: Commit.** `git commit -m "feat: keep the feed to titles available to watch in Brazil"`
