@@ -1,7 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import { useCallback, useEffect, useRef, useState, type KeyboardEvent, type PointerEvent } from 'react';
+import { useCallback, useEffect, useRef, useState, type FocusEvent, type KeyboardEvent, type PointerEvent } from 'react';
 import type { MediaSummary } from '@/features/tmdb/types';
 import { AccentTitle } from '@/ui/AccentTitle';
 import { PosterCard } from './PosterCard';
@@ -27,6 +27,7 @@ export function Rail({
   const listRef = useRef<HTMLUListElement>(null);
   const drag = useRef({ active: false, startX: 0, startScroll: 0, moved: false });
   const [overflow, setOverflow] = useState({ start: false, end: false });
+  const [active, setActive] = useState(0);
 
   const measure = useCallback(() => {
     const el = listRef.current;
@@ -90,15 +91,27 @@ export function Rail({
     }
   }
 
+  const posterLinks = (list: HTMLUListElement) =>
+    Array.from(list.querySelectorAll<HTMLAnchorElement>(':scope > li > div > a[href]'));
+
+  /** Roving tab stop: one Tab stop per rail; arrows, Home and End move between posters. */
   function onKeyDown(e: KeyboardEvent<HTMLUListElement>) {
-    if (e.key !== 'ArrowRight' && e.key !== 'ArrowLeft') return;
-    const links = Array.from(e.currentTarget.querySelectorAll<HTMLAnchorElement>('a[href]'));
+    if (!['ArrowRight', 'ArrowLeft', 'Home', 'End'].includes(e.key)) return;
+    const links = posterLinks(e.currentTarget);
     const current = links.findIndex((a) => a === document.activeElement);
     if (current === -1) return;
-    const next = links[current + (e.key === 'ArrowRight' ? 1 : -1)];
+    const target =
+      e.key === 'Home' ? 0 : e.key === 'End' ? links.length - 1 : current + (e.key === 'ArrowRight' ? 1 : -1);
+    const next = links[target];
     if (!next) return;
     e.preventDefault();
+    setActive(target);
     next.focus();
+  }
+
+  function onFocus(e: FocusEvent<HTMLUListElement>) {
+    const index = posterLinks(e.currentTarget).findIndex((a) => a === (e.target as Element));
+    if (index !== -1) setActive(index);
   }
 
   return (
@@ -132,6 +145,7 @@ export function Rail({
           onDragStart={(e) => e.preventDefault()}
           onClickCapture={onClickCapture}
           onKeyDown={onKeyDown}
+          onFocus={onFocus}
           className="flex snap-x snap-mandatory data-dragging:snap-none gap-3 overflow-x-auto overscroll-x-contain pb-4 [scrollbar-width:none] sm:gap-4 [&::-webkit-scrollbar]:hidden"
         >
           {items.map((item, i) => (
@@ -139,7 +153,12 @@ export function Rail({
               key={`${item.mediaType}-${item.id}`}
               className="w-[38vw] max-w-44 shrink-0 snap-start sm:w-36 lg:w-40"
             >
-              <PosterCard item={item} sizes={CARD_SIZES} priority={i < priorityCount} />
+              <PosterCard
+                item={item}
+                sizes={CARD_SIZES}
+                priority={i < priorityCount}
+                tabIndex={i === Math.min(active, items.length - 1) ? 0 : -1}
+              />
             </li>
           ))}
         </ul>

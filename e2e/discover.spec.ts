@@ -6,6 +6,7 @@ test('applying type and genre updates the URL and a reload keeps the chips', asy
 
   const form = page.getByRole('form', { name: 'Filtros' });
   await expect(form).toBeVisible();
+  await expect(form.getByText('Dados de streaming fornecidos por JustWatch.')).toBeAttached();
   await form.getByRole('button', { name: 'Série', exact: true }).click();
   await form.getByRole('button', { name: 'Drama', exact: true }).click();
   await form.getByRole('button', { name: 'Aplicar' }).click();

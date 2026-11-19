@@ -69,6 +69,30 @@ test.describe('mobile', () => {
     await expect(page.getByRole('navigation', { name: 'Navegação principal' })).toBeVisible();
     await expect(page.getByRole('navigation', { name: 'Seções' })).toBeHidden();
   });
+
+  test('the tab bar never covers the TMDb attribution at the bottom of the page', async ({ page }) => {
+    await page.goto('/filmes');
+    const attribution = page.getByText('Este produto usa a API do TMDB, mas não é endossado ou certificado pelo TMDB.');
+    const tabBar = page.getByRole('navigation', { name: 'Navegação principal' });
+    await expect(attribution).toBeAttached();
+    await page.evaluate(() => window.scrollTo(0, document.documentElement.scrollHeight));
+    await expect(attribution).toBeInViewport();
+    await expect
+      .poll(async () => {
+        const a = (await attribution.boundingBox())!;
+        const t = (await tabBar.boundingBox())!;
+        return a.y + a.height <= t.y;
+      })
+      .toBe(true);
+  });
+});
+
+test('hubs browse by genre and link to every genre and to discover', async ({ page }) => {
+  await page.goto('/series');
+  const section = page.getByRole('region', { name: 'Por gênero' });
+  await expect(section.getByRole('link', { name: 'Drama', exact: true })).toHaveAttribute('href', /^\/genero\/serie\/\d+-drama$/);
+  await expect(section.getByRole('link', { name: /Ver todos os gêneros/ })).toHaveAttribute('href', '/generos');
+  await expect(section.getByRole('link', { name: /Descobrir/ })).toHaveAttribute('href', '/descobrir?tipo=serie');
 });
 
 test('v1 URLs render the 404 page', async ({ page }) => {

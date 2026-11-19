@@ -32,6 +32,23 @@ describe('Rail', () => {
     expect(document.querySelectorAll('img[fetchpriority=high]')).toHaveLength(2);
   });
 
+  it('has a single tab stop and moves focus with arrows, Home and End', () => {
+    render(<Rail id="r" title={title} items={five} />);
+    const links = screen.getAllByRole('link');
+    expect(links.filter((a) => a.getAttribute('tabindex') === '0')).toHaveLength(1);
+    links[0]!.focus();
+    fireEvent.keyDown(links[0]!, { key: 'ArrowRight' });
+    expect(links[1]).toHaveFocus();
+    expect(links[1]).toHaveAttribute('tabindex', '0');
+    expect(links[0]).toHaveAttribute('tabindex', '-1');
+    fireEvent.keyDown(links[1]!, { key: 'End' });
+    expect(links[4]).toHaveFocus();
+    fireEvent.keyDown(links[4]!, { key: 'Home' });
+    expect(links[0]).toHaveFocus();
+    fireEvent.keyDown(links[0]!, { key: 'ArrowLeft' });
+    expect(links[0]).toHaveFocus();
+  });
+
   describe('drag', () => {
     function dragPast(list: HTMLElement) {
       fireEvent.pointerDown(list, { pointerType: 'mouse', button: 0, clientX: 100 });

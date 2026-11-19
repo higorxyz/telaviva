@@ -4,16 +4,22 @@ import { useEffect, useRef, useState } from 'react';
 import { OPEN_PALETTE_EVENT } from './open-palette';
 import { PaletteBody } from './PaletteBody';
 
-function isEditable(target: EventTarget | null): boolean {
-  if (!(target instanceof HTMLElement)) return false;
-  return target.isContentEditable || ['INPUT', 'TEXTAREA', 'SELECT'].includes(target.tagName);
-}
+import { isOpenShortcut, isSlashShortcut } from './shortcuts';
 
-/** Search palette: native modal <dialog> (top layer, focus trapped), opened by Ctrl/Cmd+K, "/" or the header trigger. */
-export function SearchPalette() {
-  const [open, setOpen] = useState(false);
+/**
+ * Search palette: native modal <dialog> (top layer, focus trapped), opened by Ctrl/Cmd+K, "/" or the header trigger.
+ * `defaultOpen`/`initialOpener` let the lazy launcher hand over the keystroke that loaded it.
+ */
+export function SearchPalette({
+  defaultOpen = false,
+  initialOpener = null,
+}: {
+  defaultOpen?: boolean;
+  initialOpener?: HTMLElement | null;
+} = {}) {
+  const [open, setOpen] = useState(defaultOpen);
   const dialog = useRef<HTMLDialogElement>(null);
-  const opener = useRef<HTMLElement | null>(null);
+  const opener = useRef<HTMLElement | null>(initialOpener);
 
   useEffect(() => {
     const show = (e?: Event) => {
@@ -23,12 +29,12 @@ export function SearchPalette() {
       setOpen(true);
     };
     const onKey = (e: KeyboardEvent) => {
-      if ((e.ctrlKey || e.metaKey) && !e.altKey && !e.shiftKey && e.key.toLowerCase() === 'k') {
+      if (isOpenShortcut(e)) {
         e.preventDefault();
         if (e.repeat) return;
         if (dialog.current?.open) setOpen(false);
         else show();
-      } else if (e.key === '/' && !e.repeat && !e.ctrlKey && !e.metaKey && !e.altKey && !isEditable(e.target)) {
+      } else if (isSlashShortcut(e)) {
         if (dialog.current?.open) return;
         e.preventDefault();
         show();

@@ -4,7 +4,7 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import { cn } from '@/lib/cn';
-import { SearchPalette } from '@/features/search/SearchPalette';
+import { SearchPaletteLauncher } from '@/features/search/SearchPaletteLauncher';
 import { SearchTrigger } from '@/features/search/SearchTrigger';
 import { PAGE_CONTAINER } from '@/ui/container';
 import { isActive, NAV_ITEMS } from './nav';
@@ -57,7 +57,7 @@ export function Header() {
           </ul>
         </nav>
         <SearchTrigger className="hidden md:flex" />
-        <SearchPalette />
+        <SearchPaletteLauncher />
       </div>
     </header>
   );

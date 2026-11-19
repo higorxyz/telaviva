@@ -14,6 +14,14 @@
   --shadow-poster: 0 18px 40px -12px rgb(0 0 0 / 0.7);
   --shadow-glow: 0 14px 34px -10px rgb(232 178 90 / 0.28);
   --animate-fade-up: fade-up 400ms ease-out both;
+  /* Link pending hint: invisible for the first 150 ms so fast navigations never flash it. */
+  --animate-pending-in: pending-in 200ms ease-out 150ms forwards;
+
+  @keyframes pending-in {
+    to {
+      opacity: 1;
+    }
+  }
 
   @keyframes fade-up {
     from {
