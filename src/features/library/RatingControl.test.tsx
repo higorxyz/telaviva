@@ -66,25 +66,27 @@ describe('RatingControl', () => {
 
   it('is a disabled "Dar nota" button until the library loads', () => {
     setup(EMPTY_LIBRARY, { hold: true });
-    expect(screen.getByRole('button', { name: 'Dar nota' })).toBeDisabled();
+    expect(screen.getByRole('button', { name: 'Dar nota para Clube da Luta' })).toBeDisabled();
   });
 
   it('enables "Dar nota" once the library loads and there is no rating', async () => {
     setup();
-    await waitFor(() => expect(screen.getByRole('button', { name: 'Dar nota' })).toBeEnabled());
+    await waitFor(() => expect(screen.getByRole('button', { name: 'Dar nota para Clube da Luta' })).toBeEnabled());
   });
 
-  it('shows the personal ring "Sua nota 9 de 10" as the trigger when rated', async () => {
+  it('names the rated trigger once, with the title and score, ring decorative', async () => {
     setup(rated(9));
-    const button = await screen.findByRole('button', { name: /Sua nota/ });
-    expect(within(button).getByRole('img', { name: 'Sua nota 9,0 de 10' })).toBeInTheDocument();
-    expect(screen.queryByRole('button', { name: 'Dar nota' })).toBeNull();
+    const button = await screen.findByRole('button', {
+      name: 'Sua nota para Clube da Luta: 9 de 10. Mudar nota',
+    });
+    expect(within(button).queryByRole('img')).toBeNull();
+    expect(screen.queryByRole('button', { name: 'Dar nota para Clube da Luta' })).toBeNull();
   });
 
   it('offers 10 radios in a radiogroup, with arrows, Home, End and Enter on the roving tab stop', async () => {
     const { user, applied } = setup();
-    await waitFor(() => expect(screen.getByRole('button', { name: 'Dar nota' })).toBeEnabled());
-    await user.click(screen.getByRole('button', { name: 'Dar nota' }));
+    await waitFor(() => expect(screen.getByRole('button', { name: 'Dar nota para Clube da Luta' })).toBeEnabled());
+    await user.click(screen.getByRole('button', { name: 'Dar nota para Clube da Luta' }));
     const radios = within(group()).getAllByRole('radio');
     expect(radios.map((r) => r.textContent)).toEqual(['1', '2', '3', '4', '5', '6', '7', '8', '9', '10']);
     expect(radios.filter((r) => r.getAttribute('tabindex') === '0')).toHaveLength(1);
@@ -109,19 +111,19 @@ describe('RatingControl', () => {
 
   it('rates 9 on click, closes the panel and returns focus to the trigger', async () => {
     const { user, applied } = setup();
-    await waitFor(() => expect(screen.getByRole('button', { name: 'Dar nota' })).toBeEnabled());
-    await user.click(screen.getByRole('button', { name: 'Dar nota' }));
+    await waitFor(() => expect(screen.getByRole('button', { name: 'Dar nota para Clube da Luta' })).toBeEnabled());
+    await user.click(screen.getByRole('button', { name: 'Dar nota para Clube da Luta' }));
     await user.click(within(group()).getByRole('radio', { name: '9' }));
     expect(applied).toEqual([{ type: 'rate', ref, score: 9, snapshot }]);
     expect(document.querySelector('dialog')).not.toHaveAttribute('open');
-    const button = await screen.findByRole('button', { name: /Sua nota/ });
+    const button = await screen.findByRole('button', { name: /Mudar nota/ });
     await waitFor(() => expect(button).toHaveFocus());
-    expect(within(button).getByRole('img', { name: 'Sua nota 9,0 de 10' })).toBeInTheDocument();
+    expect(button).toHaveAccessibleName('Sua nota para Clube da Luta: 9 de 10. Mudar nota');
   });
 
   it('marks the current score as checked and focuses it on open', async () => {
     const { user } = setup(rated(7));
-    await user.click(await screen.findByRole('button', { name: /Sua nota/ }));
+    await user.click(await screen.findByRole('button', { name: /Mudar nota/ }));
     const seven = within(group()).getByRole('radio', { name: '7' });
     expect(seven).toHaveAttribute('aria-checked', 'true');
     expect(seven).toHaveFocus();
@@ -129,16 +131,16 @@ describe('RatingControl', () => {
 
   it('removes the rating with "Remover nota", only offered when rated', async () => {
     const { user, applied } = setup(rated(7));
-    await user.click(await screen.findByRole('button', { name: /Sua nota/ }));
+    await user.click(await screen.findByRole('button', { name: /Mudar nota/ }));
     await user.click(screen.getByRole('button', { name: 'Remover nota' }));
     expect(applied).toEqual([{ type: 'unrate', ref }]);
-    expect(await screen.findByRole('button', { name: 'Dar nota' })).toHaveFocus();
+    expect(await screen.findByRole('button', { name: 'Dar nota para Clube da Luta' })).toHaveFocus();
   });
 
   it('has no "Remover nota" without a rating', async () => {
     const { user } = setup();
-    await waitFor(() => expect(screen.getByRole('button', { name: 'Dar nota' })).toBeEnabled());
-    await user.click(screen.getByRole('button', { name: 'Dar nota' }));
+    await waitFor(() => expect(screen.getByRole('button', { name: 'Dar nota para Clube da Luta' })).toBeEnabled());
+    await user.click(screen.getByRole('button', { name: 'Dar nota para Clube da Luta' }));
     expect(screen.queryByRole('button', { name: 'Remover nota' })).toBeNull();
   });
 });

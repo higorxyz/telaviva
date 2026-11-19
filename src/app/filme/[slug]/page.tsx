@@ -8,6 +8,7 @@ import { truncateSummary } from '@/features/detail/summary';
 import { getMovieDetails } from '@/features/tmdb/movies';
 import { mediaHref } from '@/lib/slug';
 import { OG_BASE } from '@/features/share/page-meta';
+import { MovieActions } from '@/features/library/MovieActions';
 import { PAGE_CONTAINER } from '@/ui/container';
 
 type Props = PageProps<'/filme/[slug]'>;
@@ -46,7 +47,22 @@ export default async function FilmePage({ params }: Props) {
 
   return (
     <>
-      <DetailHero backHref="/filmes" item={movie} meta={<MovieMeta movie={movie} />} />
+      <DetailHero
+        backHref="/filmes"
+        item={movie}
+        meta={<MovieMeta movie={movie} />}
+        actions={
+          <MovieActions
+            movie={{
+              id: movie.id,
+              title: movie.title,
+              posterPath: movie.posterPath,
+              releaseDate: movie.releaseDate,
+              genreIds: movie.genreIds,
+            }}
+          />
+        }
+      />
       <div className={`${PAGE_CONTAINER} py-10 md:py-14`}>
         <DetailSections item={movie} facts={movieFacts(movie)} />
       </div>

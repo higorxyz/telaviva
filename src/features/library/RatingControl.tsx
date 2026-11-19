@@ -138,16 +138,28 @@ export function RatingControl({
       onOpenChange={setOpen}
       title="Sua nota"
       trigger={(props) => (
-        <button type="button" {...props} disabled={!ready} className={triggerClass}>
+        <button
+          type="button"
+          {...props}
+          disabled={!ready}
+          aria-label={
+            score !== null
+              ? `Sua nota para ${title}: ${score} de 10. Mudar nota`
+              : `Dar nota para ${title}`
+          }
+          className={triggerClass}
+        >
           {score !== null ? (
             <>
-              <RatingRing value={score} tone="personal" size="sm" />
-              Sua nota
+              <span aria-hidden="true" className="inline-flex">
+                <RatingRing value={score} tone="personal" size="sm" />
+              </span>
+              <span aria-hidden="true">Sua nota</span>
             </>
           ) : (
             <>
               <Star aria-hidden="true" className="size-4" />
-              Dar nota
+              <span aria-hidden="true">Dar nota</span>
             </>
           )}
         </button>
