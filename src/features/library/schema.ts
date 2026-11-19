@@ -54,3 +54,24 @@ export function parseLibraryState(raw: unknown): LibraryState | null {
   const result = stateSchema.safeParse(raw);
   return result.success ? result.data : null;
 }
+
+function dedupe<T>(list: T[], keyOf: (entry: T) => string, stampOf: (entry: T) => string): T[] {
+  const best = new Map<string, T>();
+  for (const entry of list) {
+    const key = keyOf(entry);
+    const current = best.get(key);
+    // ISO strings with a common offset compare lexically, but Date.parse is safe for any offset.
+    if (!current || Date.parse(stampOf(entry)) > Date.parse(stampOf(current))) best.set(key, entry);
+  }
+  return [...best.values()];
+}
+
+/** Removes duplicated keys, keeping the newest entry (updatedAt, or watchedAt for episode marks). */
+export function normalizeLibraryState(state: LibraryState): LibraryState {
+  return {
+    version: 1,
+    items: dedupe(state.items, (i) => `${i.mediaType}:${i.tmdbId}`, (i) => i.updatedAt),
+    episodes: dedupe(state.episodes, (e) => `${e.tvId}:${e.seasonNumber}:${e.episodeNumber}`, (e) => e.watchedAt),
+    ratings: dedupe(state.ratings, (r) => `${r.mediaType}:${r.tmdbId}`, (r) => r.updatedAt),
+  };
+}
