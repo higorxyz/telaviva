@@ -49,7 +49,7 @@ export default async function SeriePage({ params, searchParams }: Props) {
 
   return (
     <>
-      <DetailHero item={tv} meta={<SerieMeta tv={tv} />} />
+      <DetailHero backHref="/series" item={tv} meta={<SerieMeta tv={tv} />} />
       <div className={`${PAGE_CONTAINER} py-10 md:py-14`}>
         <DetailSections
           item={tv}

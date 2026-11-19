@@ -46,7 +46,7 @@ export default async function FilmePage({ params }: Props) {
 
   return (
     <>
-      <DetailHero item={movie} meta={<MovieMeta movie={movie} />} />
+      <DetailHero backHref="/filmes" item={movie} meta={<MovieMeta movie={movie} />} />
       <div className={`${PAGE_CONTAINER} py-10 md:py-14`}>
         <DetailSections item={movie} facts={movieFacts(movie)} />
       </div>

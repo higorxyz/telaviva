@@ -2,6 +2,7 @@ import type { ReactNode } from 'react';
 import { backdropSrcSet, posterSrcSet, tmdbImage } from '@/features/tmdb/images';
 import type { MediaSummary } from '@/features/tmdb/types';
 import { cn } from '@/lib/cn';
+import { BackButton } from './BackButton';
 import { AccentTitle } from '@/ui/AccentTitle';
 import { PAGE_CONTAINER } from '@/ui/container';
 import { EagerImage } from '@/ui/EagerImage';
@@ -39,10 +40,12 @@ function Poster({ item }: { item: HeroSource }) {
  */
 export function DetailHero({
   item,
+  backHref,
   meta,
   actions,
 }: {
   item: HeroSource;
+  backHref: string;
   meta: ReactNode;
   actions?: ReactNode;
 }) {
@@ -61,11 +64,15 @@ export function DetailHero({
         />
       ) : null}
       <HeroScrims variant="detail" />
+      {/* Below the 4rem fixed header, on the container's left edge. */}
+      <div className={cn(PAGE_CONTAINER, 'absolute inset-x-0 top-[4.25rem] z-10 md:top-20')}>
+        <BackButton fallbackHref={backHref} />
+      </div>
       <div
         className={cn(
           PAGE_CONTAINER,
           // Column on mobile (bottom aligned); row from md, start aligned so the block hugs the container's left edge.
-          'relative flex min-h-[30rem] flex-col justify-end gap-6 pt-28 pb-8 md:min-h-[38rem] md:flex-row md:items-end md:justify-start md:gap-10 md:pt-40 md:pb-14',
+          'relative flex min-h-[30rem] flex-col justify-end gap-6 pt-36 pb-8 md:min-h-[38rem] md:flex-row md:items-end md:justify-start md:gap-10 md:pt-40 md:pb-14',
         )}
       >
         <Poster item={item} />

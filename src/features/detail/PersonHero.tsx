@@ -2,6 +2,7 @@ import type { ReactNode } from 'react';
 import { tmdbImage } from '@/features/tmdb/images';
 import type { PersonDetails } from '@/features/tmdb/types';
 import { initials } from '@/lib/people';
+import { BackButton } from './BackButton';
 import { AccentTitle } from '@/ui/AccentTitle';
 import { EagerImage } from '@/ui/EagerImage';
 
@@ -26,13 +27,16 @@ export function PersonPhoto({ person }: { person: Pick<PersonDetails, 'name' | '
 /** Photo beside the name; `children` carries the facts and the biography. */
 export function PersonHero({ person, children }: { person: PersonDetails; children: ReactNode }) {
   return (
-    <div className="flex flex-col gap-8 md:flex-row md:gap-12">
-      <div className="mx-auto md:mx-0">
-        <PersonPhoto person={person} />
-      </div>
-      <div className="min-w-0 flex-1 space-y-6">
-        <AccentTitle as="h1" text={person.name} className="text-4xl sm:text-5xl lg:text-6xl" />
-        {children}
+    <div className="space-y-6">
+      <BackButton fallbackHref="/" className="mt-8 md:mt-4" />
+      <div className="flex flex-col gap-8 md:flex-row md:gap-12">
+        <div className="mx-auto md:mx-0">
+          <PersonPhoto person={person} />
+        </div>
+        <div className="min-w-0 flex-1 space-y-6">
+          <AccentTitle as="h1" text={person.name} className="text-4xl sm:text-5xl lg:text-6xl" />
+          {children}
+        </div>
       </div>
     </div>
   );
