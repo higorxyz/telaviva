@@ -35,7 +35,7 @@
 - Chave do TanStack Query: `['library']`.
 - Rótulos: "Quero ver", "Assistindo", "Assistido". Abas: "Assistindo", "Quero ver", "Assistidos". Botões: "Quero ver" e "Já assisti" (ambos com `aria-pressed`), "Dar nota", "Sua nota", "Remover nota", "Marcar como visto"/"Visto" (`aria-pressed`), "Até aqui" (`aria-label="Marcar até T{s}E{e}"`), "Marcar temporada"/"Desmarcar temporada".
 - Progresso: "Próximo: T{s}E{e}" (mais " · {nome}" quando conhecido), "Em dia", "Próximo episódio em {data}", "Série concluída", "Novos episódios".
-- Toasts: "Adicionado a Quero ver", "Removido da sua lista", ação "Desfazer". Erro ao salvar: "Não foi possível salvar no navegador. Tente de novo.". Armazenamento bloqueado: "Seu navegador está bloqueando o armazenamento. A lista vale só até fechar a aba.".
+- Toasts: "Salvo em Quero ver", "Removido da sua lista", ação "Desfazer". Erro ao salvar: "Não foi possível salvar no navegador. Tente de novo.". Armazenamento bloqueado: "Seu navegador está bloqueando o armazenamento. A lista vale só até fechar a aba.".
 - URL da Minha lista: `aba=assistindo|quero-ver|assistidos`, `tipo=filme|serie`, `ordem=recentes|titulo|nota|ano`. Padrões: aba `assistindo` se houver série em andamento, senão `quero-ver`; tipo vazio (ambos); ordem `recentes`. Valores inválidos caem no padrão.
 - Trilhos da home: id `continue-assistindo`, título `{ lead: 'Continue', accent: 'assistindo' }`; id `recomendados`, título `{ lead: 'Recomendados', accent: 'para você' }`.
 - Limites das rotas: `/api/tv/progress` aceita no máximo 40 ids; `/api/recommendations` aceita no máximo 12 sementes e 500 chaves de exclusão. Acima disso, 400.
@@ -241,7 +241,7 @@
 **Interfaces:**
 - Consome: `useLibraryEntry`, `useLibraryActions`, `RatingControl`, `toSnapshot`.
 - Produz: `MovieActions({ movie: Pick<MediaSummary, 'id' | 'title' | 'posterPath' | 'releaseDate' | 'genreIds'> })`. Três controles em pílula, todos com 44 px de altura:
-  - "Quero ver": `Bookmark`, `aria-pressed` quando `want`. Alterna entre `want` e remover, com toast "Adicionado a Quero ver" ou "Removido da sua lista" com "Desfazer".
+  - "Quero ver": `Bookmark`, `aria-pressed` quando `want`. Alterna entre `want` e remover, com toast "Salvo em Quero ver" ou "Removido da sua lista" com "Desfazer".
   - "Já assisti": `Check`, `aria-pressed` quando `watched`. Alterna entre `watched` e remover. Se havia nota, remover mantém a nota.
   - `RatingControl`.
   - No celular, os botões ocupam a largura toda (`w-full sm:w-auto`), seguindo o spec ("botões de ação largos").
@@ -311,8 +311,9 @@
 - Testes: `src/features/library/CardLibraryAction.test.tsx` e um caso novo em `src/features/catalog/PosterCard.test.tsx`
 
 **Decisão (padrão de ações por card, adiado na Fase 1):**
-- **Fora da biblioteca:** um botão redondo discreto com `Bookmark` vazado, fundo `bg-ink-950/60` com blur. A área de toque tem 44 px, com o visual de 32 px. Ele fica sempre visível, inclusive no toque, porque o uso é principalmente no celular. Adiciona a "Quero ver" com o toast "Adicionado a Quero ver" e "Desfazer".
-- **Em `want`:** o mesmo botão preenchido em âmbar (`aria-pressed="true"`). Tocar remove, com o toast "Removido da sua lista" e "Desfazer".
+- **Só ícone, sem texto no pôster** (pedido do autor, para não poluir os cards). O texto "Quero ver" fica só nos botões da página de detalhe (Task 7).
+- **Fora da biblioteca:** um botão redondo discreto com o ícone `Plus`, fundo `bg-ink-950/60` com blur. A área de toque tem 44 px, com o visual de 32 px. Ele fica sempre visível, inclusive no toque, porque o uso é principalmente no celular. Adiciona a "Quero ver" e mostra o toast curto "Salvo em Quero ver" com "Desfazer".
+- **Em `want`:** o mesmo botão em âmbar com o ícone `BookmarkCheck` (`aria-pressed="true"`). Tocar remove, com o toast "Removido da sua lista" e "Desfazer".
 - **Em `watching` ou `watched`:** um marcador não interativo (`Play` ou `Check` em marfim) com `<span className="sr-only">Na sua lista: assistindo|assistido</span>`. Mudanças maiores ficam na página de detalhe.
 - O botão fica fora do `<Link>` (HTML válido), como o slot atual. Antes de `ready`, o slot fica vazio.
 
