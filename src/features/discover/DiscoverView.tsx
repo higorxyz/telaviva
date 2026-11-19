@@ -1,76 +1,40 @@
 'use client';
 
-import { PanelLeftClose, PanelLeftOpen } from 'lucide-react';
 import { ActiveChips } from './ActiveChips';
 import { activeChips, clearFilters } from './chips';
 import { DiscoverResults } from './DiscoverResults';
 import { filtersToSearchParams } from './filters';
-import { FiltersPanel } from './FiltersPanel';
-import { FiltersSheet } from './FiltersSheet';
+import { FilterToolbar } from './FilterToolbar';
 import type { DiscoverCatalog } from './labels';
+import { Presets } from './Presets';
 import { useDiscoverFilters } from './useDiscoverFilters';
-import { useSidebarCollapsed } from './useSidebarCollapsed';
 
-/** Filters live in the URL; the grid remounts (new key) whenever the applied filters change. */
+/**
+ * Results first, refined in a tap or two: presets, a sticky toolbar of one-dimension popovers, the active chips,
+ * then the full-width grid. Filters live in the URL; the grid remounts (new key) whenever the applied set changes.
+ */
 export function DiscoverView({ catalog }: { catalog: DiscoverCatalog }) {
-  const { applied, draft, setDraft, apply, resetDraft } = useDiscoverFilters(catalog);
-  const [collapsed, setCollapsed] = useSidebarCollapsed();
+  const { filters, applied, update } = useDiscoverFilters(catalog);
   // new Date() is safe here: the route is prerendered, and this client subtree sits behind Suspense because
   // useSearchParams bails out of the static shell, so it only ever renders in the browser.
-  const maxYear = new Date().getFullYear() + 1;
-  const chips = activeChips(applied, catalog);
-
-  const panel = (after?: () => void) => (
-    <FiltersPanel
-      draft={draft}
-      onChange={setDraft}
-      catalog={catalog}
-      maxYear={maxYear}
-      onApply={() => {
-        apply(draft);
-        after?.();
-      }}
-    />
-  );
+  const year = new Date().getFullYear();
+  const chips = activeChips(filters, catalog);
+  const clear = () => update(clearFilters(filters), { now: true });
 
   return (
-    <div className="flex items-start gap-8">
-      {collapsed ? null : (
-        <aside
-          aria-label="Filtros de busca"
-          className="sticky top-24 hidden max-h-[calc(100dvh-7rem)] w-72 shrink-0 overflow-y-auto pr-2 md:block"
-        >
-          {panel()}
-        </aside>
-      )}
-      <div className="min-w-0 flex-1">
-        <div className="mb-4 flex items-center gap-3">
-          <FiltersSheet count={chips.length} onDismiss={resetDraft}>{(close) => panel(close)}</FiltersSheet>
-          <button
-            type="button"
-            aria-expanded={!collapsed}
-            onClick={() => setCollapsed(!collapsed)}
-            className="hidden h-9 items-center gap-2 rounded-full border border-ivory/35 px-4 text-sm text-ivory hover:border-ivory/70 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-amber md:inline-flex"
-          >
-            {collapsed ? (
-              <PanelLeftOpen aria-hidden="true" className="size-4" />
-            ) : (
-              <PanelLeftClose aria-hidden="true" className="size-4" />
-            )}
-            {collapsed ? 'Mostrar filtros' : 'Ocultar filtros'}
-          </button>
-        </div>
-        <ActiveChips
-          chips={chips}
-          onRemove={(chip) => apply(chip.next)}
-          onClear={() => apply(clearFilters(applied))}
-        />
-        <DiscoverResults
-          key={filtersToSearchParams(applied).toString()}
-          filters={applied}
-          onClear={chips.length ? () => apply(clearFilters(applied)) : undefined}
-        />
+    <div>
+      <Presets filters={filters} year={year} onChange={(next) => update(next, { now: true })} />
+      <div className="sticky top-16 z-30 -mx-4 mt-3 bg-ink-950 px-4 py-3 after:pointer-events-none after:absolute after:inset-x-0 after:top-full after:h-6 after:bg-linear-to-b after:from-ink-950 after:to-transparent sm:-mx-6 sm:px-6 lg:-mx-10 lg:px-10">
+        <FilterToolbar filters={filters} update={update} catalog={catalog} year={year} maxYear={year + 1} />
       </div>
+      <div className="mt-4">
+        <ActiveChips chips={chips} onRemove={(chip) => update(chip.next, { now: true })} onClear={clear} />
+      </div>
+      <DiscoverResults
+        key={filtersToSearchParams(applied).toString()}
+        filters={applied}
+        onClear={activeChips(applied, catalog).length ? clear : undefined}
+      />
     </div>
   );
 }

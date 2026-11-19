@@ -2,31 +2,54 @@ import { useId, type ReactNode } from 'react';
 import { cn } from '@/lib/cn';
 import { SORTS, type DiscoverFilters, type DiscoverSort } from './filters';
 import { LANGUAGES, SORT_LABELS, VOTE_OPTIONS, formatVotes } from './labels';
-import { LABEL_CLASS, SELECT_CLASS, toggleClass } from './panel-styles';
+import { LABEL_CLASS, SEGMENTED_CLASS, SELECT_CLASS, segmentClass } from './panel-styles';
 
 type Patch = (p: Partial<DiscoverFilters>) => void;
 
-export function MediaToggle({
+/** Single choice as pressed buttons (aria-pressed), e.g. Filmes | Séries or Qualquer · 6+ · 7+ · 8+. */
+export function Segmented<T extends string | number | undefined>({
+  label,
+  labelledBy,
+  options,
   value,
   onChange,
+  className,
 }: {
-  value: DiscoverFilters['media'];
-  onChange: (m: 'movie' | 'tv') => void;
+  label?: string;
+  labelledBy?: string;
+  options: ReadonlyArray<{ value: T; label: string }>;
+  value: T;
+  onChange: (value: T) => void;
+  className?: string;
 }) {
   return (
-    <div role="group" aria-label="Tipo" className="grid grid-cols-2 gap-1 rounded-full border border-ink-600 bg-ink-800 p-1">
-      {(['movie', 'tv'] as const).map((m) => (
+    <div role="group" aria-label={label} aria-labelledby={labelledBy} className={cn(SEGMENTED_CLASS, className)}>
+      {options.map((o) => (
         <button
-          key={m}
+          key={String(o.value)}
           type="button"
-          aria-pressed={value === m}
-          onClick={() => onChange(m)}
-          className={cn('h-9', toggleClass(value === m))}
+          aria-pressed={value === o.value}
+          onClick={() => onChange(o.value)}
+          className={segmentClass(value === o.value)}
         >
-          {m === 'movie' ? 'Filme' : 'Série'}
+          {o.label}
         </button>
       ))}
     </div>
+  );
+}
+
+export function MediaToggle({ value, onChange }: { value: DiscoverFilters['media']; onChange: (m: 'movie' | 'tv') => void }) {
+  return (
+    <Segmented
+      label="Tipo"
+      options={[
+        { value: 'movie', label: 'Filmes' },
+        { value: 'tv', label: 'Séries' },
+      ]}
+      value={value}
+      onChange={onChange}
+    />
   );
 }
 
@@ -35,19 +58,21 @@ function Select({
   value,
   onChange,
   children,
+  inline = false,
 }: {
   label: string;
   value: string;
   onChange: (v: string) => void;
   children: ReactNode;
+  inline?: boolean;
 }) {
   const id = useId();
   return (
-    <div>
-      <label htmlFor={id} className={LABEL_CLASS}>
+    <div className={inline ? 'flex shrink-0 items-center gap-2' : undefined}>
+      <label htmlFor={id} className={inline ? 'text-sm whitespace-nowrap text-ivory-muted' : LABEL_CLASS}>
         {label}
       </label>
-      <select id={id} value={value} onChange={(e) => onChange(e.target.value)} className={SELECT_CLASS}>
+      <select id={id} value={value} onChange={(e) => onChange(e.target.value)} className={cn(SELECT_CLASS, inline && 'w-auto')}>
         {children}
       </select>
     </div>
@@ -71,10 +96,10 @@ export function YearSelects({ f, patch, maxYear }: { f: DiscoverFilters; patch: 
   );
   return (
     <div className="grid grid-cols-2 gap-3">
-      <Select label="Ano de" value={String(f.yearFrom ?? '')} onChange={(v) => patch({ yearFrom: toNum(v) })}>
+      <Select label="De" value={String(f.yearFrom ?? '')} onChange={(v) => patch({ yearFrom: toNum(v) })}>
         {options}
       </Select>
-      <Select label="Ano até" value={String(f.yearTo ?? '')} onChange={(v) => patch({ yearTo: toNum(v) })}>
+      <Select label="Até" value={String(f.yearTo ?? '')} onChange={(v) => patch({ yearTo: toNum(v) })}>
         {options}
       </Select>
     </div>
@@ -113,7 +138,7 @@ export function LanguageSelect({ f, patch }: { f: DiscoverFilters; patch: Patch 
 export function SortSelect({ f, patch }: { f: DiscoverFilters; patch: Patch }) {
   const sorts = f.media === 'tv' ? SORTS.filter((s) => s !== 'bilheteria') : SORTS;
   return (
-    <Select label="Ordenar por" value={f.sort} onChange={(v) => patch({ sort: v as DiscoverSort })}>
+    <Select label="Ordenar por" inline value={f.sort} onChange={(v) => patch({ sort: v as DiscoverSort })}>
       {sorts.map((s) => (
         <option key={s} value={s}>
           {SORT_LABELS[s]}

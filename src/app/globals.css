@@ -16,6 +16,22 @@
   --animate-fade-up: fade-up 400ms ease-out both;
   /* Link pending hint: invisible for the first 150 ms so fast navigations never flash it. */
   --animate-pending-in: pending-in 200ms ease-out 150ms forwards;
+  /* Discover filters: the bottom sheet rises, the popover settles in from an already visible state. */
+  --animate-sheet-in: sheet-in 280ms cubic-bezier(0.16, 1, 0.3, 1) both;
+  --animate-pop-in: pop-in 180ms cubic-bezier(0.16, 1, 0.3, 1) both;
+
+  @keyframes sheet-in {
+    from {
+      transform: translateY(100%);
+    }
+  }
+
+  @keyframes pop-in {
+    from {
+      opacity: 0.4;
+      transform: translateY(-6px) scale(0.98);
+    }
+  }
 
   @keyframes pending-in {
     to {
@@ -45,8 +61,8 @@
     color-scheme: dark;
   }
 
-  /* Modal dialogs (trailer) lock page scroll while open. */
-  html:has(dialog[open]) {
+  /* Modal dialogs (trailer, search, filter sheets) lock page scroll; non-modal popovers do not. */
+  html:has(dialog:modal) {
     overflow: hidden;
   }
 

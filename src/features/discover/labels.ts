@@ -29,5 +29,7 @@ export const SORT_LABELS: Record<DiscoverSort, string> = {
 };
 
 export const formatDecimal = (n: number) => n.toFixed(1).replace('.', ',');
+/** Rating thresholds as people say them: 8 -> "8", 7.5 -> "7,5". */
+export const formatScore = (n: number) => (Number.isInteger(n) ? String(n) : formatDecimal(n));
 export const formatVotes = (n: number) => n.toLocaleString('pt-BR');
 export const languageLabel = (code: string) => LANGUAGES.find((l) => l.code === code)?.label ?? code;

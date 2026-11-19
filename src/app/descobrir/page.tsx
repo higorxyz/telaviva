@@ -2,6 +2,7 @@ import type { Metadata } from 'next';
 import { pageMeta } from '@/features/share/page-meta';
 import { Suspense } from 'react';
 import { PageHeader } from '@/features/catalog/PageHeader';
+import { GridSkeleton } from '@/features/catalog/GridSkeleton';
 import { DiscoverView } from '@/features/discover/DiscoverView';
 import { getGenres, getWatchProviderCatalog } from '@/features/tmdb/genres';
 import { PAGE_CONTAINER } from '@/ui/container';
@@ -13,11 +14,13 @@ export const metadata: Metadata = pageMeta({
   path: '/descobrir',
 });
 
+/** Same rhythm as the view: presets row, toolbar row, then the grid. */
 function ViewSkeleton() {
   return (
-    <div className="flex gap-8" aria-hidden="true">
-      <Skeleton className="hidden h-[40rem] w-72 shrink-0 md:block" />
-      <Skeleton className="h-[40rem] flex-1" />
+    <div aria-hidden="true">
+      <Skeleton className="h-11 w-full max-w-md rounded-full md:h-9" />
+      <Skeleton className="mt-6 mb-8 h-11 w-full rounded-full" />
+      <GridSkeleton count={16} />
     </div>
   );
 }

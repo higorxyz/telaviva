@@ -1,6 +1,6 @@
 import type { MediaType } from '@/features/tmdb/types';
 import type { DiscoverFilters } from './filters';
-import { formatDecimal, formatVotes, languageLabel, type DiscoverCatalog } from './labels';
+import { formatScore, formatVotes, languageLabel, type DiscoverCatalog } from './labels';
 
 export interface FilterChip {
   key: string;
@@ -25,7 +25,7 @@ export function activeChips(f: DiscoverFilters, catalog: DiscoverCatalog): Filte
   }
   if (f.yearFrom !== undefined) chips.push({ key: 'de', label: `A partir de ${f.yearFrom}`, next: without(f, 'yearFrom') });
   if (f.yearTo !== undefined) chips.push({ key: 'ate', label: `Até ${f.yearTo}`, next: without(f, 'yearTo') });
-  if (f.minRating !== undefined) chips.push({ key: 'nota', label: `Nota ${formatDecimal(f.minRating)}+`, next: without(f, 'minRating') });
+  if (f.minRating !== undefined) chips.push({ key: 'nota', label: `Nota ${formatScore(f.minRating)}+`, next: without(f, 'minRating') });
   if (f.minVotes !== undefined) chips.push({ key: 'votos', label: `${formatVotes(f.minVotes)}+ votos`, next: without(f, 'minVotes') });
   if (f.maxRuntime !== undefined) chips.push({ key: 'duracao', label: `Até ${f.maxRuntime} min`, next: without(f, 'maxRuntime') });
   if (f.language) chips.push({ key: 'idioma', label: `Idioma: ${languageLabel(f.language)}`, next: without(f, 'language') });
