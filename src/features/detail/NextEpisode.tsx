@@ -6,8 +6,8 @@ import { AccentTitle } from '@/ui/AccentTitle';
 export function NextEpisode({ episode }: { episode: EpisodeSummary }) {
   const date = formatDate(episode.airDate) ?? 'Data a definir';
   return (
-    <aside aria-labelledby="proximo-episodio" className="mt-6 max-w-3xl rounded-xl border border-amber/40 bg-ink-900 p-4 font-sans">
-      <AccentTitle as="h3" id="proximo-episodio" lead="Próximo" accent="episódio" className="text-xl" />
+    <aside aria-label="Próximo episódio" className="mt-6 max-w-3xl rounded-xl border border-amber/40 bg-ink-900 p-4 font-sans">
+      <AccentTitle as="h3" lead="Próximo" accent="episódio" className="text-xl" />
       <p className="mt-1 text-ivory">
         {`T${episode.seasonNumber}E${episode.episodeNumber}`}
         {episode.name ? ` · ${episode.name}` : ''} · <span className="text-ivory-muted">{date}</span>

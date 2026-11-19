@@ -1,6 +1,6 @@
 'use client';
 
-import { ChevronLeft, ChevronRight } from 'lucide-react';
+import { ArrowRight, ChevronLeft, ChevronRight } from 'lucide-react';
 import Link from 'next/link';
 import { useCallback, useEffect, useRef, useState, type FocusEvent, type KeyboardEvent, type PointerEvent } from 'react';
 import type { MediaSummary } from '@/features/tmdb/types';
@@ -129,9 +129,9 @@ export function Rail({
           <Link
             href={href}
             aria-label={`Ver tudo: ${label}`}
-            className="shrink-0 rounded font-sans text-sm text-ivory-muted transition-colors hover:text-amber focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-amber"
+            className="inline-flex shrink-0 items-center gap-1 rounded font-sans text-sm text-ivory-muted transition-colors hover:text-amber focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-amber"
           >
-            Ver tudo <span aria-hidden="true">→</span>
+            Ver tudo <ArrowRight aria-hidden="true" className="size-4" />
           </Link>
         ) : null}
       </div>

@@ -96,7 +96,9 @@ test('prefetching a route does not download its hero images into the current pag
   );
   await page.goto('/descobrir');
   await (await homePrefetch).finished();
-  await page.waitForTimeout(500); // negative assertion: give a wrongly emitted hint time to be applied
+  // Negative assertion with no positive signal to wait on. A preload hint is applied in the same task that
+  // handles the prefetch response (already finished above), so 500ms is ample; a longer wait only slows the suite.
+  await page.waitForTimeout(500);
   await expect(page.locator('link[rel="preload"][as="image"][imagesrcset*="image.tmdb.org"]')).toHaveCount(0);
   await expect(page.locator('link[rel="preload"][as="image"][href*="image.tmdb.org"]')).toHaveCount(0);
 });

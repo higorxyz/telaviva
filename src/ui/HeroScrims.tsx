@@ -21,13 +21,13 @@ export function HeroScrims({ variant = 'feature' }: { variant?: 'feature' | 'det
               'inset-0 bg-radial-[ellipse_at_0%_100%] from-ink-950/55 via-ink-950/40 via-40% to-transparent to-65% max-md:hidden',
             )}
           />
-          <div className={cn(LAYER, 'inset-0 bg-linear-to-t from-ink-950 via-ink-950/85 via-55% to-ink-950/20 md:hidden')} />
+          <div className={cn(LAYER, 'inset-0 bg-linear-to-t from-ink-950 via-ink-950/80 via-45% to-transparent to-75% md:hidden')} />
         </>
       ) : (
         <div
           className={cn(
             LAYER,
-            'inset-0 bg-linear-to-t from-ink-950/90 via-ink-950/75 via-45% to-transparent to-85% md:from-ink-950/85 md:via-ink-950/55 md:via-35% md:to-70%',
+            'inset-0 bg-linear-to-t from-ink-950/90 via-ink-950/75 via-45% to-transparent to-85% md:from-ink-950/85 md:via-ink-950/60 md:via-35% md:to-70%',
           )}
         />
       )}
