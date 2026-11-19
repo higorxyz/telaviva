@@ -17,6 +17,12 @@ describe('PosterCard', () => {
     expect(screen.getByRole('img', { name: 'Nota 8,4 de 10' })).toBeInTheDocument();
   });
 
+  it('can show a personal rating on the ring instead of the TMDb average', () => {
+    render(<PosterCard item={movie({ voteAverage: 8.4 })} ringValue={9} ringTone="personal" />);
+    expect(screen.getByRole('img', { name: 'Sua nota 9,0 de 10' })).toBeInTheDocument();
+    expect(screen.queryByRole('img', { name: /Nota 8,4/ })).toBeNull();
+  });
+
   it('renders a placeholder instead of a broken image when there is no poster', () => {
     render(<PosterCard item={tv({ posterPath: null, title: 'X' })} />);
     expect(screen.getByText('Série')).toBeInTheDocument();

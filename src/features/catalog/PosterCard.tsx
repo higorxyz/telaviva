@@ -28,6 +28,8 @@ export function PosterCard({
   subtitle,
   actions,
   tabIndex,
+  ringValue,
+  ringTone = 'tmdb',
 }: {
   item: MediaSummary;
   /** Loads eagerly (above-the-fold posters). */
@@ -39,6 +41,9 @@ export function PosterCard({
   actions?: ReactNode;
   /** Set by Rail for its roving tab stop. */
   tabIndex?: number;
+  /** Value of the corner ring; defaults to the TMDb average. */
+  ringValue?: number | null;
+  ringTone?: 'tmdb' | 'personal';
 }) {
   const year = formatYear(item.releaseDate);
   const meta = subtitle ?? year;
@@ -79,7 +84,7 @@ export function PosterCard({
             <MediaBadge mediaType={item.mediaType} />
           </div>
           <div className="absolute bottom-2 left-2">
-            <RatingRing value={item.voteAverage} size="sm" />
+            <RatingRing value={ringValue === undefined ? item.voteAverage : ringValue} size="sm" tone={ringTone} />
           </div>
           <LinkPending />
         </div>
