@@ -3,6 +3,7 @@ import { Suspense } from 'react';
 import { GridSkeleton } from '@/features/catalog/GridSkeleton';
 import { MediaGrid } from '@/features/catalog/MediaGrid';
 import { PageHeader } from '@/features/catalog/PageHeader';
+import { BackButton } from '@/features/detail/BackButton';
 import { parseFilters, toTmdbParams } from '@/features/discover/filters';
 import { discoverEndpoint } from '@/features/genres/genres';
 import { loadCanonicalGenre, resolveGenre } from '@/features/genres/load-genre';
@@ -43,7 +44,9 @@ export default async function GeneroPage({ params }: Props) {
   const filters = parseFilters(new URLSearchParams({ tipo, generos: String(genre.id) }));
   const first = await discover(media, toTmdbParams(filters), 1);
   return (
-    <div className={`${PAGE_CONTAINER} pt-28 pb-14 md:pt-32`}>
+    <div className={`${PAGE_CONTAINER} pt-24 pb-14 md:pt-28`}>
+      {/* Genre pages sit outside the tab bar, so an installed PWA (no browser back) needs its own way back. */}
+      <BackButton fallbackHref="/generos" className="mb-6 -ml-3" />
       <PageHeader
         title={{ lead: `${label(tipo)} de`, accent: genre.name }}
         description="Os títulos mais populares do gênero, do mais ao menos visto."

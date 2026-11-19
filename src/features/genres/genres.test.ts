@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { mediaOfTipo, findGenre, pickBackdrop, discoverEndpoint } from './genres';
+import { mediaOfTipo, findGenre, pickBackdrop, pickDistinctBackdrops, discoverEndpoint } from './genres';
 
 const genres = [
   { id: 28, name: 'Ação' },
@@ -35,6 +35,21 @@ describe('pickBackdrop', () => {
   it('returns null when none has one', () => {
     expect(pickBackdrop([{ backdropPath: null }])).toBeNull();
     expect(pickBackdrop([])).toBeNull();
+  });
+});
+
+describe('pickDistinctBackdrops', () => {
+  const t = (id: number, backdropPath: string | null = `/${id}.jpg`) => ({ id, backdropPath });
+
+  it('gives a later genre its next title when the top one already covers an earlier genre', () => {
+    // Title 1 tops both Drama and Suspense: Drama keeps it, Suspense falls to its second title.
+    expect(pickDistinctBackdrops([[t(1), t(2)], [t(1), t(3)]])).toEqual(['/1.jpg', '/3.jpg']);
+  });
+  it('skips titles without a backdrop and keeps failed genres empty', () => {
+    expect(pickDistinctBackdrops([[t(1, null), t(2)], null, [t(2), t(4, null), t(5)]])).toEqual(['/2.jpg', null, '/5.jpg']);
+  });
+  it('repeats a cover only when every candidate is already taken', () => {
+    expect(pickDistinctBackdrops([[t(1)], [t(1)]])).toEqual(['/1.jpg', '/1.jpg']);
   });
 });
 
