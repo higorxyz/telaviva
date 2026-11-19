@@ -59,6 +59,25 @@ test('each filter opens as a popover on desktop and as a bottom sheet on mobile'
   await expect(trigger).toHaveText('Onde assistir · 1');
 });
 
+test('Disponível no Brasil is on by default; turning it off shows a chip and Limpar tudo restores it', async ({ page }) => {
+  await page.goto('/descobrir');
+  const toggle = page.getByRole('search', { name: 'Filtros' }).getByRole('button', { name: 'Disponível no Brasil' });
+  await expect(toggle).toHaveAttribute('aria-pressed', 'true');
+  const chips = page.getByRole('group', { name: 'Filtros ativos' });
+  await expect(chips.getByRole('button', { name: 'Limpar tudo' })).toHaveCount(0);
+
+  const next = page.waitForRequest((r) => new URL(r.url()).searchParams.get('disponivel') === '0');
+  await toggle.click();
+  await next;
+  await expect(page).toHaveURL(/\?disponivel=0$/);
+  await expect(toggle).toHaveAttribute('aria-pressed', 'false');
+  await expect(chips).toContainText('Inclui indisponíveis no Brasil');
+
+  await chips.getByRole('button', { name: 'Limpar tudo' }).click();
+  await expect(page).toHaveURL(/\/descobrir$/);
+  await expect(toggle).toHaveAttribute('aria-pressed', 'true');
+});
+
 test('genre pages render', async ({ page }) => {
   await page.goto('/generos');
   await expect(page.getByRole('heading', { level: 1 })).toContainText('gêneros');

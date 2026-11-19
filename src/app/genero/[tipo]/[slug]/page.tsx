@@ -40,7 +40,8 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 
 export default async function GeneroPage({ params }: Props) {
   const { media, tipo, genre } = await loadCanonicalGenre(params);
-  // Same params the API route builds from the endpoint, so page 1 matches what "load more" continues from.
+  // Same params the API route builds from the endpoint, so page 1 matches what "load more" continues from. The
+  // default filters keep "Disponível no Brasil" on, so the genre feed only lists titles available in Brazil.
   const filters = parseFilters(new URLSearchParams({ tipo, generos: String(genre.id) }));
   const first = await discover(media, toTmdbParams(filters), 1);
   return (

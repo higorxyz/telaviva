@@ -8,8 +8,9 @@ import type { GenreCardData } from './GenreTabs';
 import { pickDistinctBackdrops, tipoOf } from './genres';
 
 /**
- * One card per genre; backdrop = the genre's most popular title (page 1 of the cached discover) that no earlier
- * card already uses, so the grid never repeats a cover. A failing genre just loses its image.
+ * One card per genre; backdrop = the genre's most popular title (page 1 of the cached discover, with the default
+ * Descobrir filters, so only titles available in Brazil) that no earlier card already uses, so the grid never
+ * repeats a cover. A failing genre just loses its image.
  */
 export async function loadGenreCards(media: MediaType): Promise<GenreCardData[]> {
   const genres = await getGenres(media);

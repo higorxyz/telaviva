@@ -16,7 +16,8 @@ test.describe('desktop', () => {
     await input.press('ArrowDown');
     await expect(page.getByRole('option').first()).toHaveAttribute('aria-selected', 'true');
     await input.press('Enter');
-    await expect(page).toHaveURL(/\/filme\/\d+-/);
+    // Matrix (603) cannot be watched in Brazil in the mock: search is never filtered, and the direct link opens.
+    await expect(page).toHaveURL(/\/filme\/603-/);
     await expect(page.getByRole('heading', { level: 1 })).toBeVisible();
   });
 });

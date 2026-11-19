@@ -126,6 +126,26 @@ describe('DiscoverView toolbar', () => {
     expect(trigger('Gêneros')).toHaveTextContent(/^Gêneros$/);
   });
 
+  it('keeps Disponível no Brasil on by default; turning it off shows a chip, and Limpar tudo turns it back on', async () => {
+    const user = setup('generos=18');
+    await screen.findByRole('link', { name: /Matrix/ });
+    const toggle = within(toolbar()).getByRole('button', { name: 'Disponível no Brasil' });
+    expect(toggle).toHaveAttribute('aria-pressed', 'true');
+    expect(screen.queryByRole('button', { name: 'Remover filtro Inclui indisponíveis no Brasil' })).toBeNull();
+    expect(seen[0].has('disponivel')).toBe(false);
+
+    await user.click(toggle);
+    expect(lastUrl(h.replace())).toBe('/descobrir?generos=18&disponivel=0');
+    expect(toggle).toHaveAttribute('aria-pressed', 'false');
+    expect(screen.getByRole('button', { name: 'Remover filtro Inclui indisponíveis no Brasil' })).toBeInTheDocument();
+    await vi.waitFor(() => expect(seen.at(-1)!.get('disponivel')).toBe('0'));
+
+    await user.click(screen.getByRole('button', { name: 'Limpar tudo' }));
+    expect(lastUrl(h.replace())).toBe('/descobrir');
+    expect(within(toolbar()).getByRole('button', { name: 'Disponível no Brasil' })).toHaveAttribute('aria-pressed', 'true');
+    expect(screen.queryByRole('button', { name: 'Limpar tudo' })).toBeNull();
+  });
+
   it('drops genres and runtime that do not exist for the new type when switching tipo', async () => {
     const user = setup('generos=28,18&duracao=100');
     await screen.findByRole('link', { name: /Matrix/ });

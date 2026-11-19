@@ -2,6 +2,7 @@ import { http, HttpResponse } from 'msw';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import moviePage from '@/test/fixtures/discover-movie-page-2.json';
 import trendingAll from '@/test/fixtures/trending-all-day.json';
+import { onlyEvenAvailableInBr } from '@/test/providers';
 import { server } from '@/test/server';
 import { POST } from './route';
 
@@ -70,6 +71,22 @@ describe('POST /api/recommendations', () => {
     const { results } = (await res.json()) as { results: unknown[] };
     expect(results.length).toBeGreaterThanOrEqual(10);
     expect(trendingCalls).toBe(0);
+  });
+
+  it('only recommends titles available in Brazil, padding included', async () => {
+    onlyEvenAvailableInBr();
+    server.use(
+      http.get(`${BASE}/movie/7005/recommendations`, () =>
+        HttpResponse.json({ ...moviePage, results: moviePage.results.slice(0, 6) }),
+      ),
+      http.get(`${BASE}/trending/all/week`, () => HttpResponse.json(trendingAll)),
+    );
+    const res = await call({ seeds: [seed(7005)], exclude: [] });
+    const { results } = (await res.json()) as { results: { id: number }[] };
+    const evenRecs = moviePage.results.slice(0, 6).filter((r) => r.id % 2 === 0);
+    expect(evenRecs.length).toBeGreaterThan(0);
+    expect(results.length).toBeGreaterThan(evenRecs.length); // the padding still contributes
+    expect(results.every((r) => r.id % 2 === 0)).toBe(true);
   });
 
   it.each([

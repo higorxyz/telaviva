@@ -2,6 +2,7 @@ import { getMovieList, getTrending } from '@/features/tmdb/movies';
 import { getTvList } from '@/features/tmdb/tv';
 import type { MediaSummary, Paginated } from '@/features/tmdb/types';
 import { mediaKey } from './media-key';
+import { fetchRailPage } from './post-filter-pages';
 
 export interface RailInput {
   id: string;
@@ -47,13 +48,14 @@ export type Source = {
   fetch: () => Promise<Paginated<MediaSummary>>;
 };
 
-// Order is the dedupe priority.
+// Order is the dedupe priority. Trending and on_the_air are post-filtered to titles available in Brazil, so their
+// rails top up from page 2 when short; discover sources already ask TMDb for available titles only.
 const SOURCES: Source[] = [
-  { id: 'bombando-hoje', title: { lead: 'Bombando', accent: 'hoje' }, fetch: () => getTrending('all', 'day', 1) },
+  { id: 'bombando-hoje', title: { lead: 'Bombando', accent: 'hoje' }, fetch: () => fetchRailPage((p) => getTrending('all', 'day', p)) },
   { id: 'em-cartaz', title: { lead: 'Nos', accent: 'cinemas' }, href: '/filmes/em-cartaz', fetch: () => getMovieList('now_playing', 1) },
-  { id: 'series-em-alta', title: { lead: 'Séries', accent: 'em alta' }, href: '/series/em-alta', fetch: () => getTrending('tv', 'week', 1) },
+  { id: 'series-em-alta', title: { lead: 'Séries', accent: 'em alta' }, href: '/series/em-alta', fetch: () => fetchRailPage((p) => getTrending('tv', 'week', p)) },
   { id: 'streaming-br', title: { lead: 'No streaming', accent: 'no Brasil' }, href: '/filmes/no-streaming', fetch: () => getMovieList('streaming_br', 1) },
-  { id: 'series-no-ar', title: { lead: 'Séries', accent: 'no ar esta semana' }, href: '/series/em-exibicao', fetch: () => getTvList('on_the_air', 1) },
+  { id: 'series-no-ar', title: { lead: 'Séries', accent: 'no ar esta semana' }, href: '/series/em-exibicao', fetch: () => fetchRailPage((p) => getTvList('on_the_air', p)) },
   { id: 'joias-escondidas', title: { lead: 'Joias', accent: 'escondidas' }, href: '/filmes/joias-escondidas', fetch: () => getMovieList('hidden_gems', 1) },
   { id: 'classicos-validados', title: { lead: 'Clássicos', accent: 'validados' }, href: '/filmes/mais-bem-avaliados', fetch: () => getMovieList('top_rated', 1) },
   { id: 'series-aclamadas', title: { lead: 'Séries', accent: 'aclamadas' }, href: '/series/mais-bem-avaliadas', fetch: () => getTvList('top_rated', 1) },

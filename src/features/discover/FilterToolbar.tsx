@@ -1,14 +1,18 @@
 'use client';
 
+import { Check } from 'lucide-react';
 import { useLayoutEffect, useState, type ReactNode } from 'react';
+import { cn } from '@/lib/cn';
 import { switchMedia } from './chips';
 import type { DiscoverFilters } from './filters';
 import { FilterMenu, type MenuContext } from './FilterMenu';
 import { formatScore, type DiscoverCatalog } from './labels';
 import { LanguageSelect, MediaToggle, Segmented, SortSelect, VotesSelect, YearSelects } from './PanelFields';
 import { GenrePicker, ProviderPicker } from './PanelPickers';
-import { toggleClass } from './panel-styles';
-import { clearDimension, flip, isOn, RATING_STEPS, RUNTIME_STEPS, summary, yearPicks, type Dimension } from './toolbar-model';
+import { toggleClass, triggerClass } from './panel-styles';
+import {
+  clearDimension, flip, isOn, RATING_STEPS, RUNTIME_STEPS, summary, withPatch, yearPicks, type Dimension,
+} from './toolbar-model';
 
 type Update = (next: DiscoverFilters, options?: { now?: boolean }) => void;
 
@@ -120,6 +124,10 @@ export function FilterToolbar({
             <ProviderPicker providers={providers} selected={f.providers} onChange={(ids) => patch({ providers: ids })} labelledBy={titleId} />
           ))
         : null}
+      <AvailableToggle
+        on={!f.includeUnavailable}
+        onChange={(on) => update(withPatch(f, { includeUnavailable: on ? undefined : true }), { now: true })}
+      />
       {menu('mais', 'Mais', () => (
         <div className="space-y-4">
           <LanguageSelect f={f} patch={patch} />
@@ -130,5 +138,15 @@ export function FilterToolbar({
         <SortSelect f={f} patch={(p) => now(p)} />
       </div>
     </div>
+  );
+}
+
+/** "Disponível no Brasil": on by default; off lets titles that cannot be watched in Brazil into the results. */
+function AvailableToggle({ on, onChange }: { on: boolean; onChange: (on: boolean) => void }) {
+  return (
+    <button type="button" aria-pressed={on} onClick={() => onChange(!on)} className={cn(triggerClass(on, false), on ? 'pr-4 pl-3' : 'px-4')}>
+      {on ? <Check aria-hidden="true" className="size-4" /> : null}
+      Disponível no Brasil
+    </button>
   );
 }

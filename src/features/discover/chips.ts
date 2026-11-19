@@ -34,6 +34,10 @@ export function activeChips(f: DiscoverFilters, catalog: DiscoverCatalog): Filte
     if (!name) continue;
     chips.push({ key: `p${id}`, label: `Provedor: ${name}`, next: { ...f, providers: f.providers.filter((p) => p !== id) } });
   }
+  // Availability is on by default, so only its non-default state is a chip; removing it turns the filter back on.
+  if (f.includeUnavailable) {
+    chips.push({ key: 'disponivel', label: 'Inclui indisponíveis no Brasil', next: without(f, 'includeUnavailable') });
+  }
   return chips;
 }
 

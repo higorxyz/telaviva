@@ -12,7 +12,7 @@ export async function HubRails({ media }: { media: MediaType }) {
       id: id.replace('/', '-'),
       title: list.title,
       href: `/${id}`,
-      fetch: () => list.fetch(1),
+      fetch: list.fetchRail,
     }));
   const rails = requireRails(dedupeRails(await settleRails(sources, 'hub'), { perRail: PER_RAIL }), 'hub');
   return (

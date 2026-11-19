@@ -16,6 +16,24 @@ test.describe('desktop', () => {
     expect(new Set(hrefs).size).toBe(hrefs.length);
   });
 
+  test('the feed keeps to titles available in Brazil (odd ids in the mock are not)', async ({ page }) => {
+    const ids = (selector: string) =>
+      page.locator(selector).evaluateAll((links) => links.map((a) => Number(/\/(\d+)-/.exec(a.getAttribute('href') ?? '')?.[1])));
+    await page.goto('/');
+    // Rails whose TMDb lists have no watch filter, so the app filters them itself.
+    for (const rail of ['bombando-hoje', 'series-em-alta', 'series-no-ar']) {
+      const found = await ids(`section#${rail} a[href^="/filme/"], section#${rail} a[href^="/serie/"]`);
+      expect(found.length, rail).toBeGreaterThanOrEqual(6);
+      expect(found.filter((id) => id % 2 === 1), rail).toEqual([]);
+    }
+    // A direct link still opens an unavailable title, but its recommendations are filtered.
+    await page.goto('/filme/551-clube-da-luta');
+    await expect(page.getByRole('heading', { level: 1 })).toContainText('Clube da Luta');
+    const recs = await ids('section#recomendacoes a[href^="/filme/"]');
+    expect(recs.length).toBeGreaterThan(0);
+    expect(recs.filter((id) => id % 2 === 1)).toEqual([]);
+  });
+
   test('header navigation goes to /series', async ({ page }) => {
     await page.goto('/');
     await page.getByRole('navigation', { name: 'Seções' }).getByRole('link', { name: 'Séries' }).click();

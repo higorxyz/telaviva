@@ -84,6 +84,8 @@ describe('getTvList', () => {
     await getTvList('top_rated', 1);
     expect(req.url!.searchParams.get('vote_count.gte')).toBe('500');
     expect(req.url!.searchParams.get('include_adult')).toBe('false');
+    expect(req.url!.searchParams.get('watch_region')).toBe('BR');
+    expect(req.url!.searchParams.get('with_watch_monetization_types')).toBe('flatrate|free|ads|rent|buy');
   });
 
   it('on_the_air usa o endpoint homônimo', async () => {

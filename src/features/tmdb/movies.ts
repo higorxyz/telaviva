@@ -1,6 +1,7 @@
 import { cacheLife, cacheTag } from 'next/cache';
 import { z } from 'zod';
 import { refine, sortByWeightedRating } from '@/features/catalog/curation';
+import { availablePage, brAvailabilityParams, withAvailableRecommendations } from './availability';
 import { isTmdbNotFound, TmdbError, tmdbFetch, type TmdbParams } from './client';
 import { saoPauloIsoDate } from './dates';
 import { toMovieDetails } from './detail-mappers';
@@ -21,7 +22,10 @@ export type MovieListKey =
   | 'blockbusters'
   | 'streaming_br';
 
-/** Discover params per list; rules ported from v1. */
+/**
+ * Discover params per list; rules ported from v1. Feed lists ask TMDb for titles available in Brazil; the release
+ * lists ("Nos cinemas", "Em breve") do not, and streaming_br keeps its subscription-only rule.
+ */
 function listParams(list: Exclude<MovieListKey, 'popular'>): TmdbParams {
   switch (list) {
     case 'now_playing':
@@ -42,9 +46,10 @@ function listParams(list: Exclude<MovieListKey, 'popular'>): TmdbParams {
         sort_by: 'popularity.desc',
       };
     case 'top_rated':
-      return { 'vote_count.gte': 1200, 'vote_average.gte': 7.2, sort_by: 'vote_average.desc' };
+      return { 'vote_count.gte': 1200, 'vote_average.gte': 7.2, sort_by: 'vote_average.desc', ...brAvailabilityParams() };
     case 'hidden_gems':
       return {
+        ...brAvailabilityParams(),
         'vote_average.gte': 7.2,
         'vote_count.gte': 120,
         'vote_count.lte': 1200,
@@ -52,13 +57,14 @@ function listParams(list: Exclude<MovieListKey, 'popular'>): TmdbParams {
       };
     case 'short':
       return {
+        ...brAvailabilityParams(),
         'with_runtime.lte': 100,
         'vote_count.gte': 100,
         'vote_average.gte': 6,
         sort_by: 'popularity.desc',
       };
     case 'blockbusters':
-      return { sort_by: 'revenue.desc', 'vote_count.gte': 1000 };
+      return { sort_by: 'revenue.desc', 'vote_count.gte': 1000, ...brAvailabilityParams() };
     case 'streaming_br':
       return {
         watch_region: 'BR',
@@ -72,12 +78,13 @@ export async function getMovieList(list: MovieListKey, page: number): Promise<Pa
   'use cache';
   cacheLife('tmdbHot');
   cacheTag('tmdb', `movie-list:${list}`);
-  const result =
-    list === 'popular'
-      ? toPaginated(await tmdbFetch('movie/popular', { region: 'BR', page }, moviePageSchema), (r) =>
-          toMediaSummary(r, 'movie'),
-        )
-      : await fetchDiscover('movie', listParams(list), page);
+  if (list === 'popular') {
+    const raw = await tmdbFetch('movie/popular', { region: 'BR', page }, moviePageSchema);
+    const result = toPaginated(raw, (r) => toMediaSummary(r, 'movie'));
+    // movie/popular has no watch filter, so its page is post-filtered (after refine: fewer titles to ask about).
+    return availablePage({ ...result, results: refine(result.results, { requireImage: true, minOverviewLength: 20 }) });
+  }
+  const result = await fetchDiscover('movie', listParams(list), page);
   if (list === 'top_rated') return { ...result, results: sortByWeightedRating(result.results) };
   // Unreleased titles often lack a synopsis, so upcoming only requires an image.
   const rules = list === 'upcoming' ? { requireImage: true } : { requireImage: true, minOverviewLength: 20 };
@@ -101,7 +108,8 @@ export async function getTrending(
       media === 'all' ? parseMediaItem(item) : parseMediaItem({ ...(item as object), media_type: media }),
     )
     .filter((i): i is MediaSummary => i !== null);
-  return { page: raw.page, totalPages: raw.total_pages, totalResults: raw.total_results, results };
+  // Trending has no watch filter: the feed post-filters it to titles available in Brazil.
+  return availablePage({ page: raw.page, totalPages: raw.total_pages, totalResults: raw.total_results, results });
 }
 
 const MOVIE_APPEND = 'videos,credits,release_dates,watch/providers,recommendations,external_ids';
@@ -124,8 +132,10 @@ async function loadMovieDetails(id: number): Promise<MovieDetails | null> {
       cacheLife('tmdbDetail');
       return null;
     }
-    const movie = await withOverviewFallback(toMovieDetails(raw), () =>
-      tmdbFetch(`movie/${id}`, { language: 'en-US' }, overviewOnlySchema),
+    const movie = await withAvailableRecommendations(
+      await withOverviewFallback(toMovieDetails(raw), () =>
+        tmdbFetch(`movie/${id}`, { language: 'en-US' }, overviewOnlySchema),
+      ),
     );
     cacheLife('tmdbDetail');
     return movie;

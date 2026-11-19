@@ -5,6 +5,7 @@ import movie550En from '@/test/fixtures/movie-550-en.json';
 import person287 from '@/test/fixtures/person-287.json';
 import tv1399 from '@/test/fixtures/tv-1399.json';
 import season1 from '@/test/fixtures/tv-1399-season-1.json';
+import { nothingAvailableInBr, onlyEvenAvailableInBr } from '@/test/providers';
 import { server } from '@/test/server';
 import { isTmdbNotFound } from './client';
 import { getMovieDetails } from './movies';
@@ -187,5 +188,33 @@ describe('conteúdo adulto', () => {
     });
     const p = await getPerson(287);
     expect(p.credits.some((c) => c.id === 4343)).toBe(false);
+  });
+});
+
+describe('disponibilidade no Brasil', () => {
+  const evens = (results: { id: number }[]) => results.map((r) => r.id).filter((id) => id % 2 === 0);
+
+  it('as recomendações do detalhe (filme e série) mostram só títulos disponíveis', async () => {
+    onlyEvenAvailableInBr();
+    lastRequest('movie/551', { ...movie550, id: 551 });
+    lastRequest('tv/1401', { ...tv1399, id: 1401 });
+    const m = await getMovieDetails(551);
+    expect(m.recommendations.length).toBeGreaterThan(0);
+    expect(m.recommendations.map((r) => r.id)).toEqual(evens(movie550.recommendations.results));
+    const t = await getTvDetails(1401);
+    expect(t.recommendations.map((r) => r.id)).toEqual(evens(tv1399.recommendations.results));
+  });
+
+  it('link direto e filmografia não filtram: o título indisponível abre e a pessoa mantém todos os créditos', async () => {
+    nothingAvailableInBr();
+    lastRequest('movie/553', { ...movie550, id: 553 });
+    const m = await getMovieDetails(553);
+    expect(m.id).toBe(553);
+    expect(m.recommendations).toEqual([]);
+
+    lastRequest('person/287', person287);
+    const all = (await getPerson(287)).credits;
+    expect(all.length).toBeGreaterThan(0);
+    expect(all.some((c) => c.id % 2 === 1)).toBe(true);
   });
 });

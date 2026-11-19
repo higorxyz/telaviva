@@ -97,6 +97,40 @@ describe('toTmdbParams', () => {
   });
 });
 
+describe('disponível no Brasil (disponivel)', () => {
+  const BR = { watch_region: 'BR', with_watch_monetization_types: 'flatrate|free|ads|rent|buy' };
+
+  it('is on by default, including old URLs without the param, and adds the availability params', () => {
+    expect(parse('').includeUnavailable).toBeUndefined();
+    expect(parse('disponivel=1').includeUnavailable).toBeUndefined();
+    expect(toTmdbParams(parse(''))).toMatchObject(BR);
+    expect(toTmdbParams(parse('tipo=serie&generos=18'))).toMatchObject(BR);
+  });
+
+  it('disponivel=0 turns it off and adds nothing', () => {
+    const f = parse('disponivel=0');
+    expect(f.includeUnavailable).toBe(true);
+    const p = toTmdbParams(f);
+    expect(p).not.toHaveProperty('watch_region');
+    expect(p).not.toHaveProperty('with_watch_monetization_types');
+  });
+
+  it('with providers picked, the provider filter is enough: no monetization types', () => {
+    const p = toTmdbParams(parse('provedores=8'));
+    expect(p).toMatchObject({ with_watch_providers: '8', watch_region: 'BR' });
+    expect(p).not.toHaveProperty('with_watch_monetization_types');
+  });
+
+  it('writes disponivel=0 only when off, after the providers, and round-trips', () => {
+    expect(filtersToSearchParams(parse('disponivel=1')).toString()).toBe('');
+    expect(filtersToSearchParams(parse('ordem=nota&disponivel=0&provedores=8')).toString()).toBe(
+      'provedores=8&disponivel=0&ordem=nota',
+    );
+    const f: DiscoverFilters = { media: 'tv', genres: [18], providers: [], sort: 'popularidade', includeUnavailable: true };
+    expect(parseFilters(filtersToSearchParams(f))).toEqual(f);
+  });
+});
+
 describe('series sort', () => {
   it('maps box office to popularity for series so state and select agree', () => {
     expect(parse('tipo=serie&ordem=bilheteria').sort).toBe('popularidade');

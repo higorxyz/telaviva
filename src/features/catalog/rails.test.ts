@@ -4,6 +4,9 @@ import discoverMovies from '@/test/fixtures/discover-movie-popular.json';
 import trendingAll from '@/test/fixtures/trending-all-day.json';
 import trendingTv from '@/test/fixtures/trending-tv-week.json';
 import { movie, tv } from '@/test/media';
+import movie550 from '@/test/fixtures/movie-550.json';
+import tv1399 from '@/test/fixtures/tv-1399.json';
+import { onlyEvenAvailableInBr } from '@/test/providers';
 import { server } from '@/test/server';
 import { getFeatured } from '@/features/home/data';
 import { buildHomeRails, dedupeRails, requireRails, type RailInput } from './rails';
@@ -81,6 +84,82 @@ describe('buildHomeRails', () => {
     const keys = rails.flatMap((r) => r.items.map((i) => `${i.mediaType}:${i.id}`));
     expect(new Set(keys).size).toBe(keys.length);
     expect(keys).not.toContain('movie:1263337');
+  });
+});
+
+describe('feed disponível no Brasil', () => {
+  /** Page 2 of a trending list: the same kind of titles under new ids (parity kept, so evens stay available). */
+  const shifted = <T extends { results: { id: number }[] }>(body: T, by: number): T => ({
+    ...body,
+    page: 2,
+    results: body.results.map((r) => ({ ...r, id: r.id + by })),
+  });
+  // TMDb applies watch_region + monetization itself on discover; the stand-in keeps only the even ids then.
+  const discoverOf = (body: { results: { id: number }[] }) => ({ request }: { request: Request }) => {
+    const filtered = new URL(request.url).searchParams.has('with_watch_monetization_types');
+    return HttpResponse.json(filtered ? { ...body, results: body.results.filter((r) => r.id % 2 === 0) } : body);
+  };
+
+  beforeEach(() => {
+    vi.spyOn(console, 'error').mockImplementation(() => {});
+    server.use(
+      http.get(`${BASE}/discover/movie`, discoverOf(discoverMovies)),
+      http.get(`${BASE}/discover/tv`, discoverOf(trendingTv)),
+      http.get(`${BASE}/movie/popular`, () => HttpResponse.json(discoverMovies)),
+      http.get(`${BASE}/tv/on_the_air`, () => HttpResponse.json(trendingTv)),
+      http.get(`${BASE}/trending/tv/week`, () => HttpResponse.json(trendingTv)),
+    );
+  });
+  afterEach(() => vi.restoreAllMocks());
+
+  it('a trending rail keeps only available titles and tops up from page 2 when page 1 falls short', async () => {
+    onlyEvenAvailableInBr();
+    const pages: string[] = [];
+    server.use(
+      http.get(`${BASE}/trending/all/day`, ({ request }) => {
+        const page = new URL(request.url).searchParams.get('page') ?? '1';
+        pages.push(page);
+        return HttpResponse.json(page === '2' ? shifted(trendingAll, 1_000_000) : trendingAll);
+      }),
+    );
+    const rails = await buildHomeRails();
+    const trending = rails.find((r) => r.id === 'bombando-hoje')!;
+    expect(trending.items.every((i) => i.id % 2 === 0)).toBe(true);
+    // Page 1 has only 6 available titles (< 12), so page 2 is asked and its titles fill the rail.
+    expect(pages).toEqual(['1', '2']);
+    expect(trending.items.some((i) => i.id > 1_000_000)).toBe(true);
+    expect(trending.items.length).toBeGreaterThan(6);
+    // Every other rail too, except the exempt release rails ("Nos cinemas", "Em breve").
+    const feed = rails.filter((r) => r.id !== 'em-cartaz' && r.id !== 'em-breve');
+    expect(feed.length).toBeGreaterThanOrEqual(2);
+    expect(feed.flatMap((r) => r.items).every((i) => i.id % 2 === 0)).toBe(true);
+    expect(rails.find((r) => r.id === 'em-cartaz')!.items.some((i) => i.id % 2 === 1)).toBe(true);
+  });
+
+  it('does not ask page 2 when page 1 already has 12 available titles', async () => {
+    const pages: string[] = [];
+    server.use(
+      http.get(`${BASE}/trending/all/day`, ({ request }) => {
+        pages.push(new URL(request.url).searchParams.get('page') ?? '1');
+        return HttpResponse.json(trendingAll);
+      }),
+    );
+    await buildHomeRails();
+    expect(pages).toEqual(['1']);
+  });
+
+  it('the home hero is picked only among available titles', async () => {
+    onlyEvenAvailableInBr();
+    server.use(
+      http.get(`${BASE}/trending/all/day`, () => HttpResponse.json(trendingAll)),
+      // Listed before movie/:id, which would otherwise also match movie/popular.
+      http.get(`${BASE}/movie/popular`, () => HttpResponse.json(discoverMovies)),
+      http.get(`${BASE}/movie/:id`,({ params }) => HttpResponse.json({ ...movie550, id: Number(params.id) })),
+      http.get(`${BASE}/tv/:id`, ({ params }) => HttpResponse.json({ ...tv1399, id: Number(params.id) })),
+    );
+    const featured = await getFeatured();
+    expect(featured).not.toBeNull();
+    expect(featured!.item.id % 2).toBe(0);
   });
 });
 

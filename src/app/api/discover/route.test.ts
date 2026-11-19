@@ -31,6 +31,15 @@ describe('GET /api/discover', () => {
     );
   });
 
+  it('genre pagination (no disponivel param) keeps to titles available in Brazil; disponivel=0 does not', async () => {
+    discoverMock.mockResolvedValue(BODY);
+    const BR = { watch_region: 'BR', with_watch_monetization_types: 'flatrate|free|ads|rent|buy' };
+    await call('?tipo=filme&generos=28&page=2');
+    expect(discoverMock).toHaveBeenLastCalledWith('movie', expect.objectContaining({ with_genres: '28', ...BR }), 2);
+    await call('?tipo=filme&generos=28&disponivel=0&page=2');
+    expect(discoverMock.mock.lastCall![1]).not.toHaveProperty('with_watch_monetization_types');
+  });
+
   it('defaults to movies on page 1', async () => {
     discoverMock.mockResolvedValue(BODY);
     await call('');

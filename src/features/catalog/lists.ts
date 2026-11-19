@@ -3,6 +3,7 @@ import { getMovieList, getTrending } from '@/features/tmdb/movies';
 import { getTvList } from '@/features/tmdb/tv';
 import type { MediaSummary, Paginated } from '@/features/tmdb/types';
 import { CATALOG_LIST_META, type CatalogListId, type CatalogListMeta } from './list-ids';
+import { fetchFilledPage, fetchRailPage } from './post-filter-pages';
 
 export type { CatalogListId };
 
@@ -25,9 +26,38 @@ const fetchers: Record<CatalogListId, Fetcher> = {
   'series/mais-bem-avaliadas': (p) => getTvList('top_rated', p),
 };
 
+/**
+ * Lists with no watch filter on TMDb's side, so their pages are filtered to titles available in Brazil after the
+ * fact and can come back short or empty. Discover lists ask TMDb directly; "em cartaz" and "em breve" are exempt.
+ */
+const POST_FILTERED = new Set<CatalogListId>([
+  'filmes/em-alta',
+  'filmes/populares',
+  'series/em-alta',
+  'series/no-ar-hoje',
+  'series/em-exibicao',
+  'series/populares',
+]);
+
+export interface CatalogList extends CatalogListMeta {
+  postFiltered: boolean;
+  /** One page for the list page and its infinite scroll; a post-filtered list skips empty pages (see `page`). */
+  fetch: Fetcher;
+  /** Page 1 for a hub rail; a post-filtered list tops it up with page 2 when short. */
+  fetchRail: () => Promise<Paginated<MediaSummary>>;
+}
+
+function catalogList(id: CatalogListId): CatalogList {
+  const raw = fetchers[id];
+  const postFiltered = POST_FILTERED.has(id);
+  return {
+    ...CATALOG_LIST_META[id],
+    postFiltered,
+    fetch: postFiltered ? (page) => fetchFilledPage(raw, page) : raw,
+    fetchRail: postFiltered ? () => fetchRailPage(raw) : () => raw(1),
+  };
+}
+
 export const CATALOG_LISTS = Object.fromEntries(
-  (Object.keys(CATALOG_LIST_META) as CatalogListId[]).map((id) => [
-    id,
-    { ...CATALOG_LIST_META[id], fetch: fetchers[id] },
-  ]),
-) as Record<CatalogListId, CatalogListMeta & { fetch: Fetcher }>;
+  (Object.keys(CATALOG_LIST_META) as CatalogListId[]).map((id) => [id, catalogList(id)]),
+) as Record<CatalogListId, CatalogList>;

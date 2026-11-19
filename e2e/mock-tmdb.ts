@@ -48,6 +48,7 @@ const ok = (name: string): Resolved => ({ status: 200, body: fixture(name) });
 const withId = (name: string, id: number): Resolved => ({ status: 200, body: { ...fixture(name), id } });
 
 const DETAIL_PATH = /^(movie|tv|person)\/\d+$/;
+const NETFLIX = { provider_id: 8, provider_name: 'Netflix', logo_path: '/pbpMk2JmcoNnQwx5JGpXngfoWtp.jpg', display_priority: 0 };
 
 export function resolve(pathname: string, params: URLSearchParams, authorization?: string): Resolved {
   const p = pathname.replace(/^\/3\//, '').replace(/\/$/, '');
@@ -68,6 +69,13 @@ export function resolve(pathname: string, params: URLSearchParams, authorization
     const id = Number(movie[1]);
     if (id === 999999999) return notFound;
     return withId(params.get('language') === 'en-US' ? 'movie-550-en' : 'movie-550', id);
+  }
+  // Even ids can be watched in Brazil, odd ids cannot (no BR entry), so the feed filter has both cases to work on.
+  const providers = /^(movie|tv)\/(\d+)\/watch\/providers$/.exec(p);
+  if (providers) {
+    const id = Number(providers[2]);
+    const br = { link: `https://www.themoviedb.org/${providers[1]}/${id}/watch?locale=BR`, flatrate: [NETFLIX] };
+    return { status: 200, body: { id, results: id % 2 === 0 ? { BR: br } : { US: br } } };
   }
   const recommendations = /^(movie|tv)\/\d+\/recommendations$/.exec(p);
   if (recommendations) return ok(recommendations[1] === 'movie' ? 'discover-movie-page-2' : 'discover-tv-page-2');
@@ -126,9 +134,13 @@ createServer((req, res) => {
   const resolved = req.method === 'GET' ? resolve(url.pathname, url.searchParams, req.headers.authorization) : notFound;
   const { status } = resolved;
   let body = resolved.body;
-  // Paginated bodies echo the requested page, like TMDb does; clients paginate from `page`.
+  // Paginated bodies echo the requested page, like TMDb does; clients paginate from `page`. Later pages hold other
+  // titles, as on TMDb (ids shifted by an even step, so availability by parity is unchanged).
   if (status === 200 && body && typeof body === 'object' && 'results' in body && 'page' in body) {
-    body = { ...body, page: Math.max(1, Number(url.searchParams.get('page')) || 1) };
+    const page = Math.max(1, Number(url.searchParams.get('page')) || 1);
+    const shift = (page - 1) * 10_000_000;
+    const results = (body.results as { id: number }[]).map((r) => (shift ? { ...r, id: r.id + shift } : r));
+    body = { ...body, page, results };
   }
   res.writeHead(status, { 'content-type': 'application/json; charset=utf-8' });
   res.end(JSON.stringify(body));

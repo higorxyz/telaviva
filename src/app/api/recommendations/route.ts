@@ -25,11 +25,6 @@ const bodySchema = z.object({
     .max(500),
 });
 
-/** Hook point for a later availability filter (Brazil); identity for now. */
-async function filterCandidates(results: MediaSummary[]): Promise<MediaSummary[]> {
-  return results;
-}
-
 export async function POST(request: Request) {
   let json: unknown;
   try {
@@ -52,7 +47,9 @@ export async function POST(request: Request) {
     else console.error(`[api/recommendations] failed for ${s.mediaType} ${s.tmdbId}`, outcome.reason);
   });
 
-  const results = await filterCandidates(scoreRecommendations(seeds, bySeed, exclude));
+  // Both sources are already limited to titles available in Brazil (getRecommendationsFor and getTrending
+  // post-filter inside their caches), so the scored candidates and the trending padding need no second pass.
+  const results = scoreRecommendations(seeds, bySeed, exclude);
 
   if (results.length < MIN_RESULTS) {
     try {

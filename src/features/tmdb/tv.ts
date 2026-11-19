@@ -1,5 +1,6 @@
 import { cacheLife, cacheTag } from 'next/cache';
 import { sortByWeightedRating } from '@/features/catalog/curation';
+import { availablePage, brAvailabilityParams, withAvailableRecommendations } from './availability';
 import { isTmdbNotFound, TmdbError, tmdbFetch } from './client';
 import { toEpisode, toTvDetails } from './detail-mappers';
 import { overviewOnlySchema, seasonSchema, tvDetailSchema } from './detail-schemas';
@@ -17,7 +18,7 @@ export async function getTvList(list: TvListKey, page: number): Promise<Paginate
   if (list === 'top_rated') {
     const result = await fetchDiscover(
       'tv',
-      { 'vote_count.gte': 500, sort_by: 'vote_average.desc' },
+      { 'vote_count.gte': 500, sort_by: 'vote_average.desc', ...brAvailabilityParams() },
       page,
     );
     return { ...result, results: sortByWeightedRating(result.results, 500) };
@@ -27,7 +28,8 @@ export async function getTvList(list: TvListKey, page: number): Promise<Paginate
     { page, ...(list === 'airing_today' ? { timezone: 'America/Sao_Paulo' } : {}) },
     tvPageSchema,
   );
-  return toPaginated(raw, (r) => toMediaSummary(r, 'tv'));
+  // These endpoints have no watch filter: the feed post-filters them to titles available in Brazil.
+  return availablePage(toPaginated(raw, (r) => toMediaSummary(r, 'tv')));
 }
 
 const TV_APPEND = 'videos,aggregate_credits,content_ratings,watch/providers,recommendations';
@@ -50,8 +52,10 @@ async function loadTvDetails(id: number): Promise<TvDetails | null> {
       cacheLife('tmdbDetail');
       return null;
     }
-    const tv = await withOverviewFallback(toTvDetails(raw), () =>
-      tmdbFetch(`tv/${id}`, { language: 'en-US' }, overviewOnlySchema),
+    const tv = await withAvailableRecommendations(
+      await withOverviewFallback(toTvDetails(raw), () =>
+        tmdbFetch(`tv/${id}`, { language: 'en-US' }, overviewOnlySchema),
+      ),
     );
     cacheLife('tmdbDetail');
     return tv;

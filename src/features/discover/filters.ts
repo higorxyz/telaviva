@@ -1,8 +1,9 @@
+import { brAvailabilityParams } from '@/features/tmdb/availability-params';
 import type { TmdbParams } from '@/features/tmdb/client';
 import type { MediaType } from '@/features/tmdb/types';
 import { mediaTypeToTipo } from '@/lib/slug';
 
-// Pure and client-safe: TmdbParams is a type-only import (erased), nothing server-only runs here.
+// Pure and client-safe: TmdbParams is a type-only import (erased) and availability-params has no server code.
 
 export type DiscoverSort = 'popularidade' | 'nota' | 'lancamento' | 'bilheteria' | 'titulo';
 
@@ -17,6 +18,11 @@ export interface DiscoverFilters {
   language?: string;
   providers: number[];
   sort: DiscoverSort;
+  /**
+   * "Disponível no Brasil" is on by default (absent); `disponivel=0` turns it off, and then titles that cannot be
+   * watched in Brazil show up too. Absent rather than false so old links and "Limpar tudo" mean "on".
+   */
+  includeUnavailable?: true;
 }
 
 export const SORTS: readonly DiscoverSort[] = ['popularidade', 'nota', 'lancamento', 'bilheteria', 'titulo'];
@@ -78,6 +84,7 @@ export function parseFilters(sp: URLSearchParams): DiscoverFilters {
   if (minVotes !== undefined) f.minVotes = minVotes;
   if (maxRuntime !== undefined) f.maxRuntime = maxRuntime;
   if (language) f.language = language;
+  if (sp.get('disponivel') === '0') f.includeUnavailable = true;
   return f;
 }
 
@@ -93,6 +100,7 @@ export function filtersToSearchParams(f: DiscoverFilters): URLSearchParams {
   if (f.media === 'movie' && f.maxRuntime !== undefined) sp.set('duracao', String(f.maxRuntime));
   if (f.language) sp.set('idioma', f.language);
   if (f.providers.length) sp.set('provedores', f.providers.join(','));
+  if (f.includeUnavailable) sp.set('disponivel', '0');
   if (f.sort !== 'popularidade') sp.set('ordem', f.sort);
   return sp;
 }
@@ -128,6 +136,9 @@ export function toTmdbParams(f: DiscoverFilters): TmdbParams {
   if (f.providers.length) {
     p.with_watch_providers = f.providers.join('|');
     p.watch_region = 'BR';
+  } else if (!f.includeUnavailable) {
+    // Picked providers already limit results to what streams in Brazil; otherwise ask for any BR offer.
+    Object.assign(p, brAvailabilityParams());
   }
   return p;
 }

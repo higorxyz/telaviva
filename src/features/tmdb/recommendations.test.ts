@@ -2,6 +2,7 @@ import { http, HttpResponse } from 'msw';
 import { describe, expect, it } from 'vitest';
 import moviePage from '@/test/fixtures/discover-movie-page-2.json';
 import tvPage from '@/test/fixtures/discover-tv-page-2.json';
+import { onlyEvenAvailableInBr } from '@/test/providers';
 import { server } from '@/test/server';
 import { getRecommendationsFor } from './recommendations';
 
@@ -36,6 +37,14 @@ describe('getRecommendationsFor', () => {
     const result = await getRecommendationsFor('movie', 9103);
     expect(result.map((r) => r.id)).not.toContain(moviePage.results[0]!.id);
     expect(result).toHaveLength(moviePage.results.length - 1);
+  });
+
+  it('keeps only titles available in Brazil, in order', async () => {
+    onlyEvenAvailableInBr();
+    server.use(http.get(`${BASE}/movie/9105/recommendations`, () => HttpResponse.json(moviePage as Record<string, unknown>)));
+    const result = await getRecommendationsFor('movie', 9105);
+    expect(result.length).toBeGreaterThan(0);
+    expect(result.map((r) => r.id)).toEqual(moviePage.results.map((r) => r.id).filter((id) => id % 2 === 0));
   });
 
   it('turns a TMDb 404 into an empty list', async () => {

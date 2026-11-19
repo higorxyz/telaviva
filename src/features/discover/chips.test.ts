@@ -40,6 +40,21 @@ describe('activeChips', () => {
   });
 });
 
+describe('availability chip', () => {
+  it('appears only when the filter is off, and removing it turns the filter back on', () => {
+    expect(activeChips(parse(''), catalog)).toEqual([]);
+    const chips = activeChips(parse('generos=18&disponivel=0'), catalog);
+    expect(chips.map((c) => c.label)).toEqual(['Gênero: Drama', 'Inclui indisponíveis no Brasil']);
+    expect(chips[1].next.includeUnavailable).toBeUndefined();
+    expect(chips[1].next.genres).toEqual([18]);
+  });
+
+  it('Limpar tudo restores the default (on) and switching type keeps the choice', () => {
+    expect(clearFilters(parse('disponivel=0&nota=8')).includeUnavailable).toBeUndefined();
+    expect(switchMedia(parse('disponivel=0'), 'tv', catalog).includeUnavailable).toBe(true);
+  });
+});
+
 describe('clearFilters / switchMedia', () => {
   it('clears filters but keeps type and sort', () => {
     expect(clearFilters(parse('tipo=serie&generos=18&nota=8&ordem=nota'))).toEqual({
