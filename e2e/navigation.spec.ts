@@ -88,6 +88,19 @@ test.describe('mobile', () => {
   });
 });
 
+test('prefetching a route does not download its hero images into the current page', async ({ page }) => {
+  // /descobrir preloads no TMDb image of its own (its grid is fetched client-side), and the "Início" link is
+  // always visible, so the home page gets prefetched. Its hero backdrop must not come along as a preload hint.
+  const homePrefetch = page.waitForResponse(
+    (r) => new URL(r.url()).pathname === '/' && r.request().headers()['next-router-segment-prefetch'] === '/__PAGE__',
+  );
+  await page.goto('/descobrir');
+  await (await homePrefetch).finished();
+  await page.waitForTimeout(500); // negative assertion: give a wrongly emitted hint time to be applied
+  await expect(page.locator('link[rel="preload"][as="image"][imagesrcset*="image.tmdb.org"]')).toHaveCount(0);
+  await expect(page.locator('link[rel="preload"][as="image"][href*="image.tmdb.org"]')).toHaveCount(0);
+});
+
 test('hubs browse by genre and link to every genre and to discover', async ({ page }) => {
   await page.goto('/series');
   const section = page.getByRole('region', { name: 'Por gênero' });

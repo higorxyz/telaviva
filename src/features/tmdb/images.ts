@@ -30,9 +30,28 @@ export function posterSrcSet(path: string | null): string | undefined {
   ]);
 }
 
+/** Full-bleed heroes: `original` (up to 3840px) keeps wide and high-DPR screens sharp instead of upscaling w1280. */
 export function backdropSrcSet(path: string | null): string | undefined {
   return srcSet(path, [
     ['w780', 780],
     ['w1280', 1280],
+    ['original', 3840],
+  ]);
+}
+
+/** Cast photos (2:3). The CDN serves any configured width for any image kind. */
+export function profileSrcSet(path: string | null): string | undefined {
+  return srcSet(path, [
+    ['w185', 185],
+    ['w342', 342],
+  ]);
+}
+
+/** Episode stills (16:9); `original` is left out on purpose (often 1920px and ~300 KB per episode). */
+export function stillSrcSet(path: string | null): string | undefined {
+  return srcSet(path, [
+    ['w300', 300],
+    ['w500', 500],
+    ['w780', 780],
   ]);
 }

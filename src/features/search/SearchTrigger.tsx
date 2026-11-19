@@ -18,7 +18,7 @@ export function SearchTrigger({ className }: { className?: string }) {
       aria-haspopup="dialog"
       onClick={(e) => openSearchPalette(e.currentTarget)}
       className={cn(
-        'items-center gap-2 rounded-full border border-ink-600 bg-ink-800/60 px-4 py-2 text-sm text-ivory-muted transition-colors hover:text-ivory focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-amber motion-reduce:transition-none',
+        'items-center gap-2 rounded-full border border-ink-600 bg-ink-900/80 px-4 py-2 text-sm text-ivory-muted transition-colors hover:text-ivory focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-amber motion-reduce:transition-none',
         className,
       )}
     >

@@ -38,7 +38,7 @@ export function DetailMeta({
   return (
     <div className="mt-4 space-y-4 font-sans">
       {tagline ? <p className="font-display text-xl text-ivory/85 italic md:text-2xl">{tagline}</p> : null}
-      <div className="flex flex-wrap items-center gap-x-3 gap-y-2 text-sm text-ivory-muted">
+      <div className="flex flex-wrap items-center gap-x-3 gap-y-2 text-sm text-ivory/80">
         <RatingRing value={voteAverage} size="lg" />
         {parts.map((part, i) => (
           <span key={i} className="flex items-center gap-3">

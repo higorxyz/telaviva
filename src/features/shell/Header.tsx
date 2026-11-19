@@ -28,9 +28,19 @@ export function Header() {
         scrolled ? 'bg-ink-950/85 backdrop-blur' : 'bg-transparent',
       )}
     >
+      {/* Top scrim while the header is transparent: keeps the wordmark and links legible on bright backdrops.
+          Over the plain page background it is invisible, so it needs no per-page switch. */}
+      <div
+        aria-hidden="true"
+        className={cn(
+          'pointer-events-none absolute inset-x-0 top-0 -z-10 h-32 bg-linear-to-b from-ink-950/70 via-ink-950/35 via-50% to-transparent transition-opacity duration-200 motion-reduce:transition-none',
+          scrolled && 'opacity-0',
+        )}
+      />
       <div className={cn(PAGE_CONTAINER, 'flex h-16 items-center gap-8')}>
         <Link href="/" aria-label="TelaViva, página inicial" className="rounded-sm">
-          <Wordmark />
+          {/* Soft halo while transparent: on mobile no side shade helps the logo over bright skies. */}
+          <Wordmark className={cn('transition-[text-shadow]', !scrolled && 'text-shadow-lg text-shadow-ink-950/80')} />
         </Link>
         <nav aria-label="Seções" className="hidden flex-1 md:block">
           <ul className="flex items-center gap-6">
@@ -43,7 +53,8 @@ export function Header() {
                     aria-current={active ? 'page' : undefined}
                     className={cn(
                       'relative py-2 text-sm font-medium transition-colors motion-reduce:transition-none',
-                      active ? 'text-ivory' : 'text-ivory-muted hover:text-ivory',
+                      // Brighter than ivory-muted: these links sit on photography while the header is transparent.
+                      active ? 'text-ivory' : 'text-ivory/80 hover:text-ivory',
                     )}
                   >
                     {item.label}

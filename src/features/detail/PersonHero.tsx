@@ -3,13 +3,14 @@ import { tmdbImage } from '@/features/tmdb/images';
 import type { PersonDetails } from '@/features/tmdb/types';
 import { initials } from '@/lib/people';
 import { AccentTitle } from '@/ui/AccentTitle';
+import { EagerImage } from '@/ui/EagerImage';
 
 export function PersonPhoto({ person }: { person: Pick<PersonDetails, 'name' | 'profilePath'> }) {
   const src = tmdbImage(person.profilePath, 'h632');
   return (
     <div className="aspect-[2/3] w-40 shrink-0 overflow-hidden rounded-lg border border-ink-600 bg-ink-800 shadow-poster outline outline-2 outline-offset-4 outline-amber/50 sm:w-52 md:w-64">
       {src ? (
-        <img src={src} alt={`Foto de ${person.name}`} width={421} height={632} decoding="async" className="size-full object-cover" />
+        <EagerImage src={src} alt={`Foto de ${person.name}`} width={421} height={632} decoding="async" className="size-full object-cover" />
       ) : (
         <div data-testid="photo-placeholder" className="grid size-full place-items-center">
           <span aria-hidden="true" className="font-display text-5xl text-ivory-muted">
