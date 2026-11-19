@@ -51,7 +51,7 @@ export function LibraryToolbar({
         <span />
       )}
       <div className="flex items-center gap-3">
-        <label htmlFor={id} className="text-sm text-ivory-muted">
+        <label htmlFor={id} className="shrink-0 text-sm whitespace-nowrap text-ivory-muted">
           Ordenar por
         </label>
         <select
