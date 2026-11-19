@@ -1,5 +1,5 @@
 import { Suspense, type ReactNode } from 'react';
-import type { EpisodeSummary, TvDetails } from '@/features/tmdb/types';
+import type { EpisodeSummary, SeasonDetails, TvDetails } from '@/features/tmdb/types';
 import { mediaHref } from '@/lib/slug';
 import { EmptyState } from '@/ui/EmptyState';
 import { Skeleton } from '@/ui/Skeleton';
@@ -10,16 +10,19 @@ import { defaultSeason, orderSeasons, parseSeasonParam } from './seasons';
 import { SeasonPicker } from './SeasonPicker';
 
 type SearchParams = Promise<Record<string, string | string[] | undefined>>;
-type RenderAction = (episode: EpisodeSummary) => ReactNode;
+type RenderAction = (episode: EpisodeSummary, aired: boolean) => ReactNode;
+type RenderSeasonActions = (season: SeasonDetails, airedEpisodeNumbers: number[]) => ReactNode;
 
 async function Episodes({
   tv,
   searchParams,
   renderAction,
+  renderSeasonActions,
 }: {
   tv: TvDetails;
   searchParams: SearchParams;
   renderAction?: RenderAction;
+  renderSeasonActions?: RenderSeasonActions;
 }) {
   const seasons = orderSeasons(tv.seasons);
   const current = parseSeasonParam((await searchParams).temporada, seasons) ?? defaultSeason(tv);
@@ -29,7 +32,7 @@ async function Episodes({
     <>
       <SeasonPicker seasons={seasons} current={current} baseHref={mediaHref(tv)} />
       {result.status === 'ok' ? (
-        <EpisodeList season={result.season} renderAction={renderAction} />
+        <EpisodeList season={result.season} renderAction={renderAction} renderSeasonActions={renderSeasonActions} />
       ) : result.status === 'missing' ? (
         <EmptyState title="Ainda não há episódios cadastrados." />
       ) : (
@@ -47,16 +50,24 @@ export function SeasonsSection({
   tv,
   searchParams,
   renderAction,
+  renderSeasonActions,
 }: {
   tv: TvDetails;
   searchParams: SearchParams;
   /** Per-episode slot (Phase 2: mark as watched), passed through to EpisodeList. */
   renderAction?: RenderAction;
+  /** Season-level slot above the episode list (Phase 2: mark the whole season). */
+  renderSeasonActions?: RenderSeasonActions;
 }) {
   return (
     <DetailSection id="episodios" title={{ lead: 'Temporadas e', accent: 'episódios' }}>
       <Suspense fallback={<Skeleton className="h-96 w-full" />}>
-        <Episodes tv={tv} searchParams={searchParams} renderAction={renderAction} />
+        <Episodes
+          tv={tv}
+          searchParams={searchParams}
+          renderAction={renderAction}
+          renderSeasonActions={renderSeasonActions}
+        />
       </Suspense>
     </DetailSection>
   );

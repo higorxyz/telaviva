@@ -69,6 +69,36 @@ describe('EpisodeList', () => {
     expect(within(screen.getByRole('listitem')).getByRole('button', { name: 'Marcar E1' })).toBeInTheDocument();
   });
 
+  it('renderAction recebe se o episódio já foi exibido', () => {
+    render(
+      <EpisodeList
+        season={season([ep(1, '2026-01-01'), ep(2, '2026-11-18'), ep(3, '2026-11-19'), ep(4, null)])}
+        renderAction={(e, aired) => <span>{`E${e.episodeNumber} ${aired ? 'exibido' : 'futuro'}`}</span>}
+      />,
+    );
+    expect(screen.getByText('E1 exibido')).toBeInTheDocument();
+    expect(screen.getByText('E2 exibido')).toBeInTheDocument();
+    expect(screen.getByText('E3 futuro')).toBeInTheDocument();
+    expect(screen.getByText('E4 futuro')).toBeInTheDocument();
+  });
+
+  it('renderSeasonActions entra acima da lista com os números dos episódios exibidos', () => {
+    const received: number[][] = [];
+    render(
+      <EpisodeList
+        season={season([ep(1, '2026-01-01'), ep(2, '2026-11-18'), ep(3, '2026-11-19'), ep(4, null)])}
+        renderSeasonActions={(s, aired) => {
+          received.push(aired);
+          return <p>{`Ações da T${s.seasonNumber}`}</p>;
+        }}
+      />,
+    );
+    expect(received).toEqual([[1, 2]]);
+    const actions = screen.getByText('Ações da T1');
+    const list = screen.getByRole('list');
+    expect(actions.compareDocumentPosition(list) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+  });
+
   it('temporada sem episódios mostra estado vazio', () => {
     render(<EpisodeList season={season([])} />);
     expect(screen.getByText('Ainda não há episódios cadastrados.')).toBeInTheDocument();

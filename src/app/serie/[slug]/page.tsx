@@ -7,6 +7,8 @@ import { NextEpisode } from '@/features/detail/NextEpisode';
 import { SeasonsSection } from '@/features/detail/SeasonsSection';
 import { SerieMeta } from '@/features/detail/SerieMeta';
 import { truncateSummary } from '@/features/detail/summary';
+import { EpisodeToggle } from '@/features/library/EpisodeToggle';
+import { SeasonActions } from '@/features/library/SeasonActions';
 import { SeriesActions } from '@/features/library/SeriesActions';
 import { SeriesProgressCard } from '@/features/library/SeriesProgressCard';
 import { toProgressInfo } from '@/features/library/progress';
@@ -52,6 +54,14 @@ export default async function SeriePage({ params, searchParams }: Props) {
   });
 
   const info = toProgressInfo(tv);
+  const snapshot = toSnapshot(tv);
+  const seriesFields = {
+    id: tv.id,
+    title: tv.title,
+    posterPath: tv.posterPath,
+    releaseDate: tv.releaseDate,
+    genreIds: tv.genreIds,
+  };
 
   return (
     <>
@@ -59,7 +69,7 @@ export default async function SeriePage({ params, searchParams }: Props) {
         backHref="/series"
         item={tv}
         meta={<SerieMeta tv={tv} />}
-        actions={<SeriesActions tv={tv} info={info} />}
+        actions={<SeriesActions tv={seriesFields} info={info} />}
       />
       <div className={`${PAGE_CONTAINER} py-10 md:py-14`}>
         <DetailSections
@@ -67,11 +77,34 @@ export default async function SeriePage({ params, searchParams }: Props) {
           facts={tvFacts(tv)}
           afterOverview={
             <>
-              <SeriesProgressCard tvId={tv.id} title={tv.title} info={info} snapshot={toSnapshot(tv)} />
+              <SeriesProgressCard tvId={tv.id} info={info} snapshot={snapshot} />
               {tv.nextEpisodeToAir ? <NextEpisode episode={tv.nextEpisodeToAir} /> : null}
             </>
           }
-          afterTrailer={<SeasonsSection tv={tv} searchParams={searchParams} />}
+          afterTrailer={
+            <SeasonsSection
+              tv={tv}
+              searchParams={searchParams}
+              renderAction={(episode, aired) => (
+                <EpisodeToggle
+                  tvId={tv.id}
+                  episode={{ seasonNumber: episode.seasonNumber, episodeNumber: episode.episodeNumber }}
+                  aired={aired}
+                  info={info}
+                  snapshot={snapshot}
+                />
+              )}
+              renderSeasonActions={(season, airedEpisodeNumbers) => (
+                <SeasonActions
+                  tvId={tv.id}
+                  seasonNumber={season.seasonNumber}
+                  airedEpisodeNumbers={airedEpisodeNumbers}
+                  info={info}
+                  snapshot={snapshot}
+                />
+              )}
+            />
+          }
         />
       </div>
     </>
