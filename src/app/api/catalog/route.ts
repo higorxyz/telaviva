@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server';
+import { parsePageParam } from '@/lib/page-param';
 import { isCatalogListId } from '@/features/catalog/list-ids';
 import { CATALOG_LISTS } from '@/features/catalog/lists';
 
@@ -9,11 +10,9 @@ export async function GET(request: Request) {
     return NextResponse.json({ error: 'Lista inválida.' }, { status: 400 });
   }
 
-  const rawPage = params.get('page') ?? '1';
-  const page = Number(rawPage);
-  if (!/^\d+$/.test(rawPage) || page < 1 || page > 500) {
-    return NextResponse.json({ error: 'Página inválida (use um inteiro de 1 a 500).' }, { status: 400 });
-  }
+  const parsed = parsePageParam(params);
+  if ('error' in parsed) return parsed.error;
+  const { page } = parsed;
 
   try {
     return NextResponse.json(await CATALOG_LISTS[list].fetch(page));

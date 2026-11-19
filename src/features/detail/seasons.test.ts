@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import type { EpisodeSummary, SeasonSummary, TvDetails } from '@/features/tmdb/types';
-import { defaultSeason, orderSeasons, parseSeasonParam, statusLabel } from './seasons';
+import { defaultSeason, isAired, orderSeasons, parseSeasonParam, statusLabel } from './seasons';
 
 const s = (seasonNumber: number, episodeCount = 8, airDate: string | null = '2020-01-01'): SeasonSummary => ({
   seasonNumber,
@@ -63,5 +63,14 @@ describe('statusLabel', () => {
     expect(statusLabel('Planned')).toBe('Planejada');
     expect(statusLabel('Pilot')).toBe('Piloto');
     expect(statusLabel('Weird')).toBe('Weird');
+  });
+});
+
+describe('isAired', () => {
+  it('exibido quando a data é hoje ou antes; futuro e sem data não contam', () => {
+    expect(isAired('2026-11-17', '2026-11-18')).toBe(true);
+    expect(isAired('2026-11-18', '2026-11-18')).toBe(true);
+    expect(isAired('2026-11-19', '2026-11-18')).toBe(false);
+    expect(isAired(null, '2026-11-18')).toBe(false);
   });
 });

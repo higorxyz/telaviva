@@ -14,6 +14,11 @@ export function statusLabel(status: string): string {
   return STATUS[status] ?? status;
 }
 
+/** An episode has aired when its date is known and not after `todayIso` (both YYYY-MM-DD, São Paulo calendar). */
+export function isAired(airDate: string | null, todayIso: string): boolean {
+  return airDate !== null && airDate <= todayIso;
+}
+
 export function seasonLabel(season: Pick<SeasonSummary, 'seasonNumber'>): string {
   return season.seasonNumber === 0 ? 'Especiais' : `Temporada ${season.seasonNumber}`;
 }

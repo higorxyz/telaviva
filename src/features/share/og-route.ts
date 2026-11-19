@@ -45,16 +45,29 @@ const loaders: Record<CanonicalKind, (id: number) => Promise<OgCardProps>> = {
   },
 };
 
-const FULL_CACHE = 'public, max-age=86400, stale-while-revalidate=604800';
-const DEGRADED_CACHE = 'public, max-age=300';
+export const FULL_CACHE = 'public, max-age=86400, stale-while-revalidate=604800';
+export const DEGRADED_CACHE = 'public, max-age=300';
 
 /** `next/og` only emits PNG; photographic cards are ~1 MB, so re-encode to JPEG to stay under WhatsApp's preview limit. */
-async function toJpeg(image: ImageResponse, cacheControl: string): Promise<Response> {
+export async function toJpeg(image: ImageResponse, cacheControl: string): Promise<Response> {
   const png = Buffer.from(await image.arrayBuffer());
   const jpeg = await sharp(png).jpeg({ quality: 80, progressive: true, mozjpeg: true }).toBuffer();
   return new Response(new Uint8Array(jpeg), {
     headers: { 'content-type': 'image/jpeg', 'cache-control': cacheControl },
   });
+}
+
+/** Brand card as JPEG; if sharp itself fails, the PNG from next/og with the short cache. Never throws. */
+export async function brandJpeg(cacheControl: string): Promise<Response> {
+  try {
+    return await toJpeg(brandCard(), cacheControl);
+  } catch (error) {
+    console.error('[og] JPEG encoding failed, serving the PNG brand card', error);
+    const png = brandCard();
+    return new Response(png.body, {
+      headers: { 'content-type': 'image/png', 'cache-control': DEGRADED_CACHE },
+    });
+  }
 }
 
 /**
@@ -65,13 +78,13 @@ async function toJpeg(image: ImageResponse, cacheControl: string): Promise<Respo
 export async function shareImage(slug: string, kind: CanonicalKind): Promise<Response> {
   try {
     const resolved = resolveCanonical({ slug }, kind);
-    if (resolved === 'not-found') return await toJpeg(brandCard(), DEGRADED_CACHE);
+    if (resolved === 'not-found') return await brandJpeg(DEGRADED_CACHE);
     const card = await loaders[kind](resolved.id);
     const [backdrop, poster] = await Promise.all([toDataUri(card.backdrop), toDataUri(card.poster)]);
     const complete = (!card.backdrop || backdrop) && (!card.poster || poster);
     return await toJpeg(ogCard({ ...card, backdrop, poster }), complete ? FULL_CACHE : DEGRADED_CACHE);
   } catch (error) {
     console.error(`[og] ${kind} ${slug} fell back to the brand card`, error);
-    return toJpeg(brandCard(), DEGRADED_CACHE);
+    return brandJpeg(DEGRADED_CACHE);
   }
 }

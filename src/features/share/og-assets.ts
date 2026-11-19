@@ -1,14 +1,13 @@
 import { readFile } from 'node:fs/promises';
 import { join } from 'node:path';
 
-const FONT_DIR = join(process.cwd(), 'src/assets/fonts');
-const load = (file: string) => readFile(join(FONT_DIR, file));
-
 // Static weights only: satori cannot handle variable fonts. Read once per server instance.
+// Literal paths (no helper) so the output file tracer can see them; next.config.ts also lists them in
+// outputFileTracingIncludes for the image routes.
 const [serif, serifItalic, sans] = await Promise.all([
-  load('InstrumentSerif-Regular.ttf'),
-  load('InstrumentSerif-Italic.ttf'),
-  load('InterTight-Medium.ttf'),
+  readFile(join(process.cwd(), 'src/assets/fonts/InstrumentSerif-Regular.ttf')),
+  readFile(join(process.cwd(), 'src/assets/fonts/InstrumentSerif-Italic.ttf')),
+  readFile(join(process.cwd(), 'src/assets/fonts/InterTight-Medium.ttf')),
 ]);
 
 export const OG_FONTS = [

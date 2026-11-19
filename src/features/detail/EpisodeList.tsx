@@ -5,6 +5,7 @@ import type { EpisodeSummary, SeasonDetails } from '@/features/tmdb/types';
 import { formatDate, formatRuntime } from '@/lib/format';
 import { EmptyState } from '@/ui/EmptyState';
 import { ClampedText } from './ClampedText';
+import { isAired } from './seasons';
 
 function Still({ episode }: { episode: EpisodeSummary }) {
   const src = tmdbImage(episode.stillPath, 'w300');
@@ -49,7 +50,8 @@ export function EpisodeList({
     <ol className="space-y-4 font-sans">
       {season.episodes.map((ep) => {
         const date = formatDate(ep.airDate);
-        const upcoming = ep.airDate !== null && ep.airDate > today;
+        // Future dated episodes get the premiere badge; undated ones show "Data a definir".
+        const upcoming = ep.airDate !== null && !isAired(ep.airDate, today);
         const runtime = formatRuntime(ep.runtime);
         return (
           <li
