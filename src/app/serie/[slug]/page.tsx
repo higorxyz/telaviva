@@ -7,6 +7,10 @@ import { NextEpisode } from '@/features/detail/NextEpisode';
 import { SeasonsSection } from '@/features/detail/SeasonsSection';
 import { SerieMeta } from '@/features/detail/SerieMeta';
 import { truncateSummary } from '@/features/detail/summary';
+import { SeriesActions } from '@/features/library/SeriesActions';
+import { SeriesProgressCard } from '@/features/library/SeriesProgressCard';
+import { toProgressInfo } from '@/features/library/progress';
+import { toSnapshot } from '@/features/library/snapshot';
 import { getTvDetails } from '@/features/tmdb/tv';
 import { mediaHref } from '@/lib/slug';
 import { OG_BASE } from '@/features/share/page-meta';
@@ -47,14 +51,26 @@ export default async function SeriePage({ params, searchParams }: Props) {
     hrefOf: mediaHref,
   });
 
+  const info = toProgressInfo(tv);
+
   return (
     <>
-      <DetailHero backHref="/series" item={tv} meta={<SerieMeta tv={tv} />} />
+      <DetailHero
+        backHref="/series"
+        item={tv}
+        meta={<SerieMeta tv={tv} />}
+        actions={<SeriesActions tv={tv} info={info} />}
+      />
       <div className={`${PAGE_CONTAINER} py-10 md:py-14`}>
         <DetailSections
           item={tv}
           facts={tvFacts(tv)}
-          afterOverview={tv.nextEpisodeToAir ? <NextEpisode episode={tv.nextEpisodeToAir} /> : null}
+          afterOverview={
+            <>
+              <SeriesProgressCard tvId={tv.id} title={tv.title} info={info} snapshot={toSnapshot(tv)} />
+              {tv.nextEpisodeToAir ? <NextEpisode episode={tv.nextEpisodeToAir} /> : null}
+            </>
+          }
           afterTrailer={<SeasonsSection tv={tv} searchParams={searchParams} />}
         />
       </div>
