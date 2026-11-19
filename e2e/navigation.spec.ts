@@ -75,15 +75,16 @@ test.describe('mobile', () => {
     const attribution = page.getByText('Este produto usa a API do TMDB, mas não é endossado ou certificado pelo TMDB.');
     const tabBar = page.getByRole('navigation', { name: 'Navegação principal' });
     await expect(attribution).toBeAttached();
-    await page.evaluate(() => window.scrollTo(0, document.documentElement.scrollHeight));
-    await expect(attribution).toBeInViewport();
+    // Rails stream in and grow the page, so re-scroll to the very bottom on every check.
     await expect
       .poll(async () => {
+        await page.evaluate(() => window.scrollTo(0, document.documentElement.scrollHeight));
         const a = (await attribution.boundingBox())!;
         const t = (await tabBar.boundingBox())!;
-        return a.y + a.height <= t.y;
+        return { clears: a.y + a.height <= t.y, a: Math.round(a.y + a.height), t: Math.round(t.y) };
       })
-      .toBe(true);
+      .toMatchObject({ clears: true });
+    await expect(attribution).toBeInViewport();
   });
 });
 
