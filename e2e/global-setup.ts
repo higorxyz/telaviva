@@ -16,6 +16,7 @@ const ROUTES = [
 export default async function globalSetup(): Promise<void> {
   const base = process.env.E2E_BASE_URL ?? 'http://localhost:3100';
   for (const route of ROUTES) {
-    await fetch(`${base}${route}`, { signal: AbortSignal.timeout(120_000) });
+    const res = await fetch(`${base}${route}`, { signal: AbortSignal.timeout(120_000) });
+    if (!res.ok) throw new Error(`E2E warm-up failed: GET ${route} -> HTTP ${res.status}`);
   }
 }

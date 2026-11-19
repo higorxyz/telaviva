@@ -6,7 +6,7 @@ on:
 
 jobs:
   quality:
-    name: Lint, Typecheck, Test and Build
+    name: Lint, Typecheck, Test, Build and E2E
     runs-on: ubuntu-latest
     timeout-minutes: 20
 
@@ -35,19 +35,16 @@ jobs:
       - name: Install Playwright browser
         run: npx playwright install --with-deps chromium
 
-      # Builds and serves the app against the local TMDb mock (see playwright.config.ts); no real token needed.
-      - name: Run E2E and accessibility tests
+      # Runs `npm run build` (the production build, which prerenders against the local TMDb mock) and then
+      # serves it for the tests (see playwright.config.ts). It is the same build as a plain `npm run build`
+      # except for the TMDb base URL and token, so a separate build step would only repeat it.
+      - name: Production build, E2E and accessibility tests
         run: npm run e2e
 
       - name: Upload Playwright report
         if: failure()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: playwright-report
           path: playwright-report/
           retention-days: 7
-
-      - name: Build project
-        run: npm run build
-        env:
-          TMDB_READ_TOKEN: dummy

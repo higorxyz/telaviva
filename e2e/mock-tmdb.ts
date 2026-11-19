@@ -47,9 +47,21 @@ const notFound: Resolved = { status: 404, body: { status_message: 'not found' } 
 const ok = (name: string): Resolved => ({ status: 200, body: fixture(name) });
 const withId = (name: string, id: number): Resolved => ({ status: 200, body: { ...fixture(name), id } });
 
-export function resolve(pathname: string, params: URLSearchParams): Resolved {
+const DETAIL_PATH = /^(movie|tv|person)\/\d+$/;
+
+export function resolve(pathname: string, params: URLSearchParams, authorization?: string): Resolved {
   const p = pathname.replace(/^\/3\//, '').replace(/\/$/, '');
   if (pathname === p) return notFound;
+
+  // Global constraints, enforced: Bearer auth only (never api_key) and pt-BR everywhere.
+  if (params.has('api_key') || !/^Bearer \S+$/.test(authorization ?? '')) {
+    return { status: 401, body: { status_message: 'Bearer token required; api_key is not accepted' } };
+  }
+  const language = params.get('language');
+  // en-US is only the overview/biography fallback on detail endpoints.
+  if (language !== 'pt-BR' && !(language === 'en-US' && DETAIL_PATH.test(p))) {
+    return { status: 400, body: { status_message: `language must be pt-BR, got ${language ?? 'nothing'}` } };
+  }
 
   const movie = /^movie\/(\d+)$/.exec(p);
   if (movie) {
@@ -109,7 +121,7 @@ export function resolve(pathname: string, params: URLSearchParams): Resolved {
 
 createServer((req, res) => {
   const url = new URL(req.url ?? '/', `http://127.0.0.1:${PORT}`);
-  const resolved = req.method === 'GET' ? resolve(url.pathname, url.searchParams) : notFound;
+  const resolved = req.method === 'GET' ? resolve(url.pathname, url.searchParams, req.headers.authorization) : notFound;
   const { status } = resolved;
   let body = resolved.body;
   // Paginated bodies echo the requested page, like TMDb does; clients paginate from `page`.
