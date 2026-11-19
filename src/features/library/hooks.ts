@@ -89,11 +89,8 @@ export function useLibraryActions(): { run(command: LibraryCommand, opts?: RunOp
       if (context?.previous) queryClient.setQueryData(LIBRARY_KEY, context.previous);
       toast.show({ message: 'Não foi possível salvar no navegador. Tente de novo.', tone: 'error' });
     },
-    onSuccess: (state, { command, undoable }, context) => {
-      // Only the last pending mutation may write; earlier ones would bring back an older state.
-      if (queryClient.isMutating({ mutationKey: LIBRARY_KEY }) === 1) {
-        queryClient.setQueryData(LIBRARY_KEY, state);
-      }
+    onSuccess: (_state, { command, undoable }, context) => {
+      // No cache write here: the optimistic value already holds, and an older response could revert it.
       if (undoable && context.previous) {
         const inverse = inverseOf(context.previous, refOf(command));
         toast.show({
@@ -102,7 +99,12 @@ export function useLibraryActions(): { run(command: LibraryCommand, opts?: RunOp
         });
       }
     },
-    onSettled: () => queryClient.invalidateQueries({ queryKey: LIBRARY_KEY }),
+    onSettled: () => {
+      // Only the last pending mutation reloads (it counts itself); not awaited, so it never extends the pending state.
+      if (queryClient.isMutating({ mutationKey: LIBRARY_KEY }) === 1) {
+        void queryClient.invalidateQueries({ queryKey: LIBRARY_KEY });
+      }
+    },
   });
 
   const { mutate } = mutation;

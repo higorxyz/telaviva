@@ -110,7 +110,15 @@ describe('useLibraryActions', () => {
 
   it('keeps the second command as the final state when applies resolve out of order', async () => {
     const { wrapper, fake } = setup();
-    const { result } = renderHook(useAll, { wrapper });
+    const seen: (string | undefined)[] = [];
+    const { result } = renderHook(
+      () => {
+        const all = useAll();
+        seen.push(all.entry.item?.status);
+        return all;
+      },
+      { wrapper },
+    );
     await waitFor(() => expect(result.current.entry.ready).toBe(true));
     act(() => result.current.actions.run(setStatus('want')));
     act(() => result.current.actions.run(setStatus('watched')));
@@ -121,6 +129,9 @@ describe('useLibraryActions', () => {
     // And it stays that way after the final reload.
     await act(async () => {});
     expect(result.current.entry.item?.status).toBe('watched');
+    // No stale value ever shows after the newer one.
+    expect(seen.slice(seen.indexOf('watched'))).not.toContain('want');
+    expect(seen.slice(seen.indexOf('watched'))).not.toContain(undefined);
   });
 
   it('offers Desfazer, which restores the previous item', async () => {
