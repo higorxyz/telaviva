@@ -14,14 +14,16 @@ export class LibraryStorageError extends Error {
   }
 }
 
-/** Returns a usable Storage, or null when it is missing, blocked or read-only. */
+/**
+ * Returns the Storage when it can be read, or null when it is missing or blocked.
+ * Only a read is probed: a full storage still holds the saved library, so writes
+ * that fail later surface as LibraryStorageError instead of switching to memory.
+ */
 function probe(candidate: () => Storage | null): Storage | null {
   try {
     const storage = candidate();
     if (!storage) return null;
-    const probeKey = 'telaviva:probe';
-    storage.setItem(probeKey, '1');
-    storage.removeItem(probeKey);
+    storage.getItem(KEY);
     return storage;
   } catch {
     return null;

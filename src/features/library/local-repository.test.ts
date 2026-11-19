@@ -83,6 +83,31 @@ describe('createLocalRepository', () => {
     expect(data[KEY]).toBe(before);
   });
 
+  it('keeps a full storage persistent: load reads it and apply rejects', async () => {
+    const { storage, data } = memStorage();
+    await createLocalRepository({ storage, now: () => NOW }).apply(want(1));
+    const before = data[KEY];
+    storage.setItem = () => {
+      throw new DOMException('full', 'QuotaExceededError');
+    };
+    const repo = createLocalRepository({ storage, now: () => NOW });
+    expect(repo.persistent).toBe(true);
+    expect((await repo.load()).items).toHaveLength(1);
+    await expect(repo.apply(want(2))).rejects.toBeInstanceOf(LibraryStorageError);
+    expect(data[KEY]).toBe(before);
+  });
+
+  it('rejects and leaves the key untouched when the corrupt backup cannot be written', async () => {
+    const { storage, data } = memStorage({ [KEY]: '{oops' });
+    storage.setItem = () => {
+      throw new DOMException('full', 'QuotaExceededError');
+    };
+    const repo = createLocalRepository({ storage, now: () => NOW });
+    expect(repo.persistent).toBe(true);
+    await expect(repo.apply(want(1))).rejects.toBeInstanceOf(LibraryStorageError);
+    expect(data[KEY]).toBe('{oops');
+  });
+
   it('falls back to memory when storage access throws', async () => {
     const blocked = {
       getItem() {
