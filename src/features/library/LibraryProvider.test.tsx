@@ -4,6 +4,7 @@ import { http, HttpResponse } from 'msw';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { server } from '@/test/server';
 import { ToastProvider } from '@/ui/toast/ToastProvider';
+import { useToast } from '@/ui/toast/useToast';
 import { applyCommand } from './commands';
 import { useLibrary, useLibraryActions } from './hooks';
 import { useRecommendations } from './useRecommendations';
@@ -251,6 +252,71 @@ describe('LibraryProvider modes', () => {
       await act(async () => sleep(80));
       expect(screen.getByText('itens:0')).toBeInTheDocument();
       expect(screen.queryByText(/Não foi possível salvar/)).toBeNull();
+    });
+
+    it('skips the optimistic write when the identity changed while onMutate waited for cancelQueries', async () => {
+      server.use(http.get(url('/api/library'), () => HttpResponse.json(accountState)));
+      const client = new QueryClient({ defaultOptions: { queries: { retry: false } } });
+      const cancelGate = gate();
+      const cancel = client.cancelQueries.bind(client);
+      client.cancelQueries = ((...args: Parameters<typeof cancel>) =>
+        cancelGate.promise.then(() => cancel(...args))) as typeof client.cancelQueries;
+      const leaked: unknown[] = [];
+      client.getQueryCache().subscribe((event) => {
+        const data = event.query.state.data as { items?: { tmdbId: number }[] } | undefined;
+        if (event.query.queryKey[0] === 'library' && data?.items?.some((i) => i.tmdbId === 1)) leaked.push(data);
+      });
+      const view = (mode: LibraryMode) => (
+        <QueryClientProvider client={client}>
+          <ToastProvider>
+            <LibraryProvider mode={mode}>
+              <Harness />
+            </LibraryProvider>
+          </ToastProvider>
+        </QueryClientProvider>
+      );
+      const { rerender } = render(view({ kind: 'guest' }));
+      await screen.findByText('itens:0');
+      fireEvent.click(screen.getByText('go'));
+      rerender(view({ kind: 'account', uid: 'u1' }));
+      expect(await screen.findByText('itens:2')).toBeInTheDocument();
+      cancelGate.open();
+      await act(async () => sleep(80));
+      expect(leaked).toEqual([]);
+      expect(screen.getByText('itens:2')).toBeInTheDocument();
+    });
+
+    it('on an identity change closes only the library toasts; other toasts stay', async () => {
+      server.use(
+        http.get(url('/api/library'), () => HttpResponse.json(accountState)),
+        http.post(url('/api/library/commands'), () =>
+          HttpResponse.json(applyCommand(accountState, want(1), '2026-11-20T10:00:00.000Z')),
+        ),
+      );
+      function Other() {
+        const { show } = useToast();
+        return <button onClick={() => show({ message: 'Aviso do login' })}>avisar</button>;
+      }
+      const client = new QueryClient({ defaultOptions: { queries: { retry: false } } });
+      const view = (mode: LibraryMode) => (
+        <QueryClientProvider client={client}>
+          <ToastProvider>
+            <Other />
+            <LibraryProvider mode={mode}>
+              <Harness undoable />
+            </LibraryProvider>
+          </ToastProvider>
+        </QueryClientProvider>
+      );
+      const { rerender } = render(view({ kind: 'account', uid: 'u1' }));
+      await screen.findByText('itens:2');
+      fireEvent.click(screen.getByText('go'));
+      await screen.findByText('Salvo');
+      fireEvent.click(screen.getByText('avisar'));
+      rerender(view({ kind: 'guest' }));
+      await screen.findByText('itens:0');
+      expect(screen.queryByText('Salvo')).toBeNull();
+      expect(screen.getByText('Aviso do login')).toBeInTheDocument();
     });
 
     it('does not let an account undo toast write into the guest library after the sign-out', async () => {

@@ -6,7 +6,7 @@ import { useToast } from '@/ui/toast/useToast';
 import { applyCommand, findItem, findRating, type LibraryCommand } from './commands';
 import { NOTICE, UNDO_LABEL } from './copy';
 import { titleFingerprint } from './fingerprint';
-import { isRetired, LIBRARY_KEY, useLibraryRepository } from './LibraryProvider';
+import { isRetired, LIBRARY_KEY, LIBRARY_TOAST_TAG, useLibraryRepository } from './LibraryProvider';
 import {
   LibraryConflictError,
   LibraryLimitError,
@@ -124,6 +124,8 @@ export function useLibraryActions(): { run(command: LibraryCommand, opts?: RunOp
     mutationFn: ({ command, repository: target }) => target.apply(command),
     onMutate: async ({ command, repository: target }) => {
       await queryClient.cancelQueries({ queryKey: LIBRARY_KEY });
+      // The identity changed while this waited: the cache now belongs to the next identity.
+      if (isRetired(target)) return { previous: undefined, repository: target };
       const previous = queryClient.getQueryData<LibraryState>(LIBRARY_KEY);
       if (previous) {
         try {
@@ -155,6 +157,7 @@ export function useLibraryActions(): { run(command: LibraryCommand, opts?: RunOp
         const inverse = inverseOf(context.previous, saved, refOf(command));
         toast.show({
           message: undoable.message,
+          tag: LIBRARY_TOAST_TAG,
           action: {
             label: UNDO_LABEL,
             onClick: () => {

@@ -121,6 +121,35 @@ describe('Toaster', () => {
     }
   });
 
+  it('dismissTag closes only the toasts carrying that tag', () => {
+    function Tagged() {
+      const { show, dismissTag } = useToast();
+      return (
+        <>
+          <button type="button" onClick={() => show({ message: 'Desfazível', tag: 'library' })}>
+            com tag
+          </button>
+          <button type="button" onClick={() => show({ message: 'Sessão' })}>
+            sem tag
+          </button>
+          <button type="button" onClick={() => dismissTag('library')}>
+            limpar
+          </button>
+        </>
+      );
+    }
+    render(
+      <ToastProvider>
+        <Tagged />
+      </ToastProvider>,
+    );
+    fireEvent.click(screen.getByRole('button', { name: 'com tag' }));
+    fireEvent.click(screen.getByRole('button', { name: 'sem tag' }));
+    fireEvent.click(screen.getByRole('button', { name: 'limpar' }));
+    expect(screen.queryByText('Desfazível')).not.toBeInTheDocument();
+    expect(screen.getByText('Sessão')).toBeInTheDocument();
+  });
+
   it('marks the error tone', () => {
     const { open } = setup({ message: 'Falhou', tone: 'error' });
     open();

@@ -1,6 +1,6 @@
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { act, fireEvent, render, renderHook, screen, waitFor } from '@testing-library/react';
-import type { ReactNode } from 'react';
+import { StrictMode, type ReactNode } from 'react';
 import { describe, expect, it, vi } from 'vitest';
 import { ToastProvider } from '@/ui/toast/ToastProvider';
 import { applyCommand, type LibraryCommand } from './commands';
@@ -281,6 +281,23 @@ describe('LibraryProvider', () => {
     expect(await screen.findByText(message)).toBeInTheDocument();
     rerender(<span />);
     expect(screen.getAllByText(message)).toHaveLength(1);
+  });
+
+  it('keeps the storage warning under StrictMode (its simulated unmount is not an identity change)', async () => {
+    const { repository } = fakeRepository({ persistent: false });
+    render(
+      <StrictMode>
+        <QueryClientProvider client={new QueryClient()}>
+          <ToastProvider>
+            <LibraryProvider repository={repository}>
+              <div />
+            </LibraryProvider>
+          </ToastProvider>
+        </QueryClientProvider>
+      </StrictMode>,
+    );
+    await act(async () => {});
+    expect(screen.getByText(/bloqueando o armazenamento/)).toBeInTheDocument();
   });
 
   it('does not warn when storage is persistent', async () => {

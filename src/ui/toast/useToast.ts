@@ -6,12 +6,14 @@ export interface ToastInput {
   message: string;
   action?: { label: string; onClick: () => void };
   tone?: 'neutral' | 'error';
+  /** Groups toasts that `dismissTag` can close together, such as the library's undo actions. */
+  tag?: string;
 }
 
 export interface ToastApi {
   show(toast: ToastInput): void;
-  /** Closes every toast, such as undo actions that stop making sense when the identity changes. */
-  dismissAll(): void;
+  /** Closes the toasts shown with this tag, such as undo actions that stop making sense when the identity changes. */
+  dismissTag(tag: string): void;
 }
 
 export const ToastContext = createContext<ToastApi | null>(null);

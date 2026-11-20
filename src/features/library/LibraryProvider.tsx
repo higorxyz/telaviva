@@ -47,6 +47,9 @@ export function isRetired(repository: LibraryRepository): boolean {
   return retired.has(repository);
 }
 
+/** Tag of the toasts that belong to one identity (undo actions): they are closed when the identity changes. */
+export const LIBRARY_TOAST_TAG = 'library';
+
 const NOTICE_REPEAT_MS = 2000;
 const noop = () => {};
 
@@ -70,22 +73,25 @@ type ProviderProps = {
  * Guests use the browser repository, signed-in users the server one. Tests inject a fake `repository`, which
  * always wins.
  *
- * When the identity changes, the old identity's queries are removed before the new scope mounts (a layout effect
- * plus a synchronous re-render, so nothing paints in between). The scope is keyed by identity, so every observer
- * below it starts fresh and no hook can keep serving the previous identity's data as a placeholder.
+ * When the identity changes, the old identity's queries and its library toasts (undo actions) are removed before the
+ * new scope mounts (a layout effect plus a synchronous re-render, so nothing paints in between). Other toasts, such
+ * as the sign-in ones, stay. The scope is keyed by identity, so every observer below it starts fresh and no hook can
+ * keep serving the previous identity's data as a placeholder.
  */
 export function LibraryProvider({ mode = { kind: 'guest' }, ...rest }: ProviderProps) {
   const queryClient = useQueryClient();
+  const { dismissTag } = useToast();
   const identity = identityOf(mode);
   const [clearedFor, setClearedFor] = useState(identity);
 
   useLayoutEffect(() => {
     if (clearedFor === identity) return;
     for (const queryKey of IDENTITY_QUERIES) queryClient.removeQueries({ queryKey });
+    dismissTag(LIBRARY_TOAST_TAG);
     // The synchronous re-render must happen before paint, which is why this is an effect and not derived state.
     // eslint-disable-next-line react-hooks/set-state-in-effect
     setClearedFor(identity);
-  }, [clearedFor, identity, queryClient]);
+  }, [clearedFor, identity, queryClient, dismissTag]);
 
   if (clearedFor !== identity) return null;
   return <IdentityScope key={identity} identity={identity} mode={mode} {...rest} />;
@@ -112,14 +118,14 @@ function IdentityScope({
   const recovered = useRef(false);
   const lastShown = useRef(new Map<LibraryNotice, number>());
 
-  // Toasts left over from this identity (undo actions) must not outlive it.
+  // A mutation still running for this identity must not touch the next one (its undo toasts are closed by the
+  // outer provider, on a real identity change only: StrictMode's simulated unmount must not close them).
   useEffect(() => {
     retired.delete(current);
     return () => {
       retired.add(current);
-      toast.dismissAll();
     };
-  }, [current, toast]);
+  }, [current]);
 
   useEffect(() => {
     return current.subscribe(() => {

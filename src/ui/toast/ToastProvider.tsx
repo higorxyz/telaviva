@@ -19,9 +19,11 @@ export function ToastProvider({ children }: { children: ReactNode }) {
     setToasts((current) => current.filter((t) => t.id !== id));
   }, []);
 
-  const dismissAll = useCallback(() => setToasts([]), []);
+  const dismissTag = useCallback((tag: string) => {
+    setToasts((current) => current.filter((t) => t.tag !== tag));
+  }, []);
 
-  const api = useMemo<ToastApi>(() => ({ show, dismissAll }), [show, dismissAll]);
+  const api = useMemo<ToastApi>(() => ({ show, dismissTag }), [show, dismissTag]);
 
   return (
     <ToastContext.Provider value={api}>
