@@ -18,8 +18,27 @@ export type SessionUser = {
 };
 
 export const SESSION_DURATION_MS = SESSION_MAX_AGE_SECONDS * 1000;
-/** Only a token from a sign-in at most this old can mint a session: a stolen, older token cannot. */
-const MAX_SIGN_IN_AGE_SECONDS = 5 * 60;
+/** How fresh a token must be to mint a session, and how recent a sign-in must be to delete the account. */
+const RECENT_SECONDS = 5 * 60;
+/** Allowance for our clock lagging or leading Firebase's when judging a token's age. */
+const CLOCK_SKEW_SECONDS = 60;
+
+/**
+ * A session may be minted from a token whose sign-in (`auth_time`) is recent, or whose minting (`iat`) is: the client
+ * renews a lost or expired session in silence with `getIdToken(true)`, which mints a new token but keeps the original
+ * `auth_time`. A token minted before a sign-out still fails, because `verifyIdToken(token, true)` rejects revoked
+ * tokens, and an old leaked token fails on both ages. The new cookie carries the original `auth_time`, so a renewed
+ * session never counts as a recent sign-in (`isRecentSignIn`).
+ */
+function isFreshToken(decoded: DecodedIdToken, nowSeconds: number): boolean {
+  const limit = RECENT_SECONDS + CLOCK_SKEW_SECONDS;
+  return nowSeconds - decoded.auth_time <= limit || nowSeconds - decoded.iat <= limit;
+}
+
+/** True when the real sign-in behind a session (its `authTime`) is at most 5 minutes old: required to delete the account. */
+export function isRecentSignIn(authTime: number, nowSeconds = Date.now() / 1000): boolean {
+  return nowSeconds - authTime <= RECENT_SECONDS;
+}
 
 /** An auth failure the caller answers with 401. Anything else (database, network) is a server error. */
 export class SessionError extends Error {
@@ -59,7 +78,7 @@ export async function createSession(
   } catch {
     throw new SessionError('invalid_token');
   }
-  if (Date.now() / 1000 - decoded.auth_time > MAX_SIGN_IN_AGE_SECONDS) {
+  if (!isFreshToken(decoded, Date.now() / 1000)) {
     throw new SessionError('stale_login');
   }
 

@@ -8,7 +8,7 @@ import { users } from '@/server/db/schema';
 vi.mock('firebase-admin/app', async () => (await import('@/test/admin-auth')).adminAppModule);
 vi.mock('firebase-admin/auth', async () => (await import('@/test/admin-auth')).adminAuthModule);
 
-import { createSession, readSession, SessionError, SESSION_DURATION_MS } from './session';
+import { createSession, isRecentSignIn, readSession, SessionError, SESSION_DURATION_MS } from './session';
 
 let db: Awaited<ReturnType<typeof createTestDb>>;
 beforeAll(async () => {
@@ -106,10 +106,10 @@ describe('createSession', () => {
     expect(Date.parse(after.updatedAt)).toBeGreaterThan(Date.parse(before.updatedAt));
   });
 
-  it('refuses a sign-in older than 5 minutes without minting a cookie or writing the user', async () => {
-    const stale = Math.floor(Date.now() / 1000) - 5 * 60 - 1;
+  it('refuses a token whose sign-in and minting are both older than 5 minutes (plus skew), writing nothing', async () => {
+    const now = Math.floor(Date.now() / 1000);
     adminAuthMock.verifyIdToken.mockResolvedValue(
-      decodedToken({ uid: 'user-3', sub: 'user-3', auth_time: stale }),
+      decodedToken({ uid: 'user-3', sub: 'user-3', auth_time: now - 3600, iat: now - 5 * 60 - 61 }),
     );
     const error = await createSession('stale', { db }).catch((e: unknown) => e);
 
@@ -117,6 +117,35 @@ describe('createSession', () => {
     expect((error as SessionError).code).toBe('stale_login');
     expect(adminAuthMock.createSessionCookie).not.toHaveBeenCalled();
     expect(await rowFor('user-3')).toBeUndefined();
+  });
+
+  it('accepts an old sign-in when the ID token was just minted (silent renewal)', async () => {
+    const now = Math.floor(Date.now() / 1000);
+    adminAuthMock.verifyIdToken.mockResolvedValue(decodedToken({ auth_time: now - 3 * 24 * 3600, iat: now - 5 }));
+    const { user } = await createSession('renewed', { db });
+    expect(adminAuthMock.verifyIdToken).toHaveBeenCalledWith('renewed', true);
+    expect(adminAuthMock.createSessionCookie).toHaveBeenCalled();
+    // The session keeps the original sign-in time: a renewal never counts as a recent sign-in.
+    expect(user.authTime).toBe(now - 3 * 24 * 3600);
+    expect(isRecentSignIn(user.authTime)).toBe(false);
+  });
+
+  it('allows 60 s of clock skew on the token age', async () => {
+    const now = Math.floor(Date.now() / 1000);
+    adminAuthMock.verifyIdToken.mockResolvedValue(decodedToken({ auth_time: now - 3600, iat: now - 5 * 60 - 50 }));
+    await expect(createSession('skewed', { db })).resolves.toMatchObject({ cookie: 'session-cookie-value' });
+  });
+
+  it('refuses an old ID token even when the sign-in itself was recent enough before', async () => {
+    const now = Math.floor(Date.now() / 1000);
+    adminAuthMock.verifyIdToken.mockResolvedValue(decodedToken({ auth_time: now - 400, iat: now - 400 }));
+    await expect(createSession('old', { db })).rejects.toMatchObject({ code: 'stale_login' });
+  });
+
+  it('isRecentSignIn: at most 5 minutes since the real sign-in (for account deletion)', () => {
+    const now = Math.floor(Date.now() / 1000);
+    expect(isRecentSignIn(now - 300, now)).toBe(true);
+    expect(isRecentSignIn(now - 301, now)).toBe(false);
   });
 
   it('turns a rejected token into SessionError("invalid_token")', async () => {

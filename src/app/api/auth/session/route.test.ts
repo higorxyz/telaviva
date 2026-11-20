@@ -93,10 +93,9 @@ describe('POST /api/auth/session', () => {
     expect(res.headers.getSetCookie()).toEqual([]);
   });
 
-  it('401 for a sign-in older than 5 minutes', async () => {
-    adminAuthMock.verifyIdToken.mockResolvedValue(
-      decodedToken({ auth_time: Math.floor(Date.now() / 1000) - 301 }),
-    );
+  it('401 for a token whose sign-in and minting are both older than 5 minutes', async () => {
+    const now = Math.floor(Date.now() / 1000);
+    adminAuthMock.verifyIdToken.mockResolvedValue(decodedToken({ auth_time: now - 3600, iat: now - 361 }));
     const res = await post(token);
     expect(res.status).toBe(401);
     expect(await res.json()).toEqual({ error: 'stale_login' });
