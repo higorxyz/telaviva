@@ -1,3 +1,4 @@
+import type { TitleFingerprint } from './fingerprint';
 import { airedEpisodes, seriesProgress, type TvProgressInfo } from './progress';
 import type {
   EpisodeMark,
@@ -15,9 +16,9 @@ export type LibraryCommand =
   | { type: 'rate'; ref: TitleRef; score: number; snapshot: TitleSnapshot }
   | { type: 'unrate'; ref: TitleRef }
   /**
-   * Internal: puts a title back as it was (used by undo). null and [] remove. `expectedUpdatedAt` is the item's
-   * `updatedAt` right after the action being undone (null: the action left no item). The server refuses the restore
-   * when the item changed since then (another device wrote it); this reducer ignores it.
+   * Internal: puts a title back as it was (used by undo). null and [] remove. `expected` is the title's fingerprint
+   * right after the action being undone. The server refuses the restore when the title changed since then (another
+   * device wrote it); this reducer ignores it.
    */
   | {
       type: 'restore';
@@ -25,7 +26,7 @@ export type LibraryCommand =
       item: LibraryItem | null;
       rating: Rating | null;
       marks: EpisodeMark[];
-      expectedUpdatedAt?: string | null;
+      expected?: TitleFingerprint;
     }
   | {
       type: 'setEpisodes';

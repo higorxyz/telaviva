@@ -172,7 +172,7 @@ describe('useLibraryActions', () => {
       item: initial.items[0],
       rating: null,
       marks: [],
-      expectedUpdatedAt: null,
+      expected: { itemUpdatedAt: null, ratingUpdatedAt: null, markCount: 0, latestMarkAt: null },
     });
     await waitFor(() => expect(result.current.entry.item?.status).toBe('want'));
     await act(async () => fake.pending[1]!.resolve());
@@ -180,7 +180,7 @@ describe('useLibraryActions', () => {
     expect(screen.queryByRole('button', { name: 'Desfazer' })).not.toBeInTheDocument();
   });
 
-  it("the undo expects the item's updatedAt that the repository saved for the action", async () => {
+  it('the undo expects the title as the repository saved it for the action', async () => {
     const EARLIER = '2026-11-01T08:00:00.000Z';
     const initial = applyCommand(EMPTY_LIBRARY, setStatus('want'), EARLIER);
     const { wrapper, fake } = setup(fakeRepository({ initial }));
@@ -195,7 +195,42 @@ describe('useLibraryActions', () => {
     expect(fake.pending[1]!.command).toMatchObject({
       type: 'restore',
       item: { status: 'want', updatedAt: EARLIER },
-      expectedUpdatedAt: NOW,
+      expected: { itemUpdatedAt: NOW, ratingUpdatedAt: null, markCount: 0, latestMarkAt: null },
+    });
+  });
+
+  it("the undo of an episode mark expects the series' rating and marks too", async () => {
+    const EARLIER = '2026-11-01T08:00:00.000Z';
+    const tv: TitleRef = { mediaType: 'tv', tmdbId: 1399 };
+    const progress = {
+      tvId: 1399,
+      ended: false,
+      seasons: [{ seasonNumber: 1, episodeCount: 10 }],
+      lastAired: { seasonNumber: 1, episodeNumber: 10 },
+      nextToAir: null,
+    };
+    const mark = (episodeNumber: number): LibraryCommand => ({
+      type: 'setEpisodes',
+      tvId: 1399,
+      marks: [{ seasonNumber: 1, episodeNumber }],
+      watched: true,
+      snapshot,
+      progress,
+    });
+    const rated = applyCommand(EMPTY_LIBRARY, { type: 'rate', ref: tv, score: 8, snapshot }, EARLIER);
+    const initial = applyCommand(rated, mark(1), EARLIER);
+    const { wrapper, fake } = setup(fakeRepository({ initial }));
+    const { result } = renderHook(useAll, { wrapper });
+    await waitFor(() => expect(result.current.entry.ready).toBe(true));
+    act(() => result.current.actions.run(mark(2), { undoable: { message: 'Episódio marcado' } }));
+    await waitFor(() => expect(fake.pending).toHaveLength(1));
+    await act(async () => fake.pending[0]!.resolve());
+    fireEvent.click(await screen.findByRole('button', { name: 'Desfazer' }));
+    await waitFor(() => expect(fake.pending).toHaveLength(2));
+    expect(fake.pending[1]!.command).toMatchObject({
+      type: 'restore',
+      marks: [{ episodeNumber: 1, watchedAt: EARLIER }],
+      expected: { itemUpdatedAt: NOW, ratingUpdatedAt: EARLIER, markCount: 2, latestMarkAt: NOW },
     });
   });
 });

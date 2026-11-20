@@ -1,3 +1,4 @@
+import { fitSnapshot, UNTITLED } from './snapshot';
 import type { LibraryItem } from './types';
 
 function readList(storage: Storage, key: string): Record<string, unknown>[] {
@@ -34,12 +35,12 @@ export function importV1(storage: Storage, now: string): LibraryItem[] {
         addedAt: now,
         updatedAt: now,
         watchedAt: status === 'watched' ? now : null,
-        snapshot: {
-          title: text(entry.title) ?? 'Sem título',
+        snapshot: fitSnapshot({
+          title: text(entry.title) ?? UNTITLED,
           posterPath: text(entry.poster_path),
           releaseDate: text(entry.release_date),
           genreIds,
-        },
+        }),
       });
     }
   };

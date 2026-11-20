@@ -28,6 +28,20 @@ describe('parseLibraryEntries', () => {
     expect(parseLibraryEntries(raw)).toEqual({ state: { ...valid, ratings: [] }, dropped: 2 });
   });
 
+  it('trims a snapshot saved before the size limits instead of dropping its row', () => {
+    const legacy = { ...snapshot, title: 'T'.repeat(400), genreIds: [18, 0, ...Array(25).fill(35)] };
+    const raw = { ...valid, items: [{ ...valid.items[0], snapshot: legacy }, valid.items[1]] };
+    const parsed = parseLibraryEntries(raw);
+    expect(parsed?.dropped).toBe(0);
+    expect(parsed?.state.items[0]!.snapshot).toMatchObject({ title: 'T'.repeat(300), genreIds: [18, ...Array(19).fill(35)] });
+    expect(isValidLibraryState(parsed?.state)).toBe(true);
+  });
+
+  it('drops a row whose numbers a Postgres integer cannot hold', () => {
+    const raw = { ...valid, episodes: [...valid.episodes, { ...valid.episodes[0], episodeNumber: 2 ** 31 }] };
+    expect(parseLibraryEntries(raw)).toEqual({ state: valid, dropped: 1 });
+  });
+
   it.each([null, 'x', [], { ...valid, version: 2 }, { ...valid, items: {} }])('is null for a wrong root (%j)', (raw) => {
     expect(parseLibraryEntries(raw)).toBeNull();
   });

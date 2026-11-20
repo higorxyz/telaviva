@@ -2,6 +2,7 @@
 import { and, count, eq } from 'drizzle-orm';
 import { afterAll, beforeAll, beforeEach, describe, expect, it, vi } from 'vitest';
 import { applyCommand, type LibraryCommand } from '@/features/library/commands';
+import { titleFingerprint, type TitleFingerprint } from '@/features/library/fingerprint';
 import { parseLibraryState } from '@/features/library/schema';
 import { EMPTY_LIBRARY, type LibraryState, type TitleRef } from '@/features/library/types';
 import { episodeProgress, libraryItems, ratings, users } from '@/server/db/schema';
@@ -107,7 +108,8 @@ describe('loadLibrary', () => {
 
   it('leaves out (and keeps in the database) a row the schema cannot read', async () => {
     const warn = vi.spyOn(console, 'warn').mockImplementation(() => {});
-    await db.insert(libraryItems).values({ userId, mediaType: 'movie', tmdbId: 7, status: 'want', title: '' });
+    // A movie cannot be 'watching': the database allows it, the library schema does not.
+    await db.insert(libraryItems).values({ userId, mediaType: 'movie', tmdbId: 7, status: 'watching', title: 'Filme' });
     expect((await loadLibrary(db, userId)).items).toEqual([]);
     await run(setStatus(movie, 'want'), T1);
     expect(await countRows(libraryItems)).toBe(2);
@@ -185,74 +187,120 @@ describe('applyLibraryCommand', () => {
 });
 
 describe('conditional restore', () => {
-  async function undoable() {
-    await run(setStatus(movie, 'want'), T0);
+  /** Runs an undoable action like useLibraryActions does, returning the restore it would send. */
+  async function undoable(ref: TitleRef, action: LibraryCommand, now: string) {
     const previous = await loadLibrary(db, userId);
-    const after = await run(setStatus(movie, 'watched'), T1);
-    return {
-      before: previous.items[0]!,
-      postUpdatedAt: after.items[0]!.updatedAt,
-      restore: (expectedUpdatedAt?: string | null): LibraryCommand => ({
-        type: 'restore',
-        ref: movie,
-        item: previous.items[0]!,
-        rating: null,
-        marks: [],
-        ...(expectedUpdatedAt === undefined ? {} : { expectedUpdatedAt }),
-      }),
-    };
+    const saved = await run(action, now);
+    const restore = (expected: TitleFingerprint | null = titleFingerprint(saved, ref)): LibraryCommand => ({
+      type: 'restore',
+      ref,
+      item: previous.items.find((i) => i.mediaType === ref.mediaType && i.tmdbId === ref.tmdbId) ?? null,
+      rating: previous.ratings.find((r) => r.mediaType === ref.mediaType && r.tmdbId === ref.tmdbId) ?? null,
+      marks: ref.mediaType === 'tv' ? previous.episodes.filter((e) => e.tvId === ref.tmdbId) : [],
+      ...(expected ? { expected } : {}),
+    });
+    return { previous, saved, restore };
   }
 
-  it('puts the older item back when nothing changed since the action', async () => {
-    const { before, postUpdatedAt, restore } = await undoable();
-    expect(postUpdatedAt).toBe(T1);
-    const state = await run(restore(postUpdatedAt), T2);
-    expect(state.items).toEqual([before]);
-    expect((await loadLibrary(db, userId)).items).toEqual([before]);
+  it('puts the older title back when nothing changed since the action', async () => {
+    await run(setStatus(movie, 'want'), T0);
+    const { previous, restore } = await undoable(movie, setStatus(movie, 'watched'), T1);
+    expect((await run(restore(), T2)).items).toEqual(previous.items);
+    expect((await loadLibrary(db, userId)).items).toEqual(previous.items);
   });
 
-  it('refuses with LibraryConflictError when the item changed since the action, writing nothing', async () => {
-    const { restore } = await undoable();
+  it('409 when another device changed the item since the action, writing nothing', async () => {
+    await run(setStatus(movie, 'want'), T0);
+    const { restore } = await undoable(movie, setStatus(movie, 'watched'), T1);
     await run(setStatus(movie, 'want'), T2); // another device
-    await expect(run(restore(T1), T3)).rejects.toBeInstanceOf(LibraryConflictError);
+    await expect(run(restore(), T3)).rejects.toBeInstanceOf(LibraryConflictError);
     expect((await loadLibrary(db, userId)).items[0]).toMatchObject({ status: 'want', updatedAt: T2 });
   });
 
-  it('null expects the item to be absent; a timestamp expects it to exist', async () => {
-    const { restore } = await undoable();
-    await expect(run(restore(null), T2)).rejects.toBeInstanceOf(LibraryConflictError);
-    await run({ type: 'remove', ref: movie }, T2);
-    await expect(run(restore(T1), T3)).rejects.toBeInstanceOf(LibraryConflictError);
+  it('409 when another device added a mark, even without touching the item', async () => {
+    await run(episodes(true, 1), T0);
+    const { restore } = await undoable(tv, episodes(true, 2), T1);
+    await db.insert(episodeProgress).values({ userId, tvId: tv.tmdbId, seasonNumber: 2, episodeNumber: 1, watchedAt: T2 });
+    await expect(run(restore(), T3)).rejects.toBeInstanceOf(LibraryConflictError);
+    expect(await countRows(episodeProgress)).toBe(3);
+  });
+
+  it('409 when another device re-rated after an undone unrate, keeping that rating', async () => {
+    await run({ type: 'rate', ref: tv, score: 6, snapshot }, T0);
+    const { restore } = await undoable(tv, { type: 'unrate', ref: tv }, T1);
+    await run({ type: 'rate', ref: tv, score: 9, snapshot }, T2); // another device
+    await expect(run(restore(), T3)).rejects.toBeInstanceOf(LibraryConflictError);
+    expect((await loadLibrary(db, userId)).ratings).toMatchObject([{ score: 9, updatedAt: T2 }]);
+  });
+
+  it('409 when the item the action removed is back, or the item it left is gone', async () => {
+    await run(setStatus(movie, 'want'), T0);
+    const removal = await undoable(movie, { type: 'remove', ref: movie }, T1);
+    await run(setStatus(movie, 'watched'), T2);
+    await expect(run(removal.restore(), T3)).rejects.toBeInstanceOf(LibraryConflictError);
+
+    const change = await undoable(movie, setStatus(movie, 'want'), T2);
+    await run({ type: 'remove', ref: movie }, T3);
+    await expect(run(change.restore(), T3)).rejects.toBeInstanceOf(LibraryConflictError);
     expect(await countRows(libraryItems)).toBe(0);
-    await run(restore(null), T3);
-    expect(await countRows(libraryItems)).toBe(1);
   });
 
-  it('accepts the same instant written in another offset', async () => {
-    const { restore } = await undoable();
-    await expect(run(restore('2026-11-20T08:00:00.000-03:00'), T2)).resolves.toBeDefined();
+  it('accepts the same instants written in another offset', async () => {
+    await run(setStatus(movie, 'want'), T0);
+    const { restore, saved } = await undoable(movie, setStatus(movie, 'watched'), T1);
+    const expected = { ...titleFingerprint(saved, movie), itemUpdatedAt: '2026-11-20T08:00:00.000-03:00' };
+    await expect(run(restore(expected), T2)).resolves.toBeDefined();
   });
 
-  it('without expectedUpdatedAt, restores unconditionally (older clients)', async () => {
-    const { before, restore } = await undoable();
+  it('without expected, restores unconditionally (older clients)', async () => {
+    await run(setStatus(movie, 'want'), T0);
+    const { previous, restore } = await undoable(movie, setStatus(movie, 'watched'), T1);
     await run(setStatus(movie, 'want'), T2);
-    expect((await run(restore(), T3)).items).toEqual([before]);
+    expect((await run(restore(null), T3)).items).toEqual(previous.items);
   });
 
-  it('restores deleted marks and rating of a removed series', async () => {
+  it('restores the deleted marks and rating of a removed series', async () => {
     await run(episodes(true, 1, 2), T0);
     await run({ type: 'rate', ref: tv, score: 7, snapshot }, T0);
-    const previous = await loadLibrary(db, userId);
-    await run({ type: 'remove', ref: tv }, T1);
+    const { previous, restore } = await undoable(tv, { type: 'remove', ref: tv }, T1);
+    expect(canonical(await run(restore(), T2))).toEqual(canonical(previous));
+  });
+
+  it('never stores a restored timestamp later than now, so later writes still apply', async () => {
+    const tomorrow = '2026-11-21T12:00:00.000Z';
     const command: LibraryCommand = {
       type: 'restore',
       ref: tv,
-      item: previous.items[0]!,
-      rating: previous.ratings[0]!,
-      marks: previous.episodes,
-      expectedUpdatedAt: null,
+      item: { ...tv, status: 'watching', addedAt: tomorrow, updatedAt: tomorrow, watchedAt: null, snapshot },
+      rating: { ...tv, score: 5, ratedAt: tomorrow, updatedAt: tomorrow },
+      marks: [{ tvId: tv.tmdbId, seasonNumber: 1, episodeNumber: 1, watchedAt: tomorrow }],
     };
-    expect(canonical(await run(command, T2))).toEqual(canonical(previous));
+    const restored = await run(command, T1);
+    expect(restored.items[0]).toMatchObject({ addedAt: T1, updatedAt: T1 });
+    expect(restored.ratings[0]).toMatchObject({ ratedAt: T1, updatedAt: T1 });
+    expect(restored.episodes[0]).toMatchObject({ watchedAt: T1 });
+    await run(setStatus(tv, 'want'), T2);
+    await run({ type: 'rate', ref: tv, score: 8, snapshot }, T2);
+    const state = await loadLibrary(db, userId);
+    expect(state.items[0]).toMatchObject({ status: 'want', updatedAt: T2 });
+    expect(state.ratings[0]).toMatchObject({ score: 8 });
+  });
+
+  it('re-checks inside the transaction: a write landing after the load aborts the whole restore', async () => {
+    await run(episodes(true, 1), T0);
+    const { restore } = await undoable(tv, episodes(true, 2), T1);
+    // Another device writes between this request's load and its batch.
+    const racing = Object.assign(Object.create(db) as object, {
+      transaction: async (fn: Parameters<typeof db.transaction>[0]) => {
+        await db.insert(episodeProgress).values({ userId, tvId: tv.tmdbId, seasonNumber: 3, episodeNumber: 1, watchedAt: T2 });
+        return db.transaction(fn);
+      },
+    }) as typeof db;
+    await expect(applyLibraryCommand(racing, userId, restore(), T3)).rejects.toBeInstanceOf(LibraryConflictError);
+    const state = await loadLibrary(db, userId);
+    // Nothing of the restore was written: the item is still the action's, and all three marks are kept.
+    expect(state.items[0]).toMatchObject({ updatedAt: T1 });
+    expect(state.episodes).toHaveLength(3);
   });
 });
 

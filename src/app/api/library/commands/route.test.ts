@@ -99,20 +99,22 @@ describe('POST /api/library/commands', () => {
     expect((await loadLibrary(db, 'user-1')).items).toEqual([]);
   });
 
-  it('409 { error: conflict } when an undo finds the item changed since the action', async () => {
+  it('409 { error: conflict } when an undo finds the title changed since the action', async () => {
     const first = await (await send(setStatus('want'))).json();
-    await send(setStatus('watched'));
+    const saved = await (await send(setStatus('watched'))).json();
+    await new Promise((r) => setTimeout(r, 5)); // the server stamps with its clock: make the next write later
+    await send(setStatus('want')); // another device
     const res = await send({
       type: 'restore',
       ref: movie,
       item: first.items[0],
       rating: null,
       marks: [],
-      expectedUpdatedAt: first.items[0].updatedAt,
+      expected: { itemUpdatedAt: saved.items[0].updatedAt, ratingUpdatedAt: null, markCount: 0, latestMarkAt: null },
     });
     expect(res.status).toBe(409);
     expect(await res.json()).toEqual({ error: 'conflict' });
-    expect((await loadLibrary(db, 'user-1')).items[0]).toMatchObject({ status: 'watched' });
+    expect((await loadLibrary(db, 'user-1')).items[0]).toMatchObject({ status: 'want' });
   });
 
   it('413 { error: limit } past the per-user limit', async () => {

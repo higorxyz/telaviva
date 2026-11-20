@@ -28,7 +28,7 @@ const excluded = (column: string) => sql.raw(`excluded."${column}"`);
  * With `guarded` (every command but restore), an upsert only replaces a row that is not newer than the incoming one
  * (`updated_at`, or `watched_at` for marks): a request that reached the server earlier but writes later can never
  * overwrite a newer change from another device. Restore puts older rows back on purpose; it is checked against
- * `expectedUpdatedAt` before writing instead.
+ * the title's expected fingerprint instead (see restore.ts), and its timestamps are never later than `now`.
  */
 export function diffStatements(q: Database, userId: string, diff: LibraryDiff, guarded: boolean): Statement[] {
   const out: Statement[] = [];

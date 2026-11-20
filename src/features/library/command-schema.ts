@@ -1,7 +1,17 @@
 import { z } from 'zod';
 import type { LibraryCommand } from './commands';
-import { LIBRARY_LIMITS } from './limits';
-import { episodeSchema, id, isoDate, itemSchema, mediaType, ratingSchema, snapshotSchema } from './schema';
+import { LIBRARY_LIMITS, PG_INT_MAX } from './limits';
+import {
+  episodeNumber,
+  episodeSchema,
+  id,
+  isoDate,
+  itemSchema,
+  mediaType,
+  ratingSchema,
+  seasonNumber,
+  snapshotSchema,
+} from './schema';
 
 /**
  * Zod for a LibraryCommand arriving from a client (POST /api/library/commands). Unknown fields are stripped. Sizes
@@ -9,15 +19,22 @@ import { episodeSchema, id, isoDate, itemSchema, mediaType, ratingSchema, snapsh
  */
 
 const refSchema = z.object({ mediaType, tmdbId: id });
-const episodeRef = z.object({ seasonNumber: z.number().int().min(0), episodeNumber: z.number().int().min(0) });
-const markRef = z.object({ seasonNumber: z.number().int().min(0), episodeNumber: z.number().int().positive() });
+const episodeRef = z.object({ seasonNumber, episodeNumber: z.number().int().min(0).max(PG_INT_MAX) });
+const markRef = z.object({ seasonNumber, episodeNumber });
+
+const fingerprintSchema = z.object({
+  itemUpdatedAt: isoDate.nullable(),
+  ratingUpdatedAt: isoDate.nullable(),
+  markCount: z.number().int().min(0).max(LIBRARY_LIMITS.marks),
+  latestMarkAt: isoDate.nullable(),
+});
 
 const progressSchema = z
   .object({
     tvId: id,
     ended: z.boolean(),
     seasons: z
-      .array(z.object({ seasonNumber: z.number().int().min(0), episodeCount: z.number().int().min(0) }))
+      .array(z.object({ seasonNumber, episodeCount: z.number().int().min(0).max(LIBRARY_LIMITS.marks) }))
       .max(1_000),
     lastAired: episodeRef.nullable(),
     nextToAir: episodeRef.extend({ airDate: z.string().max(40).nullable() }).nullable(),
@@ -50,7 +67,7 @@ const commandSchema = z.discriminatedUnion('type', [
     item: itemSchema.nullable(),
     rating: ratingSchema.nullable(),
     marks: z.array(episodeSchema).max(LIBRARY_LIMITS.marks),
-    expectedUpdatedAt: isoDate.nullable().optional(),
+    expected: fingerprintSchema.optional(),
   }),
 ]);
 

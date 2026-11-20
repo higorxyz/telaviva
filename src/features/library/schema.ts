@@ -1,15 +1,20 @@
 import { z } from 'zod';
+import { PG_INT_MAX, SNAPSHOT_LIMITS } from './limits';
+import { trimSnapshot } from './snapshot';
 import type { LibraryState } from './types';
 
 export const isoDate = z.iso.datetime({ offset: true });
 export const mediaType = z.enum(['movie', 'tv']);
-export const id = z.number().int().positive();
+/** Every number is stored in a Postgres `integer`. */
+export const id = z.number().int().positive().max(PG_INT_MAX);
+export const seasonNumber = z.number().int().min(0).max(PG_INT_MAX);
+export const episodeNumber = z.number().int().positive().max(PG_INT_MAX);
 
 export const snapshotSchema = z.object({
-  title: z.string().min(1),
-  posterPath: z.string().nullable(),
-  releaseDate: z.string().nullable(),
-  genreIds: z.array(z.number().int()),
+  title: z.string().min(1).max(SNAPSHOT_LIMITS.title),
+  posterPath: z.string().max(SNAPSHOT_LIMITS.posterPath).nullable(),
+  releaseDate: z.string().max(SNAPSHOT_LIMITS.releaseDate).nullable(),
+  genreIds: z.array(id).max(SNAPSHOT_LIMITS.genreIds),
 });
 
 export const itemSchema = z
@@ -29,8 +34,8 @@ export const itemSchema = z
 
 export const episodeSchema = z.object({
   tvId: id,
-  seasonNumber: z.number().int().min(0),
-  episodeNumber: z.number().int().positive(),
+  seasonNumber,
+  episodeNumber,
   watchedAt: isoDate,
 });
 
@@ -74,6 +79,23 @@ function validRows<T>(rows: unknown[], schema: z.ZodType<T>): T[] {
   });
 }
 
+const looseSnapshot = z.object({
+  title: z.string(),
+  posterPath: z.string().nullable(),
+  releaseDate: z.string().nullable(),
+  genreIds: z.array(z.number()),
+});
+
+/**
+ * A row saved before SNAPSHOT_LIMITS existed keeps its place: its snapshot is trimmed to fit, not dropped. Any other
+ * problem (an empty title, say) is left for the schema to catch.
+ */
+function fitStoredSnapshot(row: unknown): unknown {
+  if (typeof row !== 'object' || row === null) return row;
+  const snapshot = looseSnapshot.safeParse((row as { snapshot?: unknown }).snapshot);
+  return snapshot.success ? { ...row, snapshot: trimSnapshot(snapshot.data) } : row;
+}
+
 /**
  * Parses a stored value row by row: an invalid item, episode mark or rating is dropped on its own and counted in
  * `dropped`, instead of losing the whole library. Null only when the root itself is not a v1 library.
@@ -84,7 +106,7 @@ export function parseLibraryEntries(raw: unknown): { state: LibraryState; droppe
   const { items, episodes, ratings } = root.data;
   const state: LibraryState = {
     version: 1,
-    items: validRows(items, itemSchema),
+    items: validRows(items.map(fitStoredSnapshot), itemSchema),
     episodes: validRows(episodes, episodeSchema),
     ratings: validRows(ratings, ratingSchema),
   };

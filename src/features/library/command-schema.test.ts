@@ -52,11 +52,41 @@ describe('parseCommand', () => {
     expect(parsed).toEqual({ type: 'setStatus', ref: movie, status: 'want', snapshot });
   });
 
-  it('keeps expectedUpdatedAt on restore: a timestamp, null or absent', () => {
-    expect(parseCommand(restore({ expectedUpdatedAt: NOW }))).toMatchObject({ expectedUpdatedAt: NOW });
-    expect(parseCommand(restore({ expectedUpdatedAt: null }))).toMatchObject({ expectedUpdatedAt: null });
-    expect(parseCommand(restore())).not.toHaveProperty('expectedUpdatedAt');
-    expect(parseCommand(restore({ expectedUpdatedAt: 'ontem' }))).toBeNull();
+  it('keeps the expected fingerprint on restore, or none', () => {
+    const expected = { itemUpdatedAt: NOW, ratingUpdatedAt: null, markCount: 3, latestMarkAt: NOW };
+    expect(parseCommand(restore({ expected }))).toMatchObject({ expected });
+    expect(parseCommand(restore())).not.toHaveProperty('expected');
+    expect(parseCommand(restore({ expected: { ...expected, itemUpdatedAt: 'ontem' } }))).toBeNull();
+    expect(parseCommand(restore({ expected: { ...expected, markCount: -1 } }))).toBeNull();
+    expect(parseCommand(restore({ expected: { ...expected, markCount: 60_001 } }))).toBeNull();
+    expect(parseCommand(restore({ expected: { itemUpdatedAt: NOW } }))).toBeNull();
+  });
+
+  it('caps snapshot sizes, so no row can grow without bound', () => {
+    const status = (over: Record<string, unknown>) => ({
+      type: 'setStatus',
+      ref: movie,
+      status: 'want',
+      snapshot: { ...snapshot, ...over },
+    });
+    expect(parseCommand(status({ title: 'x'.repeat(300), posterPath: `/${'p'.repeat(199)}`, genreIds: Array(20).fill(18) }))).not.toBeNull();
+    expect(parseCommand(status({ title: 'x'.repeat(301) }))).toBeNull();
+    expect(parseCommand(status({ posterPath: `/${'p'.repeat(200)}` }))).toBeNull();
+    expect(parseCommand(status({ releaseDate: '1999-01-10T00' }))).toBeNull();
+    expect(parseCommand(status({ genreIds: Array(21).fill(18) }))).toBeNull();
+    expect(parseCommand(status({ genreIds: [0] }))).toBeNull();
+    expect(parseCommand(status({ genreIds: [2 ** 31] }))).toBeNull();
+  });
+
+  it('refuses numbers a Postgres integer cannot hold (400, not a database error)', () => {
+    const big = 2 ** 31;
+    expect(parseCommand({ type: 'remove', ref: { mediaType: 'movie', tmdbId: 2 ** 31 - 1 } })).not.toBeNull();
+    expect(parseCommand({ type: 'remove', ref: { mediaType: 'movie', tmdbId: big } })).toBeNull();
+    const base = { type: 'setEpisodes', tvId: 1398, watched: true, snapshot, progress };
+    expect(parseCommand({ ...base, tvId: big })).toBeNull();
+    expect(parseCommand({ ...base, marks: [{ seasonNumber: big, episodeNumber: 1 }] })).toBeNull();
+    expect(parseCommand({ ...base, marks: [{ seasonNumber: 1, episodeNumber: big }] })).toBeNull();
+    expect(parseCommand(restore({ marks: [{ ...mark, episodeNumber: big }] }))).toBeNull();
   });
 
   it.each([

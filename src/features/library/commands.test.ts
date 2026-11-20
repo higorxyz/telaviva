@@ -169,11 +169,11 @@ describe('restore', () => {
     expect(next.episodes).toEqual([]);
   });
 
-  it('ignores expectedUpdatedAt locally (only the server checks it)', () => {
+  it('ignores expected locally (only the server checks it)', () => {
     const full = applyCommand(EMPTY_LIBRARY, { type: 'restore', ref: tv, item, rating, marks: [mark] }, NOW);
     const changed = { ...item, status: 'want' as const };
     const command: LibraryCommand = { type: 'restore', ref: tv, item: changed, rating: null, marks: [] };
-    const checked = applyCommand(full, { ...command, expectedUpdatedAt: '2000-01-01T00:00:00.000Z' }, LATER);
+    const checked = applyCommand(full, { ...command, expected: { itemUpdatedAt: null, ratingUpdatedAt: null, markCount: 9, latestMarkAt: null } }, LATER);
     expect(checked).toEqual(applyCommand(full, command, LATER));
   });
 });

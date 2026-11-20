@@ -1,5 +1,5 @@
 import 'server-only';
-import { applyCommand, findItem, type LibraryCommand } from '@/features/library/commands';
+import { applyCommand, type LibraryCommand } from '@/features/library/commands';
 import { LIBRARY_LIMITS } from '@/features/library/limits';
 import { isValidLibraryState, normalizeLibraryState, parseLibraryEntries } from '@/features/library/schema';
 import { EMPTY_LIBRARY, type LibraryState } from '@/features/library/types';
@@ -7,6 +7,7 @@ import type { Database } from '@/server/db/client';
 import { writeAtomically } from './atomic';
 import { diffStates, isEmptyDiff } from './diff';
 import { LibraryConflictError, LibraryInvalidError, LibraryLimitError } from './errors';
+import { assertExpected, clampRestore, expectedGuard, isGuardAbort } from './restore';
 import { selectLibrary, toRawLibrary } from './rows';
 import { diffStatements } from './write';
 
@@ -32,17 +33,6 @@ function fromResult(result: unknown): LibraryState {
 
 export async function loadLibrary(db: Database, userId: string): Promise<LibraryState> {
   return fromResult(await selectLibrary(db, userId));
-}
-
-const sameInstant = (a: string, b: string) => Date.parse(a) === Date.parse(b);
-
-/** A restore only goes ahead when the title's item is still what the undone action left. */
-function assertUnchanged(state: LibraryState, command: LibraryCommand): void {
-  if (command.type !== 'restore' || command.expectedUpdatedAt === undefined) return;
-  const current = findItem(state, command.ref)?.updatedAt ?? null;
-  const expected = command.expectedUpdatedAt;
-  const unchanged = current === null || expected === null ? current === expected : sameInstant(current, expected);
-  if (!unchanged) throw new LibraryConflictError();
 }
 
 /** Refuses growing past a limit; a library already over it may still shrink or change in place. */
@@ -81,15 +71,24 @@ export async function applyLibraryCommand(
   now: string,
 ): Promise<LibraryState> {
   const before = await loadLibrary(db, userId);
-  assertUnchanged(before, command);
-  const after = reduce(before, command, now);
+  const applied = command.type === 'restore' ? clampRestore(command, now) : command;
+  if (applied.type === 'restore') assertExpected(before, applied);
+  const after = reduce(before, applied, now);
   assertWithinLimits(before, after);
 
   const diff = diffStates(before, after);
   if (isEmptyDiff(diff)) return after;
-  const results = await writeAtomically(db, (q) => [
-    ...diffStatements(q, userId, diff, command.type !== 'restore'),
-    selectLibrary(q, userId),
-  ]);
-  return fromResult(results.at(-1));
+  // A restore re-checks its fingerprint inside the transaction, so a write landing after the load aborts it.
+  const guard = applied.type === 'restore' && applied.expected ? { ref: applied.ref, expected: applied.expected } : null;
+  try {
+    const results = await writeAtomically(db, (q) => [
+      ...(guard ? [expectedGuard(q, userId, guard.ref, guard.expected)] : []),
+      ...diffStatements(q, userId, diff, applied.type !== 'restore'),
+      selectLibrary(q, userId),
+    ]);
+    return fromResult(results.at(-1));
+  } catch (error) {
+    if (isGuardAbort(error)) throw new LibraryConflictError();
+    throw error;
+  }
 }

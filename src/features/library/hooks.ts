@@ -5,6 +5,7 @@ import { useCallback, useSyncExternalStore } from 'react';
 import { useToast } from '@/ui/toast/useToast';
 import { applyCommand, findItem, findRating, type LibraryCommand } from './commands';
 import { NOTICE, UNDO_LABEL } from './copy';
+import { titleFingerprint } from './fingerprint';
 import { LIBRARY_KEY, useLibraryRepository } from './LibraryProvider';
 import type { EpisodeMark, LibraryItem, LibraryState, LibraryStatus, Rating, TitleRef } from './types';
 
@@ -71,9 +72,9 @@ function refOf(command: LibraryCommand): TitleRef {
 }
 
 /**
- * The command that puts the title back as it is in `state`. It expects the item as `after` holds it: the state the
- * repository saved for the action, stamped with the repository's own clock (the server's, when signed in), which the
- * optimistic copy cannot know. The server refuses the undo if the item changed since (another device wrote it).
+ * The command that puts the title back as it is in `state`. It expects the title (item, rating and marks) as `after`
+ * holds it: the state the repository saved for the action, stamped with the repository's own clock (the server's,
+ * when signed in), which the optimistic copy cannot know. The server refuses the undo if the title changed since.
  */
 function inverseOf(state: LibraryState, after: LibraryState, ref: TitleRef): LibraryCommand {
   return {
@@ -82,7 +83,7 @@ function inverseOf(state: LibraryState, after: LibraryState, ref: TitleRef): Lib
     item: findItem(state, ref) ?? null,
     rating: findRating(state, ref) ?? null,
     marks: ref.mediaType === 'tv' ? state.episodes.filter((e) => e.tvId === ref.tmdbId) : [],
-    expectedUpdatedAt: findItem(after, ref)?.updatedAt ?? null,
+    expected: titleFingerprint(after, ref),
   };
 }
 
