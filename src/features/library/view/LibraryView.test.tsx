@@ -239,4 +239,36 @@ describe('LibraryView', () => {
     expect(await screen.findByText('Sua lista está vazia')).toBeInTheDocument();
     expect(screen.queryByText('Média das suas notas')).toBeNull();
   });
+
+  it('resets the frozen default tab when the identity changes', async () => {
+    progress({});
+    harness.params = new URLSearchParams();
+    const withSeries = stateOf({ items: [entry('tv', 3, 'watching', { title: 'Severance' })] });
+    const without = stateOf({ items: [entry('movie', 1, 'want', { title: 'Matrix' })] });
+    const repo = (state: LibraryState): LibraryRepository => ({
+      persistent: true,
+      load: async () => state,
+      apply: async () => state,
+      subscribe: () => () => {},
+    });
+    const client = new QueryClient({ defaultOptions: { queries: { retry: false } } });
+    const tree = (uid: string, state: LibraryState) => (
+      <QueryClientProvider client={client}>
+        <ToastProvider>
+          <LibraryProvider repository={repo(state)} mode={{ kind: 'account', uid }}>
+            <LibraryView />
+          </LibraryProvider>
+        </ToastProvider>
+      </QueryClientProvider>
+    );
+    const { rerender } = render(tree('a', withSeries));
+    await waitFor(() =>
+      expect(screen.getByRole('tab', { name: /Assistindo/ })).toHaveAttribute('aria-selected', 'true'),
+    );
+    client.clear();
+    rerender(tree('b', without));
+    await waitFor(() =>
+      expect(screen.getByRole('tab', { name: /Quero ver/ })).toHaveAttribute('aria-selected', 'true'),
+    );
+  });
 });

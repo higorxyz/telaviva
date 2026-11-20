@@ -1,11 +1,12 @@
 'use client';
 
 import { useQueryClient } from '@tanstack/react-query';
-import { createContext, useContext, useEffect, useRef, useState, type ReactNode } from 'react';
+import { createContext, useCallback, useContext, useEffect, useRef, useState, type ReactNode } from 'react';
 import { useToast } from '@/ui/toast/useToast';
 import { NOTICE } from './copy';
-import type { LibraryRepository } from './repository';
+import type { LibraryNotice, LibraryRepository } from './repository';
 import { createLocalRepository } from './local-repository';
+import { createServerRepository } from './server-repository';
 
 export const LIBRARY_KEY = ['library'] as const;
 
@@ -22,13 +23,68 @@ export function useHasLibrary(): boolean {
   return useContext(RepositoryContext) !== null;
 }
 
-/** Tests inject a fake repository; production uses the local one. */
-export function LibraryProvider({ children, repository }: { children: ReactNode; repository?: LibraryRepository }) {
+export type LibraryMode = { kind: 'guest' } | { kind: 'account'; uid: string };
+
+const IdentityContext = createContext('guest');
+
+/** `'guest'` or the signed-in uid; views key themselves by it so per-identity state starts over. */
+export function useLibraryIdentity(): string {
+  return useContext(IdentityContext);
+}
+
+const identityOf = (mode: LibraryMode) => (mode.kind === 'account' ? mode.uid : 'guest');
+
+/** Data of one identity must never show up in the other. */
+const IDENTITY_QUERIES = [['library'], ['recommendations'], ['tv-progress']] as const;
+
+const NOTICE_REPEAT_MS = 2000;
+const noop = () => {};
+
+/** A stable function that always calls the latest `fn`, so it can be handed to a repository that is not rebuilt. */
+function useLatestCallback(fn: () => void): () => void {
+  const ref = useRef(fn);
+  useEffect(() => {
+    ref.current = fn;
+  }, [fn]);
+  return useCallback(() => ref.current(), []);
+}
+
+/**
+ * Guests use the browser repository, signed-in users the server one; it is rebuilt when `mode` changes.
+ * Tests inject a fake `repository`, which always wins.
+ */
+export function LibraryProvider({
+  children,
+  repository,
+  mode = { kind: 'guest' },
+  onUnauthenticated = noop,
+}: {
+  children: ReactNode;
+  repository?: LibraryRepository;
+  mode?: LibraryMode;
+  onUnauthenticated?: () => void;
+}) {
   const queryClient = useQueryClient();
   const toast = useToast();
-  const [current] = useState<LibraryRepository>(() => repository ?? createLocalRepository());
+  const identity = identityOf(mode);
+  const handleUnauthenticated = useLatestCallback(onUnauthenticated);
+
+  const build = (): LibraryRepository =>
+    repository ??
+    (mode.kind === 'account'
+      ? createServerRepository({ onUnauthenticated: handleUnauthenticated })
+      : createLocalRepository());
+  const [built, setBuilt] = useState(() => ({ identity, repository: build() }));
+  let current = built.repository;
+  if (built.identity !== identity) {
+    // Derived state: rebuilt during render, before any child reads the cache, and the old identity's data is dropped.
+    for (const queryKey of IDENTITY_QUERIES) queryClient.removeQueries({ queryKey });
+    current = build();
+    setBuilt({ identity, repository: current });
+  }
   const warned = useRef(false);
   const recovered = useRef(false);
+  const lastShown = useRef(new Map<LibraryNotice, number>());
 
   useEffect(() => {
     return current.subscribe(() => {
@@ -39,9 +95,16 @@ export function LibraryProvider({ children, repository }: { children: ReactNode;
   useEffect(() => {
     if (!current.onNotice) return;
     return current.onNotice((notice) => {
-      if (notice !== 'recovered' || recovered.current) return;
-      recovered.current = true;
-      toast.show({ message: NOTICE.recovered });
+      if (notice === 'recovered') {
+        if (recovered.current) return;
+        recovered.current = true;
+      } else {
+        const now = Date.now();
+        const last = lastShown.current.get(notice);
+        if (last !== undefined && now - last < NOTICE_REPEAT_MS) return;
+        lastShown.current.set(notice, now);
+      }
+      toast.show({ message: NOTICE[notice] });
     });
   }, [current, toast]);
 
@@ -51,5 +114,9 @@ export function LibraryProvider({ children, repository }: { children: ReactNode;
     toast.show({ message: NOTICE.storageBlocked });
   }, [current, toast]);
 
-  return <RepositoryContext.Provider value={current}>{children}</RepositoryContext.Provider>;
+  return (
+    <IdentityContext.Provider value={identity}>
+      <RepositoryContext.Provider value={current}>{children}</RepositoryContext.Provider>
+    </IdentityContext.Provider>
+  );
 }

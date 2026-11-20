@@ -21,6 +21,9 @@ export const UNDO_LABEL = 'Desfazer';
 export const NOTICE = {
   saveFailed: 'Não foi possível salvar no navegador. Tente de novo.',
   storageBlocked: 'Seu navegador está bloqueando o armazenamento. A lista vale só até fechar a aba.',
+  saveFailedAccount: 'Não foi possível salvar na sua conta. Tente de novo.',
+  conflict: 'A lista mudou em outro aparelho.',
+  limit: 'Sua lista chegou ao limite de itens.',
   recovered: 'Recuperamos sua lista, mas alguns itens estavam corrompidos.',
 } as const;
 

@@ -7,6 +7,7 @@ import { applyCommand, findItem, findRating, type LibraryCommand } from './comma
 import { NOTICE, UNDO_LABEL } from './copy';
 import { titleFingerprint } from './fingerprint';
 import { LIBRARY_KEY, useLibraryRepository } from './LibraryProvider';
+import { LibraryConflictError, LibraryLimitError, LibrarySessionError } from './repository';
 import type { EpisodeMark, LibraryItem, LibraryState, LibraryStatus, Rating, TitleRef } from './types';
 
 const NO_MARKS: EpisodeMark[] = [];
@@ -120,9 +121,17 @@ export function useLibraryActions(): { run(command: LibraryCommand, opts?: RunOp
       }
       return { previous };
     },
-    onError: (_error, _variables, context) => {
+    onError: (error, _variables, context) => {
       if (context?.previous) queryClient.setQueryData(LIBRARY_KEY, context.previous);
-      toast.show({ message: NOTICE.saveFailed, tone: 'error' });
+      // These have their own message: the auth flow (session), or the repository's notice toast (conflict, limit).
+      if (
+        error instanceof LibrarySessionError ||
+        error instanceof LibraryConflictError ||
+        error instanceof LibraryLimitError
+      ) {
+        return;
+      }
+      toast.show({ message: repository.errorMessage ?? NOTICE.saveFailed, tone: 'error' });
     },
     onSuccess: (saved, { command, undoable }, context) => {
       // No cache write here: the optimistic value already holds, and an older response could revert it.

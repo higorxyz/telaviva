@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { GridSkeleton } from '@/features/catalog/GridSkeleton';
 import { Skeleton } from '@/ui/Skeleton';
 import { useLibrary } from '../hooks';
+import { useLibraryIdentity } from '../LibraryProvider';
 import { LibraryEmpty } from './LibraryEmpty';
 import { LibraryGrid } from './LibraryGrid';
 import { libraryStats, selectItems, TABS, type LibraryTab } from './library-query';
@@ -23,7 +24,12 @@ export function LibrarySkeleton() {
   );
 }
 
+/** Keyed by identity so the frozen default tab starts over when the user signs in or out. */
 export function LibraryView() {
+  return <LibraryViewBody key={useLibraryIdentity()} />;
+}
+
+function LibraryViewBody() {
   const { state, ready } = useLibrary();
   const hasWatching = state?.items.some((i) => i.status === 'watching') ?? false;
   // The default tab is decided once, when the library first loads. Later changes (moving the last series out of

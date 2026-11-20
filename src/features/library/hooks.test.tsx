@@ -6,7 +6,7 @@ import { ToastProvider } from '@/ui/toast/ToastProvider';
 import { applyCommand, type LibraryCommand } from './commands';
 import { LibraryProvider } from './LibraryProvider';
 import { useLibraryActions, useLibraryEntry, useLibraryStatus } from './hooks';
-import type { LibraryRepository } from './repository';
+import { LibraryConflictError, LibrarySessionError, type LibraryRepository } from './repository';
 import { EMPTY_LIBRARY, type LibraryState, type TitleRef } from './types';
 
 const NOW = '2026-11-19T12:00:00.000Z';
@@ -124,6 +124,33 @@ describe('useLibraryActions', () => {
     await act(async () => fake.pending[0]!.reject(new Error('cheio')));
     await waitFor(() => expect(result.current.entry.item).toBeNull());
     expect(screen.getByText(ERROR_TEXT).closest('[data-toast]')).toHaveAttribute('data-tone', 'error');
+  });
+
+  it("shows the repository's own error message when it has one", async () => {
+    const fake = fakeRepository();
+    const { wrapper } = setup({ ...fake, repository: { ...fake.repository, errorMessage: 'Falhou na conta.' } });
+    const { result } = renderHook(useAll, { wrapper });
+    await waitFor(() => expect(result.current.entry.ready).toBe(true));
+    act(() => result.current.actions.run(setStatus('want')));
+    await waitFor(() => expect(fake.pending).toHaveLength(1));
+    await act(async () => fake.pending[0]!.reject(new Error('x')));
+    expect(await screen.findByText('Falhou na conta.')).toBeInTheDocument();
+    expect(screen.queryByText(ERROR_TEXT)).toBeNull();
+  });
+
+  it.each([
+    ['session', () => new LibrarySessionError()],
+    ['conflict', () => new LibraryConflictError()],
+  ])('rolls back without the generic error toast on a %s error', async (_name, make) => {
+    const { wrapper, fake } = setup();
+    const { result } = renderHook(useAll, { wrapper });
+    await waitFor(() => expect(result.current.entry.ready).toBe(true));
+    act(() => result.current.actions.run(setStatus('want')));
+    await waitFor(() => expect(result.current.entry.item?.status).toBe('want'));
+    await act(async () => fake.pending[0]!.reject(make()));
+    await waitFor(() => expect(result.current.entry.item).toBeNull());
+    expect(screen.queryByText(ERROR_TEXT)).toBeNull();
+    expect(document.querySelector('[data-toast]')).toBeNull();
   });
 
   it('keeps the second command as the final state when applies resolve out of order', async () => {
