@@ -1,6 +1,7 @@
 import 'server-only';
 import type { Auth, DecodedIdToken } from 'firebase-admin/auth';
 import { serverAuthEnabled } from '@/lib/env';
+import { describeError, SetupError } from '@/lib/setup-error';
 import { getDb, type Database } from '@/server/db/client';
 import { upsertUser } from '@/server/users';
 import { getAdminAuth } from './admin';
@@ -77,7 +78,10 @@ export async function readSession(
   try {
     const auth = opts.auth ?? getAdminAuth();
     return toSessionUser(await auth.verifySessionCookie(cookieValue, opts.checkRevoked ?? false));
-  } catch {
+  } catch (error) {
+    // A bad cookie is routine and stays quiet. A setup error means nobody can sign in: say why (its message holds
+    // no secrets). The cookie itself is never logged.
+    if (error instanceof SetupError) console.error('[auth] could not read the session:', describeError(error));
     return null;
   }
 }

@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import { SetupError } from './setup-error';
 
 const envSchema = z.object({
   TMDB_READ_TOKEN: z.string().min(1, 'TMDB_READ_TOKEN é obrigatório'),
@@ -50,7 +51,7 @@ function unescapeKey(raw: string | undefined): string | undefined {
 export function parseServerAuthEnv(source: Record<string, string | undefined>): ServerAuthEnv {
   const databaseDriver = source.DATABASE_DRIVER === 'pglite' ? 'pglite' : 'neon';
   if (databaseDriver === 'pglite' && source.VERCEL) {
-    throw new Error('DATABASE_DRIVER=pglite não pode ser usado na Vercel (o PGlite é só para testes).');
+    throw new SetupError('DATABASE_DRIVER=pglite não pode ser usado na Vercel (o PGlite é só para testes).');
   }
   const projectId = source.FIREBASE_PROJECT_ID?.trim();
   const clientEmail = source.FIREBASE_CLIENT_EMAIL?.trim();

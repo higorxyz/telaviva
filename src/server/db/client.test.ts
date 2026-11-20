@@ -21,6 +21,8 @@ describe('getDb', () => {
     vi.stubEnv('DATABASE_URL', '');
     vi.resetModules();
     const { getDb } = await import('./client');
+    const { SetupError } = await import('@/lib/setup-error');
     expect(() => getDb()).toThrow(/Banco de dados não configurado/);
+    expect(() => getDb()).toThrow(SetupError);
   });
 });

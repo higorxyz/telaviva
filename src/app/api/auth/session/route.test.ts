@@ -2,7 +2,7 @@
 import { eq } from 'drizzle-orm';
 import { afterEach, beforeAll, beforeEach, describe, expect, it, vi } from 'vitest';
 import { users } from '@/server/db/schema';
-import { adminAuthMock, decodedToken, resetAdminAuthMock, stubAuthEnv } from '@/test/admin-auth';
+import { adminAppModule, adminAuthMock, decodedToken, resetAdminAuthMock, stubAuthEnv } from '@/test/admin-auth';
 import { createTestDb } from '@/test/db';
 
 const holder = vi.hoisted(() => ({ db: undefined as unknown }));
@@ -149,6 +149,18 @@ describe('POST /api/auth/session', () => {
     const printed = JSON.stringify(log.mock.calls);
     expect(printed).not.toContain('id-token');
     expect(printed).not.toContain('header.payload');
+  });
+
+  it('logs a setup failure with its message (the app’s own text), still without the token', async () => {
+    const log = vi.spyOn(console, 'error').mockImplementation(() => {});
+    adminAppModule.cert.mockImplementationOnce(() => {
+      throw Object.assign(new Error('Failed to parse private key.'), { code: 'app/invalid-credential' });
+    });
+    const res = await post(token);
+    expect(res.status).toBe(500);
+    const printed = JSON.stringify(log.mock.calls);
+    expect(printed).toContain('Credencial do Firebase inválida');
+    expect(printed).not.toContain('id-token');
   });
 
   it('429 after 30 requests a minute from one IP', async () => {

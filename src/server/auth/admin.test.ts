@@ -11,6 +11,7 @@ import {
 vi.mock('firebase-admin/app', async () => (await import('@/test/admin-auth')).adminAppModule);
 vi.mock('firebase-admin/auth', async () => (await import('@/test/admin-auth')).adminAuthModule);
 
+import { SetupError } from '@/lib/setup-error';
 import { getAdminAuth } from './admin';
 
 beforeEach(() => {
@@ -67,8 +68,34 @@ describe('getAdminAuth', () => {
     expect(() => getAdminAuth()).toThrow(/FIREBASE_AUTH_EMULATOR_HOST/);
   });
 
-  it('throws when the Firebase credential is missing', () => {
+  it('throws a SetupError when the Firebase credential is missing', () => {
     vi.stubEnv('FIREBASE_PRIVATE_KEY', '');
+    expect(() => getAdminAuth()).toThrow(SetupError);
     expect(() => getAdminAuth()).toThrow(/Firebase/);
+  });
+
+  it('refuses the emulator on Vercel with a SetupError', () => {
+    vi.stubEnv('FIREBASE_AUTH_EMULATOR_HOST', '127.0.0.1:9099');
+    vi.stubEnv('VERCEL', '1');
+    vi.stubEnv('DATABASE_DRIVER', '');
+    vi.stubEnv('DATABASE_URL', 'postgres://user:pass@host/db');
+    expect(() => getAdminAuth()).toThrow(SetupError);
+  });
+
+  it('turns a malformed key into a SetupError naming the variables, never quoting the key', () => {
+    adminAppModule.cert.mockImplementationOnce(() => {
+      throw Object.assign(new Error('Failed to parse private key: fake-key'), { code: 'app/invalid-credential' });
+    });
+    const error = (() => {
+      try {
+        getAdminAuth();
+      } catch (e) {
+        return e;
+      }
+    })();
+    expect(error).toBeInstanceOf(SetupError);
+    expect((error as Error).message).toMatch(/FIREBASE_PRIVATE_KEY/);
+    expect((error as Error).message).toMatch(/app\/invalid-credential/);
+    expect((error as Error).message).not.toContain('fake-key');
   });
 });

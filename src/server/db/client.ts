@@ -5,6 +5,7 @@ import { drizzle as drizzleNeon } from 'drizzle-orm/neon-http';
 import { drizzle as drizzlePglite } from 'drizzle-orm/pglite';
 import type { PgDatabase, PgQueryResultHKT } from 'drizzle-orm/pg-core';
 import { serverAuthEnv } from '@/lib/env';
+import { SetupError } from '@/lib/setup-error';
 import * as schema from './schema';
 
 /**
@@ -25,7 +26,7 @@ export function getDb(): Database {
   } else if (databaseUrl) {
     globalForDb.__telavivaDb = drizzleNeon(neon(databaseUrl), { schema });
   } else {
-    throw new Error(
+    throw new SetupError(
       'Banco de dados não configurado: defina DATABASE_URL (Neon) ou DATABASE_DRIVER=pglite com PGLITE_DIR.',
     );
   }

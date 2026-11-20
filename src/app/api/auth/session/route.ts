@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { limitByIp, readJsonBody } from '@/lib/api-guard';
+import { describeError } from '@/lib/setup-error';
 import {
   clearedCookies,
   readCookie,
@@ -17,13 +18,6 @@ function readIdToken(value: unknown): string | null {
   if (typeof value !== 'object' || value === null || Array.isArray(value)) return null;
   const { idToken } = value as { idToken?: unknown };
   return typeof idToken === 'string' && idToken.length > 0 ? idToken : null;
-}
-
-/** Name and code only: Firebase and database errors can quote the token or the user's data. */
-function describe(error: unknown): string {
-  if (!(error instanceof Error)) return 'unknown error';
-  const code = (error as { code?: unknown }).code;
-  return typeof code === 'string' ? `${error.name} (${code})` : error.name;
 }
 
 /** Exchanges a fresh Firebase ID token for the httpOnly session cookie. */
@@ -46,7 +40,7 @@ export async function POST(request: Request) {
     );
   } catch (error) {
     if (error instanceof SessionError) return jsonError(error.code, 401);
-    console.error('[api/auth/session] could not create the session:', describe(error));
+    console.error('[api/auth/session] could not create the session:', describeError(error));
     return jsonError('server_error', 500);
   }
 }
@@ -61,7 +55,7 @@ export async function DELETE(request: Request) {
     try {
       await getAdminAuth().revokeRefreshTokens(user.id);
     } catch (error) {
-      console.error('[api/auth/session] could not revoke refresh tokens:', describe(error));
+      console.error('[api/auth/session] could not revoke refresh tokens:', describeError(error));
     }
   }
   return withCookies(

@@ -1,7 +1,7 @@
 // @vitest-environment node
 import { eq } from 'drizzle-orm';
 import { afterEach, beforeAll, beforeEach, describe, expect, it, vi } from 'vitest';
-import { adminAuthMock, decodedToken, resetAdminAuthMock, stubAuthEnv } from '@/test/admin-auth';
+import { adminAppModule, adminAuthMock, decodedToken, resetAdminAuthMock, stubAuthEnv } from '@/test/admin-auth';
 import { createTestDb } from '@/test/db';
 import { users } from '@/server/db/schema';
 
@@ -168,9 +168,26 @@ describe('readSession', () => {
     expect(adminAuthMock.verifySessionCookie).toHaveBeenCalledWith('cookie', true);
   });
 
-  it('is null for an invalid, expired or revoked cookie', async () => {
-    adminAuthMock.verifySessionCookie.mockRejectedValue(new Error('expired'));
-    expect(await readSession('cookie', { checkRevoked: true })).toBeNull();
+  it('is null for an invalid, expired or revoked cookie, without logging', async () => {
+    const log = vi.spyOn(console, 'error').mockImplementation(() => {});
+    adminAuthMock.verifySessionCookie.mockRejectedValue(
+      Object.assign(new Error('expired cookie-value'), { code: 'auth/session-cookie-expired' }),
+    );
+    expect(await readSession('cookie-value', { checkRevoked: true })).toBeNull();
+    expect(log).not.toHaveBeenCalled();
+    log.mockRestore();
+  });
+
+  it('logs why firebase-admin could not start (a setup error), never the cookie, and is null', async () => {
+    const log = vi.spyOn(console, 'error').mockImplementation(() => {});
+    adminAppModule.cert.mockImplementationOnce(() => {
+      throw Object.assign(new Error('Failed to parse private key.'), { code: 'app/invalid-credential' });
+    });
+    expect(await readSession('cookie-value')).toBeNull();
+    const printed = JSON.stringify(log.mock.calls);
+    expect(printed).toContain('FIREBASE_PRIVATE_KEY');
+    expect(printed).not.toContain('cookie-value');
+    log.mockRestore();
   });
 
   it('is null when sign-in is turned off', async () => {
