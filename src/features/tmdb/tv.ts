@@ -77,6 +77,47 @@ export async function getTvDetails(id: number): Promise<TvDetails> {
   return tv;
 }
 
+/** What series progress is derived from: the lean `tv/{id}` answer (no appended resources, no screening). */
+export type TvProgressSource = Pick<TvDetails, 'id' | 'status' | 'seasons' | 'lastEpisodeToAir' | 'nextEpisodeToAir'>;
+
+const isEnded = (status: string) => status === 'Ended' || status === 'Canceled';
+
+async function loadTvProgressSource(id: number): Promise<TvProgressSource | null> {
+  'use cache';
+  cacheTag('tmdb', `tv:${id}`);
+  try {
+    const raw = await tmdbFetch(`tv/${id}`, {}, tvDetailSchema);
+    if (raw.adult) {
+      cacheLife('tmdbDetail');
+      return null;
+    }
+    const tv = toTvDetails(raw);
+    // A running series gets new episodes: keep "Novos episódios" fresh. An ended one barely changes.
+    if (isEnded(tv.status)) cacheLife('tmdbDetail');
+    else cacheLife('tmdbHot');
+    return {
+      id: tv.id,
+      status: tv.status,
+      seasons: tv.seasons,
+      lastEpisodeToAir: tv.lastEpisodeToAir,
+      nextEpisodeToAir: tv.nextEpisodeToAir,
+    };
+  } catch (error) {
+    if (isTmdbNotFound(error)) {
+      cacheLife('hours');
+      return null;
+    }
+    throw error;
+  }
+}
+
+/** Progress data for one series (the batch route asks up to 40 at once, so it stays a single cheap call). */
+export async function getTvProgressSource(id: number): Promise<TvProgressSource> {
+  const tv = await loadTvProgressSource(id);
+  if (!tv) throw new TmdbError('The resource you requested could not be found.', 404, `tv/${id}`);
+  return tv;
+}
+
 async function loadSeason(tvId: number, season: number): Promise<SeasonDetails | null> {
   'use cache';
   cacheTag('tmdb', `tv:${tvId}`);

@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import { toProgressInfo, type TvProgressInfo } from '@/features/library/progress';
 import { isTmdbNotFound } from '@/features/tmdb/client';
-import { getTvDetails } from '@/features/tmdb/tv';
+import { getTvProgressSource } from '@/features/tmdb/tv';
 
 const MAX_IDS = 40;
 
@@ -21,7 +21,7 @@ export async function GET(request: Request) {
     return NextResponse.json({ error: `Informe de 1 a ${MAX_IDS} ids numéricos.` }, { status: 400 });
   }
 
-  const settled = await Promise.allSettled(ids.map((id) => getTvDetails(id)));
+  const settled = await Promise.allSettled(ids.map((id) => getTvProgressSource(id)));
   const result: Record<string, TvProgressInfo> = {};
   let failures = 0;
   settled.forEach((outcome, i) => {

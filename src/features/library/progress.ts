@@ -21,7 +21,9 @@ export type SeriesProgress =
   | { kind: 'caught-up'; nextAirDate: string | null; watched: number; total: number }
   | { kind: 'finished'; watched: number; total: number };
 
-export function toProgressInfo(tv: TvDetails): TvProgressInfo {
+export function toProgressInfo(
+  tv: Pick<TvDetails, 'id' | 'status' | 'seasons' | 'lastEpisodeToAir' | 'nextEpisodeToAir'>,
+): TvProgressInfo {
   return {
     tvId: tv.id,
     ended: tv.status === 'Ended' || tv.status === 'Canceled',
