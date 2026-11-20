@@ -2,6 +2,7 @@
 
 import { createContext, useContext } from 'react';
 import type { LibraryMode } from '@/features/library/LibraryProvider';
+import type { ReauthOutcome } from './auth-flows';
 import type { SessionUser } from './session-client';
 
 export type AuthStatus = 'loading' | 'guest' | 'signed-in' | 'disabled';
@@ -20,9 +21,9 @@ export interface AuthApi {
   refresh(): Promise<void>;
   /**
    * Signs the same user in again (Google, or e-mail with `password`) and mints a new session, so it counts as a recent
-   * sign-in (required to delete the account). Resolves false when leaving for the Google redirect.
+   * sign-in (required to delete the account). See `ReauthOutcome`.
    */
-  reauthenticate(password?: string): Promise<boolean>;
+  reauthenticate(password?: string): Promise<ReauthOutcome>;
   /** The account was deleted: forget it on this device, become a visitor, then show `notice`. */
   accountDeleted(notice: string): Promise<void>;
 }

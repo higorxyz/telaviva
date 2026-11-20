@@ -6,8 +6,8 @@ import { useState } from 'react';
 import { Button, ButtonLink } from '@/ui/Button';
 import { Skeleton } from '@/ui/Skeleton';
 import { useToast } from '@/ui/toast/useToast';
-import { downloadAccountExport } from './account-client';
-import { EXPORT_ERROR, PROVIDER_LABEL } from './account-copy';
+import { downloadAccountExport, WrongAccountError } from './account-client';
+import { EXPORT_ERROR, PROVIDER_LABEL, STALE_ACCOUNT } from './account-copy';
 import { initialOf } from './AccountButton';
 import { DeleteAccount } from './DeleteAccount';
 import type { SessionUser } from './session-client';
@@ -113,6 +113,8 @@ export function AccountView() {
     );
   }
 
+  const uid = user.id;
+
   async function signOut() {
     setLeaving(true);
     await auth.signOut();
@@ -123,9 +125,11 @@ export function AccountView() {
     if (exporting) return;
     setExporting(true);
     try {
-      await downloadAccountExport();
-    } catch {
-      toast.show({ message: EXPORT_ERROR, tone: 'error' });
+      await downloadAccountExport(uid);
+    } catch (error) {
+      const stale = error instanceof WrongAccountError;
+      toast.show({ message: stale ? STALE_ACCOUNT : EXPORT_ERROR, tone: 'error' });
+      if (stale) void auth.refresh();
     } finally {
       setExporting(false);
     }

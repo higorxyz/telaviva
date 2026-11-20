@@ -67,6 +67,13 @@ describe('GET /api/library', () => {
     });
   });
 
+  it('401 unauthenticated for a session whose account is gone (deleted on another device)', async () => {
+    adminAuthMock.verifySessionCookie.mockResolvedValue(decodedToken({ uid: 'deleted-user', sub: 'deleted-user' }));
+    const res = await get();
+    expect(res.status).toBe(401);
+    expect(await res.json()).toEqual({ error: 'unauthenticated' });
+  });
+
   it('401 without a session', async () => {
     const res = await get({});
     expect(res.status).toBe(401);

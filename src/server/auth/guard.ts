@@ -17,6 +17,12 @@ export const authRateLimiter = createRateLimiter({ limit: 30, windowMs: 60_000 }
 /** Per-IP budget for /api/library/*: generous, since marking episodes one by one sends a command per click. */
 export const libraryRateLimiter = createRateLimiter({ limit: 120, windowMs: 60_000 });
 
+/** Per-IP budget for the account export: it reads the whole library, and nobody needs it often. */
+export const exportRateLimiter = createRateLimiter({ limit: 5, windowMs: 60_000 });
+
+/** The uid the page showed when the person acted on their account (DELETE and export of /api/account). */
+export const EXPECTED_USER_HEADER = 'x-expected-user';
+
 const SAFE_METHODS = new Set(['GET', 'HEAD']);
 
 export function authRoutesEnabled(): boolean {
@@ -55,4 +61,14 @@ export async function requireUser(
   if (blocked) return blocked;
   const user = await readSession(cookie, { checkRevoked: opts.checkRevoked });
   return user ?? jsonError('unauthenticated', 401);
+}
+
+/**
+ * Refuses to act on an account other than the one the page showed: another tab may have signed in as someone else,
+ * and the cookie (shared by every tab) now names them. 400 without the header, 409 `wrong_account` on a mismatch.
+ */
+export function expectedUserGate(request: Request, user: SessionUser): NextResponse | null {
+  const expected = request.headers.get(EXPECTED_USER_HEADER);
+  if (!expected) return jsonError('bad_request', 400);
+  return expected === user.id ? null : jsonError('wrong_account', 409);
 }

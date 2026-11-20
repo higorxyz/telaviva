@@ -44,7 +44,13 @@ const del = (headers: Record<string, string> = {}) =>
   DELETE(
     new Request(`${LOCAL}/api/account`, {
       method: 'DELETE',
-      headers: { host: 'localhost:3000', origin: LOCAL, cookie: 'tv_session=abc; tv_auth=1', ...headers },
+      headers: {
+        host: 'localhost:3000',
+        origin: LOCAL,
+        cookie: 'tv_session=abc; tv_auth=1',
+        'x-expected-user': 'user-1',
+        ...headers,
+      },
     }),
   );
 
@@ -72,6 +78,32 @@ describe('DELETE /api/account', () => {
     const res = await del();
     expect(res.status).toBe(401);
     expect(await res.json()).toEqual({ error: 'reauth' });
+    expect(adminAuthMock.deleteUser).not.toHaveBeenCalled();
+    expect(await rowsOf('user-1')).toBe(2);
+  });
+
+  it('409 { error: wrong_account } when the session names someone else than the page showed, before the recency check', async () => {
+    // Another tab signed in as user-1 a minute ago; this tab still showed user-2.
+    const res = await del({ 'x-expected-user': 'user-2' });
+    expect(res.status).toBe(409);
+    expect(await res.json()).toEqual({ error: 'wrong_account' });
+    expect(adminAuthMock.deleteUser).not.toHaveBeenCalled();
+    expect(await rowsOf('user-1')).toBe(2);
+    expect(await rowsOf('user-2')).toBe(2);
+
+    adminAuthMock.verifySessionCookie.mockResolvedValue(decodedToken({ auth_time: now() - 3600 }));
+    expect((await del({ 'x-expected-user': 'user-2' })).status).toBe(409);
+  });
+
+  it('400 without the expected user, deleting nothing', async () => {
+    const res = await DELETE(
+      new Request(`${LOCAL}/api/account`, {
+        method: 'DELETE',
+        headers: { host: 'localhost:3000', origin: LOCAL, cookie: 'tv_session=abc; tv_auth=1' },
+      }),
+    );
+    expect(res.status).toBe(400);
+    expect(await res.json()).toEqual({ error: 'bad_request' });
     expect(adminAuthMock.deleteUser).not.toHaveBeenCalled();
     expect(await rowsOf('user-1')).toBe(2);
   });

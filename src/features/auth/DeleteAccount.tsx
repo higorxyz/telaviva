@@ -5,7 +5,8 @@ import { useEffect, useId, useRef, useState } from 'react';
 import { cn } from '@/lib/cn';
 import { buttonClasses } from '@/ui/Button';
 import { clearLocalAccountData } from './account-client';
-import { ACCOUNT_DELETED } from './account-copy';
+import { useToast } from '@/ui/toast/useToast';
+import { ACCOUNT_DELETED, STALE_ACCOUNT } from './account-copy';
 import { DeleteDialogBody } from './DeleteDialogBody';
 import { useAuth } from './useAuth';
 
@@ -20,13 +21,17 @@ import { useAuth } from './useAuth';
 export function DeleteAccount({ onLeaving }: { onLeaving?: () => void }) {
   const auth = useAuth();
   const router = useRouter();
+  const toast = useToast();
   const [open, setOpen] = useState(false);
+  /** The account the dialog was opened for: the one the page showed, the only one it may delete. */
+  const [target, setTarget] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
   /** A new body per opening, so every confirmation starts empty. */
   const [opening, setOpening] = useState(0);
   const dialog = useRef<HTMLDialogElement>(null);
   const trigger = useRef<HTMLButtonElement>(null);
   const titleId = useId();
+  const textId = useId();
 
   useEffect(() => {
     const el = dialog.current;
@@ -39,11 +44,16 @@ export function DeleteAccount({ onLeaving }: { onLeaving?: () => void }) {
   }, [open]);
 
   async function finish() {
-    const uid = auth.user?.id;
     onLeaving?.();
-    if (uid) clearLocalAccountData(uid);
+    clearLocalAccountData(target);
     router.replace('/');
     await auth.accountDeleted(ACCOUNT_DELETED);
+  }
+
+  /** Another tab switched accounts: say so where it survives the identity switch, and show who is signed in now. */
+  function stale() {
+    toast.show({ message: STALE_ACCOUNT, tone: 'error' });
+    void auth.refresh();
   }
 
   return (
@@ -53,6 +63,7 @@ export function DeleteAccount({ onLeaving }: { onLeaving?: () => void }) {
         type="button"
         aria-haspopup="dialog"
         onClick={() => {
+          setTarget(auth.user?.id ?? null);
           setOpening((n) => n + 1);
           setOpen(true);
         }}
@@ -63,6 +74,7 @@ export function DeleteAccount({ onLeaving }: { onLeaving?: () => void }) {
       <dialog
         ref={dialog}
         aria-labelledby={titleId}
+        aria-describedby={textId}
         aria-busy={busy || undefined}
         onCancel={(event) => {
           if (busy) event.preventDefault();
@@ -73,10 +85,13 @@ export function DeleteAccount({ onLeaving }: { onLeaving?: () => void }) {
         }}
         className="m-auto w-[min(calc(100%-2rem),30rem)] max-w-none rounded-2xl border border-wine bg-ink-900 p-0 text-ivory shadow-poster backdrop:bg-ink-950/85 open:animate-pop-in"
       >
-        {open ? (
+        {open && target ? (
           <DeleteDialogBody
             key={opening}
             titleId={titleId}
+            textId={textId}
+            expectedUid={target}
+            onStale={stale}
             provider={auth.user?.provider ?? null}
             busy={busy}
             setBusy={setBusy}

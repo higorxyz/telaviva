@@ -2,7 +2,8 @@ import { NextResponse } from 'next/server';
 import { parseCommand } from '@/features/library/command-schema';
 import { limitByIp, readJsonBody } from '@/lib/api-guard';
 import { describeError } from '@/lib/setup-error';
-import { jsonError, libraryRateLimiter, requireUser } from '@/server/auth/guard';
+import { requireAccount } from '@/server/auth/account-guard';
+import { jsonError, libraryRateLimiter } from '@/server/auth/guard';
 import { getDb } from '@/server/db/client';
 import { LibraryConflictError, LibraryInvalidError, LibraryLimitError } from '@/server/library/errors';
 import { applyLibraryCommand } from '@/server/library/store';
@@ -17,7 +18,7 @@ function commandOf(body: unknown): unknown {
 
 /** Applies one library command (`{ command }`) for the signed-in user and answers the library as stored. */
 export async function POST(request: Request) {
-  const user = await requireUser(request);
+  const user = await requireAccount(request);
   if (user instanceof Response) return user;
   const limited = limitByIp(request, libraryRateLimiter);
   if (limited) return limited;

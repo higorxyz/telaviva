@@ -5,13 +5,15 @@ import { resetFirebaseClient } from './firebase-client';
 import {
   confirmButton,
   deleteAnswers,
+  expectedUsers,
   nav,
   openAndType,
   polyfillDialog,
   pressEscape,
   renderSignedIn,
+  STALE,
 } from './test-account';
-import { clearCookies, installDefaultApi, probe } from './test-auth';
+import { clearCookies, installDefaultApi, probe, signedInOnServer } from './test-auth';
 import { authConfig, log, resetFakeFirebase } from './test-firebase';
 
 vi.mock('firebase/app', async () => (await import('./test-firebase')).fakeAppModule);
@@ -46,6 +48,9 @@ describe('DeleteAccount: the confirmation dialog', () => {
       screen.getByText('Isso apaga sua conta e toda a sua lista para sempre. Digite EXCLUIR para confirmar.'),
     ).toBeInTheDocument();
     expect(screen.getByLabelText('Digite EXCLUIR')).toHaveFocus();
+    expect(dialog()).toHaveAccessibleDescription(
+      'Isso apaga sua conta e toda a sua lista para sempre. Digite EXCLUIR para confirmar.',
+    );
   });
 
   it('enables "Excluir para sempre" only for EXCLUIR exactly (case-sensitive, trimmed)', async () => {
@@ -130,6 +135,27 @@ describe('DeleteAccount: while deleting and on errors', () => {
     await user.click(confirmButton());
     await waitFor(() => expect(nav.replace).toHaveBeenCalledWith('/'));
     expect(deleteCalls()).toBe(2);
+  });
+
+  it('names the account the dialog was opened for, so the server can refuse another one', async () => {
+    deleteAnswers({ status: 204 });
+    await renderSignedIn();
+    const user = await openAndType();
+    await user.click(confirmButton());
+    await waitFor(() => expect(nav.replace).toHaveBeenCalledWith('/'));
+    expect(expectedUsers).toEqual(['u1']);
+  });
+
+  it('409 (another tab switched accounts): deletes nothing, says so, and shows the account now open', async () => {
+    deleteAnswers({ status: 409, body: { error: 'wrong_account' } });
+    await renderSignedIn();
+    const user = await openAndType();
+    signedInOnServer('u2'); // Another tab signed in as u2: the cookie is now theirs.
+    await user.click(confirmButton());
+    expect(await screen.findByText(STALE)).toBeInTheDocument();
+    await waitFor(() => expect(probe()).toMatch(/^signed-in\|u2/));
+    expect(nav.replace).not.toHaveBeenCalled();
+    expect(deleteCalls()).toBe(1);
   });
 
   it('says so when offline', async () => {

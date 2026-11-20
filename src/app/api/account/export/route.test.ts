@@ -43,7 +43,8 @@ afterEach(() => {
 });
 
 // A plain download link: no Origin, as a GET needs none.
-const get = (headers: Record<string, string> = { cookie: 'tv_session=abc; tv_auth=1' }) =>
+const SIGNED_IN = { cookie: 'tv_session=abc; tv_auth=1', 'x-expected-user': 'user-1' };
+const get = (headers: Record<string, string> = SIGNED_IN) =>
   GET(new Request('http://localhost:3000/api/account/export', { headers: { host: 'localhost:3000', ...headers } }));
 
 describe('GET /api/account/export', () => {
@@ -68,6 +69,24 @@ describe('GET /api/account/export', () => {
     });
     expect(body.library.items.map((i: { tmdbId: number }) => i.tmdbId)).toEqual([550]);
     expect(JSON.stringify(body)).not.toMatch(/user-2|Forrest|bia@/);
+  });
+
+  it('409 when the session names someone else than the page showed', async () => {
+    const res = await get({ ...SIGNED_IN, 'x-expected-user': 'user-2' });
+    expect(res.status).toBe(409);
+    expect(await res.json()).toEqual({ error: 'wrong_account' });
+  });
+
+  it('400 without the expected user', async () => {
+    const res = await get({ cookie: 'tv_session=abc; tv_auth=1' });
+    expect(res.status).toBe(400);
+    expect(await res.json()).toEqual({ error: 'bad_request' });
+  });
+
+  it('allows 5 exports a minute per IP, then 429', async () => {
+    const fromIp = { ...SIGNED_IN, 'x-forwarded-for': '203.0.113.77' };
+    for (let i = 0; i < 5; i++) expect((await get(fromIp)).status).toBe(200);
+    expect((await get(fromIp)).status).toBe(429);
   });
 
   it('401 without a session', async () => {

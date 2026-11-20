@@ -65,6 +65,15 @@ const post = (body: string, headers: Record<string, string> = {}) =>
   );
 const send = (library: unknown, headers?: Record<string, string>) => post(JSON.stringify({ library }), headers);
 
+describe('POST /api/library/merge: an account deleted on another device', () => {
+  it('401 unauthenticated instead of failing the write on the foreign key', async () => {
+    adminAuthMock.verifySessionCookie.mockResolvedValue(decodedToken({ uid: 'deleted-user', sub: 'deleted-user' }));
+    const res = await send(guest);
+    expect(res.status).toBe(401);
+    expect(await res.json()).toEqual({ error: 'unauthenticated' });
+  });
+});
+
 describe('POST /api/library/merge', () => {
   it('merges the guest library into the account and answers the stored state, never cached', async () => {
     await db.insert(libraryItems).values({ userId: 'user-1', ...movie, status: 'want', title: 'Clube', addedAt: T0, updatedAt: T0 });

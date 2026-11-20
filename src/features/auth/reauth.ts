@@ -1,6 +1,5 @@
 import type { User } from 'firebase/auth';
 import type { FirebaseClient } from './firebase-client';
-import { createSession, type SessionUser } from './session-client';
 import { emailSignIn, googleReauth, googleSignIn, passwordReauth } from './sign-in';
 
 /** Signing in again was done with another account than the one signed in (and about to be deleted). */
@@ -20,7 +19,8 @@ export type ReauthTarget = { id: string; email: string | null };
  * - With the user still in Firebase's storage, it re-authenticates them: Firebase refuses another account
  *   (`auth/user-mismatch`) and the current user stays.
  * - Without it (the browser cleared that storage while the session cookie lived on), it signs in from scratch and
- *   accepts the result only as the same person; anyone else is signed out of Firebase again at once.
+ *   accepts the result only as the same person; anyone else is signed out of Firebase again at once. A Google
+ *   redirect is marked with the target uid, and its return trip applies the same rule (auth-flows, `completeRedirect`).
  *
  * Resolves the user, or null when leaving for the Google redirect.
  */
@@ -39,7 +39,9 @@ export async function reauthFirebase(
   }
 
   const user =
-    password === undefined ? await googleSignIn(client) : await emailSignIn(client, target.email ?? '', password);
+    password === undefined
+      ? await googleSignIn(client, target.id)
+      : await emailSignIn(client, target.email ?? '', password);
   if (!user) return null;
   if (user.uid !== target.id) {
     try {
@@ -52,18 +54,3 @@ export async function reauthFirebase(
   return user;
 }
 
-/**
- * Signs the current user in again and mints a new session from a freshly refreshed ID token, so the cookie's
- * `auth_time` is recent. Null when leaving for the Google redirect (the return trip mints the session).
- */
-export async function reauthenticateSession(
-  client: FirebaseClient,
-  target: ReauthTarget,
-  password?: string,
-): Promise<{ user: User; sessionUser: SessionUser } | null> {
-  const user = await reauthFirebase(client, target, password);
-  if (!user) return null;
-  const sessionUser = await createSession(await user.getIdToken(true));
-  if (sessionUser.id !== target.id) throw new ReauthMismatchError();
-  return { user, sessionUser };
-}

@@ -9,6 +9,7 @@ export const ACCOUNT_DELETED = 'Conta excluída.';
 
 export const DELETE_ERROR = 'Não foi possível excluir sua conta agora. Tente de novo.';
 export const WRONG_ACCOUNT = 'Entre com a mesma conta que você quer excluir.';
+export const STALE_ACCOUNT = 'A conta aberta mudou em outra aba. Confira e tente de novo.';
 export const PASSWORD_MISSING = 'Digite sua senha.';
 export const EXPORT_ERROR = 'Não foi possível exportar seus dados. Tente de novo.';
 

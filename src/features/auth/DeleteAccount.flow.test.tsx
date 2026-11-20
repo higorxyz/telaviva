@@ -150,8 +150,35 @@ describe('DeleteAccount: signing in again when the sign-in is not recent', () =>
     await user.click(await screen.findByRole('button', { name: 'Continuar com Google' }));
 
     await waitFor(() => expect(log).toContain('reauthenticateWithRedirect:u1'));
-    expect(window.sessionStorage.getItem(REDIRECT_FLAG)).toBe('1');
+    expect(window.sessionStorage.getItem(REDIRECT_FLAG)).toBe('reauth:u1');
     expect(log.filter((e) => e === 'DELETE account')).toHaveLength(1);
+  });
+
+  it('without a Firebase user here and no popup, the fresh redirect sign-in is marked with the uid to delete', async () => {
+    deleteAnswers(REAUTH_ERROR);
+    sdk.signInWithPopup.mockRejectedValueOnce(authError('auth/popup-blocked'));
+    await renderSignedIn({ provider: 'google' }, { firebaseUser: false });
+    const user = await openAndType();
+    await user.click(confirmButton());
+    await user.click(await screen.findByRole('button', { name: 'Continuar com Google' }));
+
+    await waitFor(() => expect(log).toContain('signInWithRedirect'));
+    expect(window.sessionStorage.getItem(REDIRECT_FLAG)).toBe('reauth:u1');
+  });
+
+  it('after signing in again, a failed retry goes back to the confirmation, which retries without another sign-in', async () => {
+    deleteAnswers(REAUTH_ERROR, { status: 502, body: { error: 'server_error' } }, { status: 204 });
+    await renderSignedIn({ provider: 'google' });
+    const user = await openAndType();
+    await user.click(confirmButton());
+    await user.click(await screen.findByRole('button', { name: 'Continuar com Google' }));
+    expect(await screen.findByRole('alert')).toHaveTextContent('Não foi possível excluir sua conta agora. Tente de novo.');
+    expect(screen.queryByRole('button', { name: 'Continuar com Google' })).toBeNull();
+
+    await user.click(confirmButton());
+    expect(await screen.findByText(DELETED)).toBeInTheDocument();
+    expect(log.filter((e) => e === 'DELETE account')).toHaveLength(3);
+    expect(sdk.reauthenticateWithPopup).toHaveBeenCalledTimes(1);
   });
 
   it('a session that was signed out elsewhere (401) also asks to sign in again', async () => {

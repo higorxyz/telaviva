@@ -94,8 +94,10 @@ describe('AccountView', () => {
       expect(this.href).toBe('blob:telaviva/1');
     });
     server.use(
-      http.get(url('/api/account/export'), () =>
-        HttpResponse.json(
+      http.get(url('/api/account/export'), ({ request }) =>
+        request.headers.get('x-expected-user') !== 'u1'
+          ? HttpResponse.json({ error: 'wrong_account' }, { status: 409 })
+          : HttpResponse.json(
           { exportedAt: 'x' },
           { headers: { 'Content-Disposition': 'attachment; filename="telaviva-meus-dados-2026-11-20.json"' } },
         ),
@@ -108,6 +110,15 @@ describe('AccountView', () => {
     expect(createObjectURL).toHaveBeenCalledWith(expect.any(Blob));
     await waitFor(() => expect(revokeObjectURL).toHaveBeenCalledWith('blob:telaviva/1'));
     click.mockRestore();
+  });
+
+  it('409 (another tab switched accounts): says so and reloads who is signed in', async () => {
+    server.use(http.get(url('/api/account/export'), () => HttpResponse.json({ error: 'wrong_account' }, { status: 409 })));
+    as('signed-in', ana());
+    show();
+    await userEvent.click(screen.getByRole('button', { name: 'Exportar meus dados' }));
+    expect(await screen.findByText('A conta aberta mudou em outra aba. Confira e tente de novo.')).toBeInTheDocument();
+    expect(auth.current.refresh).toHaveBeenCalled();
   });
 
   it('says so in a toast when the export fails', async () => {

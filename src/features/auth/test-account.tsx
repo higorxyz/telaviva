@@ -38,12 +38,17 @@ export function pressEscape(dialog: HTMLDialogElement): boolean {
 
 type Answer = { status: number; body?: unknown } | (() => Promise<Response>);
 
+/** The `X-Expected-User` of each `DELETE /api/account`, in order. */
+export const expectedUsers: (string | null)[] = [];
+
 /** `DELETE /api/account` answers these in order (the last one repeats), logging each call. */
 export function deleteAnswers(...answers: Answer[]) {
   let calls = 0;
+  expectedUsers.length = 0;
   server.use(
-    http.delete(url('/api/account'), async () => {
+    http.delete(url('/api/account'), async ({ request }) => {
       log.push('DELETE account');
+      expectedUsers.push(request.headers.get('x-expected-user'));
       const answer = answers[Math.min(calls++, answers.length - 1)];
       if (typeof answer === 'function') return answer();
       return answer.body === undefined
@@ -76,3 +81,5 @@ export async function openAndType(word = 'EXCLUIR') {
 export const confirmButton = () => screen.getByRole('button', { name: 'Excluir para sempre' });
 export const REAUTH = 'Por segurança, entre de novo para excluir a conta.';
 export const DELETED = 'Conta excluída.';
+export const WRONG_ACCOUNT = 'Entre com a mesma conta que você quer excluir.';
+export const STALE = 'A conta aberta mudou em outra aba. Confira e tente de novo.';

@@ -51,6 +51,15 @@ const post = (body: string, headers: Record<string, string> = {}) =>
   );
 const send = (command: unknown, headers?: Record<string, string>) => post(JSON.stringify({ command }), headers);
 
+describe('POST /api/library/commands: an account deleted on another device', () => {
+  it('401 unauthenticated instead of failing the write on the foreign key', async () => {
+    adminAuthMock.verifySessionCookie.mockResolvedValue(decodedToken({ uid: 'deleted-user', sub: 'deleted-user' }));
+    const res = await post(JSON.stringify({ command: setStatus('want') }));
+    expect(res.status).toBe(401);
+    expect(await res.json()).toEqual({ error: 'unauthenticated' });
+  });
+});
+
 describe('POST /api/library/commands', () => {
   it('applies the command for the signed-in user and answers the new state, never cached', async () => {
     const res = await send(setStatus('want'));

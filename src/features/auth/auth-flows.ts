@@ -4,10 +4,14 @@ import type { AuthStatus } from './auth-context';
 import { authErrorMessage, endsSession } from './errors';
 import { isFirebaseLoaded, loadFirebase, type FirebaseClient } from './firebase-client';
 import { clearAuthHint, createSession, deleteSession, fetchMe, hasAuthHint, type SessionUser } from './session-client';
-import { reauthenticateSession } from './reauth';
-import { clearRedirectFlag, emailSignIn, emailSignUp, googleSignIn, redirectPending, takeRedirectResult } from './sign-in';
+import { reauthFirebase } from './reauth';
+import { readRedirectReturn } from './redirect-return';
+import { emailSignIn, emailSignUp, googleSignIn, redirectPending } from './sign-in';
 
 export const SESSION_EXPIRED = 'Sua sessão expirou. Entre de novo para sincronizar.';
+
+/** `renewed`: a recent session now; `leaving`: off to the Google redirect; `aborted`: the identity here changed. */
+export type ReauthOutcome = 'renewed' | 'leaving' | 'aborted';
 
 export type AuthSnapshot = { status: AuthStatus; user: SessionUser | null };
 
@@ -130,19 +134,20 @@ export function createAuthFlows(deps: Deps) {
     return renewing;
   }
 
+  /** A Google redirect's return trip (see `readRedirectReturn`); true when it signed someone in. */
   async function completeRedirect(): Promise<boolean> {
-    try {
-      const client = await loadFirebase();
-      const user = await takeRedirectResult(client);
-      if (!user) return false;
-      await establish(client, user);
-      return true;
-    } catch (error) {
-      clearRedirectFlag(); // Even when the SDK never loaded: a return trip is handled once, never in a loop.
-      const message = authErrorMessage(error);
-      if (message) notify({ message, tone: 'error' });
-      return false;
+    const back = await readRedirectReturn();
+    let message = back.kind === 'refused' ? back.message : null;
+    if (back.kind === 'user') {
+      try {
+        await establish(back.client, back.user);
+        return true;
+      } catch (error) {
+        message = authErrorMessage(error);
+      }
     }
+    if (message) notify({ message, tone: 'error' });
+    return false;
   }
 
   /** Back to the visitor; `endSession` also ends the session on the server (a deleted account has none left). */
@@ -197,13 +202,21 @@ export function createAuthFlows(deps: Deps) {
     /** The account was deleted (the server already cleared the cookies): forget it here, and say so once a visitor. */
     accountDeleted: (notice: string) => leave(false, notice),
 
-    /** A new session with a recent `auth_time`, to delete the account (see `reauthenticateSession`). */
-    async reauthenticate(password?: string): Promise<boolean> {
+    /**
+     * Signs the current user in again (see `reauthFirebase`) and mints a session from a refreshed ID token, so its
+     * `auth_time` is recent enough to delete the account. `aborted` when the identity here changed meanwhile: then
+     * nothing is minted.
+     */
+    async reauthenticate(password?: string): Promise<ReauthOutcome> {
       const target = uid;
       if (target === null) throw new Error('No one is signed in');
-      const result = await reauthenticateSession(await loadFirebase(), { id: target, email }, password);
-      if (result && uid === target) adopt(result.user, result.sessionUser);
-      return result !== null;
+      const user = await reauthFirebase(await loadFirebase(), { id: target, email }, password);
+      if (!user) return 'leaving';
+      if (uid !== target) return 'aborted';
+      const sessionUser = await createSession(await user.getIdToken(true));
+      if (uid !== target || sessionUser.id !== target) return 'aborted';
+      adopt(user, sessionUser);
+      return 'renewed';
     },
 
     async refresh() {

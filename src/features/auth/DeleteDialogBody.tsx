@@ -13,8 +13,10 @@ import {
   DELETE_TEXT,
   PASSWORD_MISSING,
   REAUTH_TEXT,
+  STALE_ACCOUNT,
   WRONG_ACCOUNT,
 } from './account-copy';
+import type { ReauthOutcome } from './auth-flows';
 import { authErrorCode, authErrorMessage, OFFLINE } from './errors';
 import { Field, FormError, PasswordField } from './form-ui';
 import { GoogleMark } from './GoogleMark';
@@ -24,6 +26,12 @@ import { useAuth } from './useAuth';
 
 type Props = {
   titleId: string;
+  /** The irreversibility text, which describes the dialog. */
+  textId: string;
+  /** The uid the dialog was opened for, sent with the deletion. */
+  expectedUid: string;
+  /** The session turned out to be another account's (409): the parent tells the person and reloads who is in. */
+  onStale(): void;
   provider: SessionUser['provider'];
   busy: boolean;
   setBusy(busy: boolean): void;
@@ -42,7 +50,8 @@ function reauthError(error: unknown): string | null {
  * asks for a recent sign-in, the person signs in again with the provider of their session (Google, or their
  * password), which mints a new session, and the deletion is tried once more.
  */
-export function DeleteDialogBody({ titleId, provider, busy, setBusy, onCancel, onDeleted }: Props) {
+export function DeleteDialogBody(props: Props) {
+  const { titleId, textId, expectedUid, onStale, provider, busy, setBusy, onCancel, onDeleted } = props;
   const { reauthenticate } = useAuth();
   const [word, setWord] = useState('');
   const [phase, setPhase] = useState<'confirm' | 'reauth'>('confirm');
@@ -50,6 +59,7 @@ export function DeleteDialogBody({ titleId, provider, busy, setBusy, onCancel, o
   const [error, setError] = useState<{ message: string; key: number } | null>(null);
   const reauthControl = useRef<HTMLButtonElement & HTMLInputElement>(null);
   const ids = { form: useId(), field: useId(), reauth: useId(), password: useId() };
+  // Surrounding spaces are forgiven (phone keyboards often add one after a word), but the case must match.
   const ready = word.trim() === CONFIRM_WORD;
 
   useEffect(() => {
@@ -62,11 +72,15 @@ export function DeleteDialogBody({ titleId, provider, busy, setBusy, onCancel, o
   }
 
   async function attempt(afterReauth: boolean) {
-    const result = await requestAccountDeletion();
+    const result = await requestAccountDeletion(expectedUid);
     if (result === 'deleted') return onDeleted(); // Stays busy while the page leaves.
     if (result === 'reauth' && !afterReauth) {
       setPhase('reauth');
       return fail(null);
+    }
+    if (result === 'wrong_account') {
+      fail(STALE_ACCOUNT);
+      return onStale();
     }
     fail(result === 'offline' ? OFFLINE : DELETE_ERROR);
   }
@@ -86,13 +100,17 @@ export function DeleteDialogBody({ titleId, provider, busy, setBusy, onCancel, o
     if (usePassword && !password) return fail(PASSWORD_MISSING);
     setBusy(true);
     setError(null);
-    let renewed: boolean;
+    let outcome: ReauthOutcome;
     try {
-      renewed = await reauthenticate(usePassword ? password : undefined);
+      outcome = await reauthenticate(usePassword ? password : undefined);
     } catch (cause) {
       return fail(reauthError(cause));
     }
-    if (renewed) await attempt(true); // Otherwise the page is leaving for the Google redirect.
+    if (outcome === 'leaving') return; // Off to the Google redirect: stays busy.
+    if (outcome === 'aborted') return fail(STALE_ACCOUNT);
+    // Back to the confirmation, so a failed retry (502, offline) can be tried again without signing in again.
+    setPhase('confirm');
+    await attempt(true);
   }
 
   return (
@@ -100,7 +118,9 @@ export function DeleteDialogBody({ titleId, provider, busy, setBusy, onCancel, o
       <h2 id={titleId} className="font-display text-3xl leading-tight text-ivory">
         Excluir minha conta
       </h2>
-      <p className="mt-3 font-sans text-base text-ivory">{DELETE_TEXT}</p>
+      <p id={textId} className="mt-3 font-sans text-base text-ivory">
+        {DELETE_TEXT}
+      </p>
 
       <form id={ids.form} onSubmit={confirm} className="mt-5">
         <Field

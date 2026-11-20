@@ -3,7 +3,8 @@ import { normalizeLibraryState, parseLibraryEntries } from '@/features/library/s
 import type { LibraryState } from '@/features/library/types';
 import { limitByIp, readJsonBody } from '@/lib/api-guard';
 import { describeError } from '@/lib/setup-error';
-import { jsonError, libraryRateLimiter, requireUser } from '@/server/auth/guard';
+import { requireAccount } from '@/server/auth/account-guard';
+import { jsonError, libraryRateLimiter } from '@/server/auth/guard';
 import { getDb } from '@/server/db/client';
 import { LibraryInvalidError, LibraryLimitError } from '@/server/library/errors';
 import { mergeGuestLibrary } from '@/server/library/merge';
@@ -32,7 +33,7 @@ function guestOf(body: unknown): LibraryState | null {
 
 /** Merges the visitor's library (`{ library }`) into the signed-in user's and answers the library as stored. */
 export async function POST(request: Request) {
-  const user = await requireUser(request);
+  const user = await requireAccount(request);
   if (user instanceof Response) return user;
   const limited = limitByIp(request, libraryRateLimiter);
   if (limited) return limited;
