@@ -26,7 +26,7 @@ function GuestLink() {
       className={cn(
         GUEST_BOX,
         HIT_AREA,
-        'inline-flex items-center justify-center border border-ivory/30 bg-ink-950/40 text-sm font-medium text-ivory transition-colors hover:border-amber hover:text-amber motion-reduce:transition-none',
+        'border-ivory/30 bg-ink-950/40 text-ivory hover:border-amber hover:text-amber inline-flex items-center justify-center border text-sm font-medium transition-colors motion-reduce:transition-none',
       )}
     >
       Entrar
@@ -45,17 +45,24 @@ function SignedInLink() {
   const { user } = useAuth();
   const initial = initialOf(user?.name ?? null, user?.email ?? null);
   return (
-    <Link
-      href="/conta"
-      aria-label="Sua conta"
-      aria-current={pathname === '/conta' ? 'page' : undefined}
-      className={cn(
-        HIT_AREA,
-        'inline-flex size-9 shrink-0 items-center justify-center rounded-full border border-ink-600 bg-ink-800 text-sm font-semibold text-amber transition-colors hover:border-amber aria-[current=page]:border-amber motion-reduce:transition-none',
-      )}
-    >
-      {initial ? <span aria-hidden="true">{initial}</span> : <User aria-hidden="true" className="size-4" />}
-    </Link>
+    // The reserved width of the other states, with the avatar at the right edge: nothing to its left moves.
+    <span className={cn(GUEST_BOX, 'flex justify-end')}>
+      <Link
+        href="/conta"
+        aria-label="Sua conta"
+        aria-current={pathname === '/conta' ? 'page' : undefined}
+        className={cn(
+          HIT_AREA,
+          'border-ink-600 bg-ink-800 text-amber hover:border-amber aria-[current=page]:border-amber inline-flex size-9 shrink-0 items-center justify-center rounded-full border text-sm font-semibold transition-colors motion-reduce:transition-none',
+        )}
+      >
+        {initial ? (
+          <span aria-hidden="true">{initial}</span>
+        ) : (
+          <User aria-hidden="true" className="size-4" />
+        )}
+      </Link>
+    </span>
   );
 }
 

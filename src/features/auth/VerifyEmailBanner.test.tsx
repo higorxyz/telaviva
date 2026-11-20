@@ -75,6 +75,36 @@ describe('VerifyEmailBanner', () => {
     expect(sendVerification).toHaveBeenCalledTimes(2);
   });
 
+  it('re-enables the button at once after an ordinary failure', async () => {
+    sendVerification.mockRejectedValue({ code: 'auth/network-request-failed' });
+    render(<VerifyEmailBanner />);
+    const button = screen.getByRole('button', { name: 'Reenviar e-mail' });
+    fireEvent.click(button);
+    await flush();
+    expect(screen.getByRole('status')).toHaveTextContent('Sem conexão. Verifique sua internet.');
+    expect(button).toHaveAttribute('aria-disabled', 'false');
+  });
+
+  it('keeps the 60 s cooldown after too-many-requests', async () => {
+    sendVerification.mockRejectedValue({ code: 'auth/too-many-requests' });
+    render(<VerifyEmailBanner />);
+    const button = screen.getByRole('button', { name: 'Reenviar e-mail' });
+    fireEvent.click(button);
+    await flush();
+    expect(button).toHaveAttribute('aria-disabled', 'true');
+  });
+
+  it('arms no timer when unmounted before the resend settles', async () => {
+    let finish: () => void = () => {};
+    sendVerification.mockReturnValue(new Promise<void>((resolve) => (finish = resolve)));
+    const { unmount } = render(<VerifyEmailBanner />);
+    fireEvent.click(screen.getByRole('button', { name: 'Reenviar e-mail' }));
+    unmount();
+    finish();
+    await flush();
+    expect(vi.getTimerCount()).toBe(0);
+  });
+
   it('shows the auth error copy when the resend fails', async () => {
     sendVerification.mockRejectedValue({ code: 'auth/too-many-requests' });
     render(<VerifyEmailBanner />);

@@ -31,6 +31,18 @@ describe('AccountButton', () => {
     expect(container.firstElementChild).toHaveClass('h-9', 'w-20');
   });
 
+  it('keeps the same 80 px box for the signed-in avatar, pinned to the right edge', () => {
+    as('loading');
+    const { container, unmount } = render(<AccountButton />);
+    const reserved = container.firstElementChild;
+    expect(reserved).toHaveClass('w-20');
+    unmount();
+    as('signed-in', sessionUser('a', { name: 'Ana' }));
+    render(<AccountButton />);
+    const box = screen.getByRole('link', { name: 'Sua conta' }).parentElement;
+    expect(box).toHaveClass('flex', 'h-9', 'w-20', 'shrink-0', 'justify-end');
+  });
+
   it('renders nothing when sign-in is off', () => {
     as('disabled');
     const { container } = render(<AccountButton />);

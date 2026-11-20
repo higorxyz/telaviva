@@ -2,7 +2,7 @@
 
 import { X } from 'lucide-react';
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { authErrorMessage } from './errors';
+import { authErrorCode, authErrorMessage } from './errors';
 import { useAuth } from './useAuth';
 
 export const VERIFY_TEXT = 'Confirme seu e-mail para proteger sua conta.';
@@ -51,19 +51,31 @@ function Banner({ onDismiss }: { onDismiss: () => void }) {
   const [cooling, setCooling] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
   const timer = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
-  useEffect(() => () => clearTimeout(timer.current), []);
+  const mounted = useRef(true);
+  useEffect(() => {
+    mounted.current = true;
+    return () => {
+      mounted.current = false;
+      clearTimeout(timer.current);
+    };
+  }, []);
 
   const resend = async () => {
     if (cooling) return;
     setCooling(true);
     setMessage(null);
+    let cool = true;
     try {
       await sendVerification();
-      setMessage('E-mail enviado.');
+      if (mounted.current) setMessage('E-mail enviado.');
     } catch (error) {
-      setMessage(authErrorMessage(error));
+      // Only "too many requests" earns the wait; anything else (offline, say) can be retried straight away.
+      cool = authErrorCode(error) === 'auth/too-many-requests';
+      if (mounted.current) setMessage(authErrorMessage(error));
     }
-    timer.current = setTimeout(() => setCooling(false), RESEND_COOLDOWN_MS);
+    if (!mounted.current) return;
+    if (cool) timer.current = setTimeout(() => setCooling(false), RESEND_COOLDOWN_MS);
+    else setCooling(false);
   };
 
   return (

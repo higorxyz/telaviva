@@ -14,7 +14,15 @@ describe('SignInHint', () => {
     expect(screen.getByRole('link', { name: 'Entrar' })).toHaveAttribute('href', '/entrar?voltar=/minha-lista');
   });
 
-  it.each(['loading', 'signed-in', 'disabled'] as const)('stays out of the way while %s', (status) => {
+  it('reserves the line while loading, hidden from assistive tech, so a guest sees no shift', () => {
+    state.status = 'loading';
+    const { container } = render(<SignInHint />);
+    expect(container.firstElementChild).toHaveAttribute('aria-hidden', 'true');
+    expect(container.firstElementChild).toHaveClass('min-h-11');
+    expect(container).toHaveTextContent('');
+  });
+
+  it.each(['signed-in', 'disabled'] as const)('takes no space while %s', (status) => {
     state.status = status;
     const { container } = render(<SignInHint />);
     expect(container).toBeEmptyDOMElement();
