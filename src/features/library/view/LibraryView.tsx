@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import { SignInHint } from '@/features/auth/SignInHint';
 import { GridSkeleton } from '@/features/catalog/GridSkeleton';
 import { Skeleton } from '@/ui/Skeleton';
 import { useLibrary } from '../hooks';
@@ -61,6 +62,7 @@ function LibraryViewBody() {
         onType={(tipo) => update({ tipo })}
         onOrder={(ordem) => update({ ordem })}
       />
+      <SignInHint />
       <div role="tabpanel" id={panelId(query.aba)} aria-labelledby={tabId(query.aba)}>
         {items.length > 0 ? (
           <LibraryGrid items={items} state={state} tab={query.aba} progress={progress} />

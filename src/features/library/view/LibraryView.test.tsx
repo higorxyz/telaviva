@@ -2,7 +2,7 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { act, render, screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { http, HttpResponse } from 'msw';
-import { afterEach, beforeAll, describe, expect, it, vi } from 'vitest';
+import { afterEach, beforeAll, beforeEach, describe, expect, it, vi } from 'vitest';
 import { server } from '@/test/server';
 import { ToastProvider } from '@/ui/toast/ToastProvider';
 import { applyCommand, type LibraryCommand } from '../commands';
@@ -15,6 +15,8 @@ import { entry, mark, rating, stateOf } from './test-state';
 
 const harness = { params: new URLSearchParams() };
 vi.mock('next/navigation', () => ({ useSearchParams: () => harness.params }));
+const authState = vi.hoisted(() => ({ status: 'guest' as string }));
+vi.mock('@/features/auth/useAuth', () => ({ useAuth: () => ({ status: authState.status }) }));
 
 const NOW = '2026-11-19T12:00:00.000Z';
 const info = (tvId: number, last: [number, number]): TvProgressInfo => ({
@@ -78,6 +80,9 @@ describe('LibraryView', () => {
       this.removeAttribute('open');
     };
   });
+  beforeEach(() => {
+    authState.status = 'guest';
+  });
   afterEach(() => {
     vi.restoreAllMocks();
     window.history.replaceState(null, '', '/');
@@ -87,6 +92,25 @@ describe('LibraryView', () => {
     setup(stateOf({}), '', { hold: true });
     expect(screen.queryByText('Sua lista está vazia')).toBeNull();
     expect(screen.queryByRole('tablist')).toBeNull();
+  });
+
+  it('invites a guest to sign in once the library is ready, and stays quiet for everyone else', async () => {
+    setup(sample);
+    const link = await screen.findByRole('link', { name: 'Entrar' });
+    expect(link).toHaveAttribute('href', '/entrar?voltar=/minha-lista');
+    expect(screen.getByText(/Entre para ver sua lista em todos os aparelhos/)).toBeInTheDocument();
+  });
+
+  it('shows no hint while the library loads', () => {
+    setup(stateOf({}), '', { hold: true });
+    expect(screen.queryByRole('link', { name: 'Entrar' })).toBeNull();
+  });
+
+  it.each(['signed-in', 'disabled'])('has no sign-in hint while %s', async (status) => {
+    authState.status = status;
+    setup(sample);
+    await screen.findByRole('tablist');
+    expect(screen.queryByRole('link', { name: 'Entrar' })).toBeNull();
   });
 
   it('lists the tabs with counts and opens on Assistindo when a series is in progress', async () => {

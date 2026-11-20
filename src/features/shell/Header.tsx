@@ -3,6 +3,7 @@
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useEffect, useState } from 'react';
+import { AccountButton } from '@/features/auth/AccountButton';
 import { cn } from '@/lib/cn';
 import { SearchPaletteLauncher } from '@/features/search/SearchPaletteLauncher';
 import { SearchTrigger } from '@/features/search/SearchTrigger';
@@ -67,7 +68,10 @@ export function Header() {
             })}
           </ul>
         </nav>
-        <SearchTrigger className="hidden md:flex" />
+        <div className="ml-auto flex shrink-0 items-center gap-3">
+          <SearchTrigger className="hidden md:flex" />
+          <AccountButton />
+        </div>
         <SearchPaletteLauncher />
       </div>
     </header>
