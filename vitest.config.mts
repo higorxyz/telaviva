@@ -13,6 +13,9 @@ export default defineConfig({
   test: {
     environment: 'jsdom',
     testTimeout: 15_000,
+    // A file's setup hook can wait on a busy CPU when the whole suite runs in parallel.
+    hookTimeout: 30_000,
+    globalSetup: ['src/test/db-template.ts'],
     setupFiles: ['src/test/setup.ts'],
     include: ['src/**/*.test.{ts,tsx}'],
     env: {
