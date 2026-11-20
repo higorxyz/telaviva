@@ -4,13 +4,11 @@ import { Bookmark, BookmarkCheck, Check } from 'lucide-react';
 import type { MediaSummary } from '@/features/tmdb/types';
 import { cn } from '@/lib/cn';
 import { buttonClasses } from '@/ui/Button';
+import { UNDOABLE } from './copy';
 import { useLibraryActions, useLibraryEntry } from './hooks';
 import { RatingControl } from './RatingControl';
 import { toSnapshot } from './snapshot';
 import type { TitleRef } from './types';
-
-const SAVED = { message: 'Salvo em Quero ver' };
-const REMOVED = { message: 'Removido da sua lista' };
 
 function pillClass(pressed: boolean): string {
   return cn(buttonClasses({ variant: pressed ? 'primary' : 'ghost' }), 'w-full sm:w-auto');
@@ -38,8 +36,8 @@ export function MovieActions({
         className={pillClass(wanted)}
         onClick={() =>
           wanted
-            ? run({ type: 'remove', ref }, { undoable: REMOVED })
-            : run({ type: 'setStatus', ref, status: 'want', snapshot }, { undoable: SAVED })
+            ? run({ type: 'remove', ref }, { undoable: UNDOABLE.removed })
+            : run({ type: 'setStatus', ref, status: 'want', snapshot }, { undoable: UNDOABLE.saved })
         }
       >
         {wanted ? <BookmarkCheck aria-hidden="true" className="size-4" /> : <Bookmark aria-hidden="true" className="size-4" />}
@@ -52,7 +50,7 @@ export function MovieActions({
         className={pillClass(seen)}
         onClick={() =>
           seen
-            ? run({ type: 'remove', ref }, { undoable: REMOVED })
+            ? run({ type: 'remove', ref }, { undoable: UNDOABLE.removed })
             : run({ type: 'setStatus', ref, status: 'watched', snapshot })
         }
       >

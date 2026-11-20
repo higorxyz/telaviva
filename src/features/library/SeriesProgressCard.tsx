@@ -5,7 +5,8 @@ import { useId, type ReactNode } from 'react';
 import { formatDate } from '@/lib/format';
 import { buttonClasses } from '@/ui/Button';
 import { useLibraryActions, useLibraryEntry } from './hooks';
-import { episodeCode, seriesProgress, type TvProgressInfo } from './progress';
+import { seriesProgress, type TvProgressInfo } from './progress';
+import { nextEpisodeLabel } from './summary';
 import type { TitleSnapshot } from './types';
 import { useSeason } from './useSeason';
 
@@ -85,10 +86,7 @@ export function SeriesProgressCard({
   const name = season.data?.episodes.find((e) => e.episodeNumber === progress.next.episodeNumber)?.name;
   return (
     <Shell>
-      <p className="mt-1 text-ivory">
-        Próximo: {episodeCode(progress.next)}
-        {name ? ` · ${name}` : ''}
-      </p>
+      <p className="mt-1 text-ivory">{nextEpisodeLabel(progress.next, name)}</p>
       <Bar watched={progress.watched} total={progress.total} />
       <button
         type="button"

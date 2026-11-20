@@ -3,6 +3,7 @@
 import { useQueryClient } from '@tanstack/react-query';
 import { createContext, useContext, useEffect, useRef, useState, type ReactNode } from 'react';
 import { useToast } from '@/ui/toast/useToast';
+import { NOTICE } from './copy';
 import type { LibraryRepository } from './repository';
 import { createLocalRepository } from './local-repository';
 
@@ -37,7 +38,7 @@ export function LibraryProvider({ children, repository }: { children: ReactNode;
   useEffect(() => {
     if (current.persistent || warned.current) return;
     warned.current = true;
-    toast.show({ message: 'Seu navegador está bloqueando o armazenamento. A lista vale só até fechar a aba.' });
+    toast.show({ message: NOTICE.storageBlocked });
   }, [current, toast]);
 
   return <RepositoryContext.Provider value={current}>{children}</RepositoryContext.Provider>;

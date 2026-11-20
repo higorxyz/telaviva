@@ -1,4 +1,5 @@
 import { formatRating } from '@/lib/format';
+import { STATUS_LABEL } from '../copy';
 import type { LibraryStats as Stats } from './library-query';
 
 /**
@@ -11,7 +12,7 @@ export function LibraryStats({ stats }: { stats: Stats }) {
     ['Séries assistidas', String(stats.seriesWatched)],
     ['Assistindo agora', String(stats.seriesWatching)],
     ['Episódios vistos', String(stats.episodesWatched)],
-    ['Quero ver', String(stats.wantCount)],
+    [STATUS_LABEL.want, String(stats.wantCount)],
     ['Média das suas notas', stats.averageScore === null ? '–' : formatRating(stats.averageScore)],
   ];
   return (

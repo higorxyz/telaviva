@@ -3,12 +3,10 @@
 import { BookmarkCheck, Check, Play, Plus } from 'lucide-react';
 import type { MediaSummary } from '@/features/tmdb/types';
 import { useLibraryActions, useLibraryStatus } from './hooks';
+import { UNDOABLE } from './copy';
 import { useHasLibrary } from './LibraryProvider';
 import { toSnapshot } from './snapshot';
 import type { TitleRef } from './types';
-
-const SAVED = { message: 'Salvo em Quero ver' };
-const REMOVED = { message: 'Removido da sua lista' };
 
 const CIRCLE = 'grid size-8 place-items-center rounded-full bg-ink-950/60 backdrop-blur-sm';
 
@@ -44,8 +42,8 @@ function Action({ item, tabIndex }: { item: MediaSummary; tabIndex?: number }) {
       tabIndex={tabIndex}
       onClick={(event) => {
         event.stopPropagation();
-        if (wanted) run({ type: 'remove', ref }, { undoable: REMOVED });
-        else run({ type: 'setStatus', ref, status: 'want', snapshot: toSnapshot(item) }, { undoable: SAVED });
+        if (wanted) run({ type: 'remove', ref }, { undoable: UNDOABLE.removed });
+        else run({ type: 'setStatus', ref, status: 'want', snapshot: toSnapshot(item) }, { undoable: UNDOABLE.saved });
       }}
       className="-m-1.5 grid size-11 cursor-pointer place-items-center rounded-full focus-visible:outline-2 focus-visible:outline-amber"
     >

@@ -5,20 +5,19 @@ import { useState } from 'react';
 import type { TvDetails } from '@/features/tmdb/types';
 import { cn } from '@/lib/cn';
 import { PopoverSheet, type PopoverContext } from '@/ui/PopoverSheet';
+import { STATUS_LABEL, UNDOABLE } from './copy';
 import { useLibraryActions, useLibraryEntry } from './hooks';
 import type { TvProgressInfo } from './progress';
 import { RatingControl } from './RatingControl';
 import { toSnapshot } from './snapshot';
 import type { LibraryStatus, TitleRef } from './types';
 
-const SAVED = { message: 'Salvo em Quero ver' };
-const REMOVED = { message: 'Removido da sua lista' };
 const FOCUS = 'focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-amber';
 
 const STATUSES: { status: LibraryStatus; label: string; Icon: typeof Bookmark }[] = [
-  { status: 'want', label: 'Quero ver', Icon: Bookmark },
-  { status: 'watching', label: 'Assistindo', Icon: Play },
-  { status: 'watched', label: 'Assistido', Icon: Check },
+  { status: 'want', label: STATUS_LABEL.want, Icon: Bookmark },
+  { status: 'watching', label: STATUS_LABEL.watching, Icon: Play },
+  { status: 'watched', label: STATUS_LABEL.watched, Icon: Check },
 ];
 
 const optionClass = (pressed: boolean) =>
@@ -113,13 +112,13 @@ export function SeriesActions({
               if (status !== current) {
                 run(
                   { type: 'setStatus', ref, status, snapshot, progress: info },
-                  current === null && status === 'want' ? { undoable: SAVED } : undefined,
+                  current === null && status === 'want' ? { undoable: UNDOABLE.saved } : undefined,
                 );
               }
               ctx.close();
             }}
             onRemove={() => {
-              run({ type: 'remove', ref }, { undoable: REMOVED });
+              run({ type: 'remove', ref }, { undoable: UNDOABLE.removed });
               ctx.close();
             }}
           />

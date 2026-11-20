@@ -4,6 +4,7 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useCallback, useSyncExternalStore } from 'react';
 import { useToast } from '@/ui/toast/useToast';
 import { applyCommand, findItem, findRating, type LibraryCommand } from './commands';
+import { NOTICE, UNDO_LABEL } from './copy';
 import { LIBRARY_KEY, useLibraryRepository } from './LibraryProvider';
 import type { EpisodeMark, LibraryItem, LibraryState, LibraryStatus, Rating, TitleRef } from './types';
 
@@ -115,7 +116,7 @@ export function useLibraryActions(): { run(command: LibraryCommand, opts?: RunOp
     },
     onError: (_error, _variables, context) => {
       if (context?.previous) queryClient.setQueryData(LIBRARY_KEY, context.previous);
-      toast.show({ message: 'Não foi possível salvar no navegador. Tente de novo.', tone: 'error' });
+      toast.show({ message: NOTICE.saveFailed, tone: 'error' });
     },
     onSuccess: (_state, { command, undoable }, context) => {
       // No cache write here: the optimistic value already holds, and an older response could revert it.
@@ -123,7 +124,7 @@ export function useLibraryActions(): { run(command: LibraryCommand, opts?: RunOp
         const inverse = inverseOf(context.previous, refOf(command));
         toast.show({
           message: undoable.message,
-          action: { label: 'Desfazer', onClick: () => mutation.mutate({ command: inverse }) },
+          action: { label: UNDO_LABEL, onClick: () => mutation.mutate({ command: inverse }) },
         });
       }
     },

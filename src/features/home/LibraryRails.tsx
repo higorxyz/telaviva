@@ -4,10 +4,10 @@ import { useMemo } from 'react';
 import { Rail } from '@/features/catalog/Rail';
 import { findRating } from '@/features/library/commands';
 import { useLibrary } from '@/features/library/hooks';
-import { episodeCode, seriesProgress, type TvProgressInfo } from '@/features/library/progress';
+import { seriesProgress, type TvProgressInfo } from '@/features/library/progress';
+import { nextEpisodeLabel, toSummary } from '@/features/library/summary';
 import type { LibraryItem, LibraryState } from '@/features/library/types';
 import { useRecommendations } from '@/features/library/useRecommendations';
-import { toSummary } from '@/features/library/view/LibraryGrid';
 import { useTvProgress } from '@/features/library/view/useTvProgress';
 import type { MediaSummary } from '@/features/tmdb/types';
 
@@ -34,7 +34,7 @@ function continueWatching(
     if (!info) continue;
     const result = seriesProgress(info, state.episodes.filter((e) => e.tvId === item.tmdbId));
     if (result.kind !== 'in-progress') continue;
-    rows.push({ item, next: `Próximo: ${episodeCode(result.next)}`, at: lastActivity(state, item) });
+    rows.push({ item, next: nextEpisodeLabel(result.next), at: lastActivity(state, item) });
   }
   return rows.sort((a, b) => b.at - a.at);
 }

@@ -1,29 +1,10 @@
 import { GRID_CLASS, GRID_SIZES } from '@/features/catalog/GridSkeleton';
 import { PosterCard } from '@/features/catalog/PosterCard';
-import type { MediaSummary } from '@/features/tmdb/types';
 import { findRating } from '../commands';
-import { episodeCode, seriesProgress, type TvProgressInfo } from '../progress';
+import { seriesProgress, type TvProgressInfo } from '../progress';
+import { nextEpisodeLabel, toSummary } from '../summary';
 import type { LibraryItem, LibraryState } from '../types';
 import type { LibraryTab } from './library-query';
-
-/** A minimal summary built from the saved snapshot, so the list never calls TMDb for its posters. */
-export function toSummary(item: LibraryItem): MediaSummary {
-  return {
-    id: item.tmdbId,
-    mediaType: item.mediaType,
-    title: item.snapshot.title,
-    originalTitle: item.snapshot.title,
-    overview: '',
-    posterPath: item.snapshot.posterPath,
-    backdropPath: null,
-    voteAverage: 0,
-    voteCount: 0,
-    popularity: 0,
-    releaseDate: item.snapshot.releaseDate,
-    genreIds: item.snapshot.genreIds,
-    originalLanguage: '',
-  };
-}
 
 /** Progress line when TMDb data is at hand; undefined falls back to the year. */
 function progressSubtitle(
@@ -38,7 +19,7 @@ function progressSubtitle(
     state.episodes.filter((e) => e.tvId === item.tmdbId),
   );
   if (tab === 'assistindo') {
-    if (progress.kind === 'in-progress') return `Próximo: ${episodeCode(progress.next)}`;
+    if (progress.kind === 'in-progress') return nextEpisodeLabel(progress.next);
     if (progress.kind === 'caught-up') return 'Em dia';
   }
   if (tab === 'assistidos' && progress.kind === 'in-progress') return 'Novos episódios';

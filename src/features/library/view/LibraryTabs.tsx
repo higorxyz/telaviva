@@ -2,13 +2,8 @@
 
 import type { KeyboardEvent } from 'react';
 import { cn } from '@/lib/cn';
+import { TAB_LABEL } from '../copy';
 import { TABS, type LibraryTab } from './library-query';
-
-const LABELS: Record<LibraryTab, string> = {
-  assistindo: 'Assistindo',
-  'quero-ver': 'Quero ver',
-  assistidos: 'Assistidos',
-};
 
 export const tabId = (t: LibraryTab) => `lib-tab-${t}`;
 export const panelId = (t: LibraryTab) => `lib-panel-${t}`;
@@ -66,7 +61,7 @@ export function LibraryTabs({
             >
               {/* The ring hugs the label, inside the scroller, so nothing clips it. */}
               <span className="-mx-1.5 rounded-sm px-1.5 py-1 group-focus-visible:outline-2 group-focus-visible:outline-amber">
-                {LABELS[tab]} · {counts[tab]}
+                {TAB_LABEL[tab]} · {counts[tab]}
               </span>
             </button>
           );
