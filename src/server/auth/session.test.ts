@@ -51,6 +51,33 @@ describe('createSession', () => {
   });
 
   it('updates email, name, photo and updated_at on a later sign-in, keeping created_at', async () => {
+    adminAuthMock.verifyIdToken.mockResolvedValue(decodedToken({ uid: 'user-4', sub: 'user-4' }));
+    await createSession('first', { db });
+    const before = await rowFor('user-4');
+    await new Promise((r) => setTimeout(r, 5));
+
+    adminAuthMock.verifyIdToken.mockResolvedValue(
+      decodedToken({
+        uid: 'user-4',
+        sub: 'user-4',
+        email: 'new@example.com',
+        name: 'Ana Maria',
+        picture: 'https://example.com/new.png',
+      }),
+    );
+    await createSession('second', { db });
+    const after = await rowFor('user-4');
+
+    expect(after).toMatchObject({
+      email: 'new@example.com',
+      name: 'Ana Maria',
+      photoUrl: 'https://example.com/new.png',
+      createdAt: before.createdAt,
+    });
+    expect(Date.parse(after.updatedAt)).toBeGreaterThan(Date.parse(before.updatedAt));
+  });
+
+  it('keeps the stored name and photo when a later token has no name or picture claim', async () => {
     adminAuthMock.verifyIdToken.mockResolvedValue(decodedToken({ uid: 'user-2', sub: 'user-2' }));
     await createSession('first', { db });
     const before = await rowFor('user-2');
@@ -68,11 +95,12 @@ describe('createSession', () => {
     const { user } = await createSession('second', { db });
     const after = await rowFor('user-2');
 
+    // The session reports what the token says; the database keeps what it knew.
     expect(user).toMatchObject({ email: 'new@example.com', name: null, photoUrl: null });
     expect(after).toMatchObject({
       email: 'new@example.com',
-      name: null,
-      photoUrl: null,
+      name: 'Ana',
+      photoUrl: 'https://example.com/ana.png',
       createdAt: before.createdAt,
     });
     expect(Date.parse(after.updatedAt)).toBeGreaterThan(Date.parse(before.updatedAt));
