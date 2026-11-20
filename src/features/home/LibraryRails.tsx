@@ -57,7 +57,9 @@ export function LibraryRails() {
   if (!ready || !state || (state.items.length === 0 && state.ratings.length === 0)) return null;
 
   const subtitles = new Map(continuing.map((c) => [c.item.tmdbId, c.next]));
-  const showRecommendations = recommendations.ready && recommendations.items.length >= MIN_RECOMMENDATIONS;
+  // The threshold applies to the server's answer: saving titles from the rail hides them without dropping the rail.
+  const showRecommendations =
+    recommendations.ready && recommendations.total >= MIN_RECOMMENDATIONS && recommendations.items.length > 0;
 
   return (
     <>

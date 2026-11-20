@@ -1,7 +1,8 @@
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { render, screen, waitFor } from '@testing-library/react';
+import { fireEvent, render, screen, waitFor } from '@testing-library/react';
 import { http, HttpResponse } from 'msw';
 import { describe, expect, it } from 'vitest';
+import { applyCommand } from '@/features/library/commands';
 import { LibraryProvider } from '@/features/library/LibraryProvider';
 import type { TvProgressInfo } from '@/features/library/progress';
 import type { LibraryRepository } from '@/features/library/repository';
@@ -57,11 +58,12 @@ function recommendations(count: number | 'fail') {
   );
 }
 
-function setup(state: LibraryState) {
+function setup(initial: LibraryState) {
+  let state = initial;
   const repository: LibraryRepository = {
     persistent: true,
     load: async () => state,
-    apply: async () => state,
+    apply: async (command) => (state = applyCommand(state, command, new Date().toISOString())),
     subscribe: () => () => {},
   };
   const client = new QueryClient({ defaultOptions: { queries: { retry: false } } });
@@ -149,6 +151,19 @@ describe('LibraryRails', () => {
     const region = await screen.findByRole('region', { name: 'Recomendados para você' });
     expect(region.querySelectorAll('li')).toHaveLength(6);
     expect(screen.queryByRole('link', { name: 'Ver tudo: Recomendados para você' })).not.toBeInTheDocument();
+  });
+
+  it('keeps Recomendados on screen when a title is saved from it, hiding only that title', async () => {
+    progress({});
+    recommendations(6);
+    setup(watching);
+    const region = await screen.findByRole('region', { name: 'Recomendados para você' });
+    await waitFor(() => expect(region.querySelectorAll('li')).toHaveLength(6));
+    fireEvent.click(screen.getByRole('button', { name: 'Adicionar Sugestao 0 a Quero ver' }));
+    await waitFor(() => expect(region.querySelectorAll('li')).toHaveLength(5));
+    await settle(200);
+    expect(screen.getByRole('region', { name: 'Recomendados para você' })).toBe(region);
+    expect(region).not.toHaveTextContent('Sugestao 0');
   });
 
   it('hides Recomendados with fewer than 6 items', async () => {

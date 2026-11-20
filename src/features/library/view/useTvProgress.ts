@@ -1,6 +1,6 @@
 'use client';
 
-import { useQuery } from '@tanstack/react-query';
+import { keepPreviousData, useQuery } from '@tanstack/react-query';
 import type { TvProgressInfo } from '../progress';
 
 const BATCH = 40;
@@ -16,7 +16,10 @@ async function fetchBatch(ids: number[]): Promise<Record<string, TvProgressInfo>
   }
 }
 
-/** TMDb data series progress is derived from, in batches of 40. Never errors: a failed batch is simply absent. */
+/**
+ * TMDb data series progress is derived from, in batches of 40. Never errors: a failed batch is simply absent. A
+ * changed id set keeps the previous answer until the new one arrives, so "Continue assistindo" never blinks out.
+ */
 export function useTvProgress(tvIds: number[]): Record<string, TvProgressInfo> {
   const ids = [...new Set(tvIds)].sort((a, b) => a - b);
   const { data } = useQuery({
@@ -28,6 +31,7 @@ export function useTvProgress(tvIds: number[]): Record<string, TvProgressInfo> {
       return Object.assign({}, ...parts) as Record<string, TvProgressInfo>;
     },
     enabled: ids.length > 0,
+    placeholderData: keepPreviousData,
     staleTime: 5 * 60 * 1000,
   });
   return data ?? NONE;
