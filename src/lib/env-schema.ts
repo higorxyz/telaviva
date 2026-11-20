@@ -25,3 +25,38 @@ export function parseEnv(source: Record<string, string | undefined>): Env {
   }
   return result.data;
 }
+
+export type ServerAuthEnv = {
+  firebase: { projectId: string; clientEmail: string; privateKey: string } | null;
+  databaseUrl: string | null;
+  databaseDriver: 'neon' | 'pglite';
+  pgliteDir: string | null;
+};
+
+/**
+ * Accounts are optional: every variable may be missing, which turns sign-in off.
+ * A partial Firebase credential counts as missing so the site never half-enables login.
+ */
+export function parseServerAuthEnv(source: Record<string, string | undefined>): ServerAuthEnv {
+  const databaseDriver = source.DATABASE_DRIVER === 'pglite' ? 'pglite' : 'neon';
+  if (databaseDriver === 'pglite' && source.VERCEL) {
+    throw new Error('DATABASE_DRIVER=pglite não pode ser usado na Vercel (o PGlite é só para testes).');
+  }
+  const projectId = source.FIREBASE_PROJECT_ID?.trim();
+  const clientEmail = source.FIREBASE_CLIENT_EMAIL?.trim();
+  const privateKey = source.FIREBASE_PRIVATE_KEY?.replace(/\n/g, '\n').trim();
+  return {
+    firebase:
+      projectId && clientEmail && privateKey
+        ? { projectId, clientEmail, privateKey: `${privateKey}\n` }
+        : null,
+    databaseUrl: source.DATABASE_URL?.trim() || null,
+    databaseDriver,
+    pgliteDir: source.PGLITE_DIR?.trim() || null,
+  };
+}
+
+/** Firebase credential plus a database (Neon URL, or PGlite in tests). */
+export function serverAuthConfigured(parsed: ServerAuthEnv): boolean {
+  return parsed.firebase !== null && (parsed.databaseUrl !== null || parsed.databaseDriver === 'pglite');
+}

@@ -44,3 +44,7 @@ next-env.d.ts
 # tooling scratch
 .playwright-mcp/
 .superpowers/
+
+# e2e / emulators
+/.e2e/
+firebase-debug.log
