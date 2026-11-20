@@ -7,12 +7,21 @@ const KEY = 'telaviva:library:v1';
 /** Copy of the visitor's library taken before its first merge into `uid`. Never removed automatically. */
 export const preMergeKey = (uid: string) => `${KEY}:pre-merge:${uid}`;
 
+/**
+ * Fingerprint of a local copy the account already confirmed but that could not be cleared (no room for the backup).
+ * It stops the same copy from being sent, and announced, on every load.
+ */
+const confirmedKey = (uid: string) => `${KEY}:merged:${uid}`;
+
 /** Well under the route's 2 MB body limit. */
 export const MERGE_CHUNK_BYTES = 1.5 * 1024 * 1024;
 const BACKOFF_MS = [500, 1500];
 
-/** `empty`: nothing to merge. `merged`: the account confirmed every guest key. `kept`: the local copy stays. */
-export type MergeOutcome = 'empty' | 'merged' | 'kept';
+/**
+ * `empty`: nothing to merge. `merged`: the account confirmed every guest key (announce it). `unchanged`: this exact
+ * copy was confirmed before and is kept only for lack of room (nothing sent). `kept`: it failed; the copy stays.
+ */
+export type MergeOutcome = 'empty' | 'merged' | 'unchanged' | 'kept';
 
 type Options = {
   storage?: Storage | null;
@@ -39,6 +48,45 @@ function readGuest(raw: string): LibraryState | null {
   }
   const parsed = parseLibraryEntries(json);
   return parsed ? normalizeLibraryState(parsed.state) : null;
+}
+
+/** FNV-1a over the raw value, plus its length: enough to tell one stored copy from another. */
+function fingerprint(raw: string): string {
+  let hash = 0x811c9dc5;
+  for (let i = 0; i < raw.length; i++) hash = Math.imul(hash ^ raw.charCodeAt(i), 0x01000193);
+  return `${raw.length}:${(hash >>> 0).toString(16)}`;
+}
+
+function sessionStore(): Storage | null {
+  try {
+    return window.sessionStorage;
+  } catch {
+    return null;
+  }
+}
+
+function readConfirmed(storage: Storage, uid: string): string | null {
+  for (const store of [storage, sessionStore()]) {
+    try {
+      const value = store?.getItem(confirmedKey(uid));
+      if (value) return value;
+    } catch {
+      // Unreadable: try the next one.
+    }
+  }
+  return null;
+}
+
+/** A full localStorage may still take this short value; the tab's sessionStorage is the fallback. */
+function writeConfirmed(storage: Storage, uid: string, value: string): void {
+  for (const store of [storage, sessionStore()]) {
+    try {
+      store?.setItem(confirmedKey(uid), value);
+      return;
+    } catch {
+      // Full or blocked: try the next one.
+    }
+  }
 }
 
 /** True when the backup exists afterwards (written now or by an earlier attempt). */
@@ -96,6 +144,7 @@ export async function mergeOnLogin(uid: string, opts: Options = {}): Promise<Mer
   if (!storage || raw === null) return 'empty';
   const guest = readGuest(raw);
   if (!guest || guest.items.length + guest.ratings.length + guest.episodes.length === 0) return 'empty';
+  if (readConfirmed(storage, uid) === fingerprint(raw)) return 'unchanged';
 
   const backedUp = backUp(storage, uid, raw);
   let answer: LibraryState | null = null;
@@ -105,12 +154,17 @@ export async function mergeOnLogin(uid: string, opts: Options = {}): Promise<Mer
   }
   if (!answer || !holdsEveryKey(answer, guest)) return 'kept';
 
+  let cleared = false;
   if (backedUp) {
     try {
-      if (storage.getItem(KEY) === raw) storage.removeItem(KEY);
+      if (storage.getItem(KEY) === raw) {
+        storage.removeItem(KEY);
+        cleared = true;
+      }
     } catch {
       // The copy stays; merging it again changes nothing.
     }
   }
+  if (!cleared) writeConfirmed(storage, uid, fingerprint(raw));
   return 'merged';
 }

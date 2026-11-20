@@ -1,3 +1,5 @@
+import { SessionRequestError } from './session-client';
+
 // Firebase Auth error codes → the sign-in copy (plan, "Valores fixados"). `null` means: show nothing.
 
 export const GENERIC_AUTH_ERROR = 'Não foi possível entrar agora. Tente de novo.';
@@ -27,4 +29,17 @@ export function authErrorCode(error: unknown): string | null {
 export function authErrorMessage(error: unknown): string | null {
   const code = authErrorCode(error);
   return code !== null && Object.hasOwn(MESSAGES, code) ? MESSAGES[code] : GENERIC_AUTH_ERROR;
+}
+
+/** Firebase answers that mean the signed-in user cannot get a token any more (not a passing network problem). */
+const SESSION_ENDING_CODES = new Set(['auth/user-token-expired', 'auth/user-disabled', 'auth/user-not-found']);
+
+/**
+ * True when a failed renewal is a definitive answer (the server refused the token, or Firebase says the user is gone).
+ * Anything else (offline, a chunk that did not load, a 5xx) may pass, and must not sign the user out.
+ */
+export function endsSession(error: unknown): boolean {
+  if (error instanceof SessionRequestError) return error.status === 401;
+  const code = authErrorCode(error);
+  return code !== null && SESSION_ENDING_CODES.has(code);
 }

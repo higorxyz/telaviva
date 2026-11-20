@@ -50,4 +50,6 @@ export interface LibraryRepository {
   readonly persistent: boolean;
   /** Toast copy for a failed `apply`; the local copy is used when absent. */
   readonly errorMessage?: string;
+  /** True while sign-in is resolving: hooks load nothing and ignore actions. */
+  readonly pending?: boolean;
 }

@@ -1,24 +1,10 @@
 import type { User } from 'firebase/auth';
 import type { ToastInput } from '@/ui/toast/useToast';
 import type { AuthStatus } from './auth-context';
-import { authErrorMessage } from './errors';
+import { authErrorMessage, endsSession } from './errors';
 import { isFirebaseLoaded, loadFirebase, type FirebaseClient } from './firebase-client';
-import {
-  clearAuthHint,
-  createSession,
-  deleteSession,
-  fetchMe,
-  hasAuthHint,
-  type SessionUser,
-} from './session-client';
-import {
-  clearRedirectFlag,
-  emailSignIn,
-  emailSignUp,
-  googleSignIn,
-  redirectPending,
-  takeRedirectResult,
-} from './sign-in';
+import { clearAuthHint, createSession, deleteSession, fetchMe, hasAuthHint, type SessionUser } from './session-client';
+import { clearRedirectFlag, emailSignIn, emailSignUp, googleSignIn, redirectPending, takeRedirectResult } from './sign-in';
 
 export const SESSION_EXPIRED = 'Sua sessão expirou. Entre de novo para sincronizar.';
 
@@ -110,6 +96,7 @@ export function createAuthFlows(deps: Deps) {
     renewing ??= (async () => {
       const before = uid;
       const started = generation;
+      let definitive = true; // No Firebase user: nothing can renew the session.
       try {
         const { auth } = await loadFirebase();
         const user = auth.currentUser;
@@ -120,10 +107,14 @@ export function createAuthFlows(deps: Deps) {
           signedIn(sessionUser);
           return sessionUser.id === before;
         }
-      } catch {
-        // No SDK, no token or a refused session: the session has expired.
+      } catch (error) {
+        definitive = endsSession(error);
       }
-      if (started === generation) await expire();
+      if (started !== generation) return false;
+      // A passing failure (offline, 5xx, the SDK not loading) keeps the Firebase user and the hint, so the next load
+      // tries again; meanwhile the visitor mode shows, without a toast.
+      if (definitive) await expire();
+      else guest();
       return false;
     })().finally(() => {
       renewing = null;

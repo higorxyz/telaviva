@@ -12,6 +12,13 @@ describe('next.config rewrites', () => {
     ]);
   });
 
+  it('adds no rewrite for a project id that is not a plain host label', async () => {
+    for (const bad of ['evil.com/x', 'Telaviva', 'a b', 'x@y']) {
+      vi.stubEnv('NEXT_PUBLIC_FIREBASE_PROJECT_ID', bad);
+      expect(await nextConfig.rewrites?.()).toEqual([]);
+    }
+  });
+
   it('adds no rewrite without a project id', async () => {
     vi.stubEnv('NEXT_PUBLIC_FIREBASE_PROJECT_ID', '');
     expect(await nextConfig.rewrites?.()).toEqual([]);

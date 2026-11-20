@@ -12,6 +12,7 @@ import { mergeOnLogin } from './merge-on-login';
 export const LIST_SAVED = 'Sua lista foi salva na sua conta.';
 
 const GUEST: LibraryMode = { kind: 'guest' };
+const PENDING: LibraryMode = { kind: 'pending' };
 
 /**
  * Optional sign-in (plan, Task 7). It must sit outside the library: an identity change remounts everything below
@@ -59,7 +60,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     running.add(uid);
     void mergeOnLogin(uid)
       .then((outcome) => {
-        if (outcome === 'empty') return;
+        if (outcome === 'empty' || outcome === 'unchanged') return;
         void queryClient.invalidateQueries({ queryKey: LIBRARY_KEY });
         if (outcome === 'merged' && flows.currentUid() === uid) toast.show({ message: LIST_SAVED });
       })
@@ -87,8 +88,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   );
 
   const binding = useMemo<LibraryBinding>(
-    () => ({ mode: uid ? { kind: 'account', uid } : GUEST, onUnauthenticated: flows.onUnauthenticated }),
-    [uid, flows],
+    () => ({
+      mode: uid ? { kind: 'account', uid } : snapshot.status === 'loading' ? PENDING : GUEST,
+      onUnauthenticated: flows.onUnauthenticated,
+    }),
+    [uid, snapshot.status, flows],
   );
 
   return (

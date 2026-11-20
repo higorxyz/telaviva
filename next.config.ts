@@ -6,10 +6,11 @@ const nextConfig: NextConfig = {
   reactCompiler: true,
   images: { unoptimized: true },
   // Firebase's sign-in helper served from this site, so the Google redirect works without third-party cookies
-  // (Safari/iOS, installed PWA). Read when the config loads; absent without a project id (sign-in off).
+  // (Safari/iOS, installed PWA). Read when the config loads; absent without a project id (sign-in off). The id must
+  // be a plain host label, so it can never point the proxy at another host.
   async rewrites() {
     const projectId = process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID;
-    if (!projectId) return [];
+    if (!projectId || !/^[a-z0-9-]+$/.test(projectId)) return [];
     return [{ source: '/__/auth/:path*', destination: `https://${projectId}.firebaseapp.com/__/auth/:path*` }];
   },
   // Fonts read with fs by the share-image and icon routes (keys are picomatch route globs, contains-matched).

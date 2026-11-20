@@ -11,17 +11,23 @@ export type FirebaseClient = { auth: Auth; sdk: AuthSdk };
 
 let loading: Promise<FirebaseClient> | null = null;
 let loaded = false;
+/** Kept across a failed load: Firebase refuses a second `initializeAuth` on the same app. */
+let created: Auth | null = null;
 
 async function init(): Promise<FirebaseClient> {
   if (!publicFirebaseConfig) throw new Error('Sign-in is not configured');
   const [{ getApps, initializeApp }, sdk] = await Promise.all([import('firebase/app'), import('firebase/auth')]);
   const app = getApps()[0] ?? initializeApp(publicFirebaseConfig);
   // initializeAuth instead of getAuth: only the persistence and resolver used here end up in the chunk.
-  const auth = sdk.initializeAuth(app, {
-    persistence: sdk.browserLocalPersistence,
-    popupRedirectResolver: sdk.browserPopupRedirectResolver,
-  });
-  if (authEmulatorHost) sdk.connectAuthEmulator(auth, `http://${authEmulatorHost}`, { disableWarnings: true });
+  let auth = created;
+  if (!auth) {
+    auth = sdk.initializeAuth(app, {
+      persistence: sdk.browserLocalPersistence,
+      popupRedirectResolver: sdk.browserPopupRedirectResolver,
+    });
+    if (authEmulatorHost) sdk.connectAuthEmulator(auth, `http://${authEmulatorHost}`, { disableWarnings: true });
+    created = auth;
+  }
   // currentUser is only meaningful once the persisted user has been read.
   await auth.authStateReady();
   loaded = true;
@@ -53,4 +59,5 @@ export function isFirebaseLoaded(): boolean {
 export function resetFirebaseClient(): void {
   loading = null;
   loaded = false;
+  created = null;
 }

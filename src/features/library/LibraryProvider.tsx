@@ -6,6 +6,7 @@ import { useToast } from '@/ui/toast/useToast';
 import { NOTICE } from './copy';
 import type { LibraryNotice, LibraryRepository } from './repository';
 import { createLocalRepository } from './local-repository';
+import { createPendingRepository } from './pending-repository';
 import { createServerRepository, type OnUnauthenticated } from './server-repository';
 
 export const LIBRARY_KEY = ['library'] as const;
@@ -23,16 +24,18 @@ export function useHasLibrary(): boolean {
   return useContext(RepositoryContext) !== null;
 }
 
-export type LibraryMode = { kind: 'guest' } | { kind: 'account'; uid: string };
+/** `pending`: sign-in is still resolving; nothing loads and actions do nothing until an identity is known. */
+export type LibraryMode = { kind: 'pending' } | { kind: 'guest' } | { kind: 'account'; uid: string };
 
 const IdentityContext = createContext('guest');
 
-/** `'guest'` or the signed-in uid; views key themselves by it so per-identity state starts over. */
+/** `'pending'`, `'guest'` or the signed-in uid; views key themselves by it so per-identity state starts over. */
 export function useLibraryIdentity(): string {
   return useContext(IdentityContext);
 }
 
-const identityOf = (mode: LibraryMode) => (mode.kind === 'account' ? mode.uid : 'guest');
+const PENDING = 'pending';
+const identityOf = (mode: LibraryMode) => (mode.kind === 'account' ? mode.uid : mode.kind);
 
 /** Data of one identity must never show up in the other. */
 const IDENTITY_QUERIES = [['library'], ['recommendations'], ['tv-progress']] as const;
@@ -45,6 +48,16 @@ const retired = new WeakSet<LibraryRepository>();
  */
 export function isRetired(repository: LibraryRepository): boolean {
   return retired.has(repository);
+}
+
+/** The repository of every identity mode; the account one ignores a 401 once its identity is gone. */
+function createFor(mode: LibraryMode, onUnauthenticated: OnUnauthenticated): LibraryRepository {
+  if (mode.kind === 'pending') return createPendingRepository();
+  if (mode.kind === 'guest') return createLocalRepository();
+  const repository = createServerRepository({
+    onUnauthenticated: () => (retired.has(repository) ? Promise.resolve(false) : onUnauthenticated()),
+  });
+  return repository;
 }
 
 /** Tag of the toasts that belong to one identity (undo actions): they are closed when the identity changes. */
@@ -74,28 +87,34 @@ type ProviderProps = {
  * Guests use the browser repository, signed-in users the server one. Tests inject a fake `repository`, which
  * always wins.
  *
- * When the identity changes, the old identity's queries and its library toasts (undo actions) are removed before the
- * new scope mounts (a layout effect plus a synchronous re-render, so nothing paints in between). Other toasts, such
- * as the sign-in ones, stay. The scope is keyed by identity, so every observer below it starts fresh and no hook can
- * keep serving the previous identity's data as a placeholder.
+ * When the identity changes between two known identities, the old identity's queries and its library toasts (undo
+ * actions) are removed before the new scope mounts (a layout effect plus a synchronous re-render, so nothing paints in
+ * between). Other toasts, such as the sign-in ones, stay. The scope gets a new key, so every observer below it starts
+ * fresh and no hook can keep serving the previous identity's data as a placeholder.
+ *
+ * Leaving `pending` is not such a change: pending holds no data, so the first identity takes over the same scope (the
+ * page below is not remounted) and only the repository is swapped.
  */
 export function LibraryProvider({ mode = { kind: 'guest' }, ...rest }: ProviderProps) {
   const queryClient = useQueryClient();
   const { dismissTag } = useToast();
   const identity = identityOf(mode);
-  const [clearedFor, setClearedFor] = useState(identity);
+  const [scope, setScope] = useState({ identity, key: 0 });
+  const switching = scope.identity !== identity && scope.identity !== PENDING;
 
   useLayoutEffect(() => {
-    if (clearedFor === identity) return;
-    for (const queryKey of IDENTITY_QUERIES) queryClient.removeQueries({ queryKey });
-    dismissTag(LIBRARY_TOAST_TAG);
+    if (scope.identity === identity) return;
+    if (scope.identity !== PENDING) {
+      for (const queryKey of IDENTITY_QUERIES) queryClient.removeQueries({ queryKey });
+      dismissTag(LIBRARY_TOAST_TAG);
+    }
     // The synchronous re-render must happen before paint, which is why this is an effect and not derived state.
     // eslint-disable-next-line react-hooks/set-state-in-effect
-    setClearedFor(identity);
-  }, [clearedFor, identity, queryClient, dismissTag]);
+    setScope({ identity, key: scope.identity === PENDING ? scope.key : scope.key + 1 });
+  }, [scope, identity, queryClient, dismissTag]);
 
-  if (clearedFor !== identity) return null;
-  return <IdentityScope key={identity} identity={identity} mode={mode} {...rest} />;
+  if (switching) return null;
+  return <IdentityScope key={scope.key} identity={identity} mode={mode} {...rest} />;
 }
 
 function IdentityScope({
@@ -108,13 +127,16 @@ function IdentityScope({
   const queryClient = useQueryClient();
   const toast = useToast();
   const handleUnauthenticated = useLatestCallback(onUnauthenticated);
-  const [current] = useState<LibraryRepository>(
-    () =>
-      repository ??
-      (mode.kind === 'account'
-        ? createServerRepository({ onUnauthenticated: handleUnauthenticated })
-        : createLocalRepository()),
-  );
+  const [held, setHeld] = useState(() => ({
+    identity,
+    repository: repository ?? createFor(mode, handleUnauthenticated),
+  }));
+  let current = held.repository;
+  // Only on leaving `pending` (any other change remounts this scope): swap the repository, keep the tree.
+  if (held.identity !== identity && !repository) {
+    current = createFor(mode, handleUnauthenticated);
+    setHeld({ identity, repository: current });
+  }
   const warned = useRef(false);
   const recovered = useRef(false);
   const lastShown = useRef(new Map<LibraryNotice, number>());

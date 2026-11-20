@@ -38,6 +38,7 @@ export function useLibrary(): { state: LibraryState | undefined; ready: boolean 
     queryFn: () => repository.load(),
     staleTime: Infinity,
     retry: retryLibrary,
+    enabled: !repository.pending,
   });
   const hydrated = useHydrated();
   return hydrated ? { state: data, ready: data !== undefined } : { state: undefined, ready: false };
@@ -72,6 +73,7 @@ export function useLibraryStatus(ref: TitleRef): { ready: boolean; status: Libra
     queryFn: () => repository.load(),
     staleTime: Infinity,
     retry: retryLibrary,
+    enabled: !repository.pending,
     select: (state): LibraryStatus | null => findItem(state, ref)?.status ?? null,
   });
   const hydrated = useHydrated();
@@ -179,7 +181,11 @@ export function useLibraryActions(): { run(command: LibraryCommand, opts?: RunOp
 
   const { mutate } = mutation;
   const run = useCallback(
-    (command: LibraryCommand, opts?: RunOptions) => mutate({ command, repository, undoable: opts?.undoable }),
+    (command: LibraryCommand, opts?: RunOptions) => {
+      // Sign-in is still resolving: the UI is not ready (actions are disabled), and nothing may be written yet.
+      if (repository.pending) return;
+      mutate({ command, repository, undoable: opts?.undoable });
+    },
     [mutate, repository],
   );
   return { run };

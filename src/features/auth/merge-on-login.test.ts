@@ -176,6 +176,23 @@ describe('mergeOnLogin', () => {
     expect(JSON.parse(data[KEY]).items).toHaveLength(3);
   });
 
+  it('without room for the backup, merges but keeps the copy, and does not merge or announce it again', async () => {
+    mergingServer();
+    const { storage, data } = memStorage({ [KEY]: raw });
+    const setItem = storage.setItem.bind(storage);
+    storage.setItem = (key: string, value: string) => {
+      if (key === preMergeKey('u1')) throw new DOMException('full', 'QuotaExceededError');
+      setItem(key, value);
+    };
+    expect(await mergeOnLogin('u1', { storage })).toBe('merged');
+    expect(data[KEY]).toBe(raw);
+    expect(await mergeOnLogin('u1', { storage })).toBe('unchanged');
+    expect(bodies).toHaveLength(1);
+    data[KEY] = JSON.stringify({ ...guest, items: [...guest.items, item(3)] });
+    expect(await mergeOnLogin('u1', { storage })).toBe('merged');
+    expect(bodies).toHaveLength(2);
+  });
+
   it('keeps every request under the 2 MB route limit with the default chunk size', async () => {
     mergingServer();
     const long = 'Título com acentuação é ç ã '.repeat(10).slice(0, 300);
