@@ -14,19 +14,20 @@ import * as schema from './schema';
  */
 export type Database = PgDatabase<PgQueryResultHKT, typeof schema>;
 
-let instance: Database | undefined;
+const globalForDb = globalThis as typeof globalThis & { __telavivaDb?: Database };
 
+/** Cached on globalThis so Next dev hot reloads reuse one PGlite instead of reopening its directory. */
 export function getDb(): Database {
-  if (instance) return instance;
+  if (globalForDb.__telavivaDb) return globalForDb.__telavivaDb;
   const { databaseUrl, databaseDriver, pgliteDir } = serverAuthEnv();
   if (databaseDriver === 'pglite') {
-    instance = drizzlePglite(new PGlite(pgliteDir ?? undefined), { schema });
+    globalForDb.__telavivaDb = drizzlePglite(new PGlite(pgliteDir ?? undefined), { schema });
   } else if (databaseUrl) {
-    instance = drizzleNeon(neon(databaseUrl), { schema });
+    globalForDb.__telavivaDb = drizzleNeon(neon(databaseUrl), { schema });
   } else {
     throw new Error(
       'Banco de dados não configurado: defina DATABASE_URL (Neon) ou DATABASE_DRIVER=pglite com PGLITE_DIR.',
     );
   }
-  return instance;
+  return globalForDb.__telavivaDb;
 }

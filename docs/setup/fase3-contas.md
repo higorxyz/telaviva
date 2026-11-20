@@ -125,10 +125,12 @@ Para desenvolver sem usar a conta real, existe o emulador do Firebase Auth: `npm
 Com `DATABASE_URL` definido (no `.env.local` ou no terminal), crie as tabelas no Neon:
 
 ```
-npm run db:migrate
+npm run db:migrate -- --confirm
 ```
 
-Rode de novo sempre que o esquema mudar (cada migração é aplicada só uma vez). Para gerar uma migração nova depois de editar o esquema, use `npm run db:generate`. Observação: `db:migrate` passa a funcionar na próxima etapa da Fase 3, quando o script de migração for adicionado.
+O script imprime o alvo (`Migrando: Neon (<host>)`, sem senha) antes de aplicar. Em um banco Neon ele exige `--confirm` (ou `MIGRATE_CONFIRM=1`), porque o `.env.local` pode apontar para a produção; sem a confirmação ele só mostra o alvo e sai com erro.
+
+Rode de novo sempre que o esquema mudar (cada migração é aplicada só uma vez). Para gerar uma migração nova depois de editar o esquema, use `npm run db:generate`.
 
 ## 6. O que nunca fazer
 
