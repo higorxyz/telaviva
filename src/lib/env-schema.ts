@@ -33,7 +33,17 @@ export type ServerAuthEnv = {
   pgliteDir: string | null;
 };
 
+/** Vercel stores the key with literal backslash-n sequences; quotes survive if the user pasted them. */
+function unescapeKey(raw: string | undefined): string | undefined {
+  return raw
+    ?.trim()
+    .replace(/^"|"$/g, '')
+    .replace(/\\n/g, '\n')
+    .trim();
+}
+
 /**
+ * Server-only: reads secrets, never import it from client code (use auth-config.ts there).
  * Accounts are optional: every variable may be missing, which turns sign-in off.
  * A partial Firebase credential counts as missing so the site never half-enables login.
  */
@@ -44,7 +54,7 @@ export function parseServerAuthEnv(source: Record<string, string | undefined>): 
   }
   const projectId = source.FIREBASE_PROJECT_ID?.trim();
   const clientEmail = source.FIREBASE_CLIENT_EMAIL?.trim();
-  const privateKey = source.FIREBASE_PRIVATE_KEY?.replace(/\n/g, '\n').trim();
+  const privateKey = unescapeKey(source.FIREBASE_PRIVATE_KEY);
   return {
     firebase:
       projectId && clientEmail && privateKey

@@ -2,6 +2,8 @@
 
 Este guia é para quem mantém o TelaViva e já conhece a Vercel, mas nunca usou o Firebase. Tudo aqui é gratuito (Firebase Spark, Neon Free, Vercel Hobby). Sem estas contas o site continua funcionando como visitante: o botão "Entrar" simplesmente não aparece.
 
+Os nomes de menus e botões do Firebase e do Google Cloud mudam conforme o idioma do console e a versão, então onde o guia diz "procure por" use a busca do console ou o texto mais parecido. O login só funciona de ponta a ponta depois que o proxy `/__/auth` for adicionado ao site (Tarefa 7 da Fase 3); até lá você pode criar as contas e configurar tudo, mas não testar o login real.
+
 Hosts do site usados neste guia:
 
 - produção: `telaviva.vercel.app`
@@ -26,7 +28,7 @@ Hosts do site usados neste guia:
 
 ### 1.3 Domínios autorizados
 
-1. **Authentication** → aba **Configurações** → **Domínios autorizados** → **Adicionar domínio**.
+1. **Authentication** → aba **Configurações** → procure por **Domínios autorizados** → **Adicionar domínio**.
 2. Adicione, um por vez:
    - `telaviva.vercel.app`
    - `telaviva-git-v2-higorxyz-projects.vercel.app`
@@ -47,7 +49,7 @@ Esses três valores são públicos por natureza (vão no JavaScript do navegador
 ### 1.5 Chave da conta de serviço (segredo do servidor)
 
 1. **Configurações do projeto** → aba **Contas de serviço**.
-2. Em "Firebase Admin SDK" deixe **Node.js** selecionado e clique em **Gerar nova chave privada** → **Gerar chave**. O navegador baixa um arquivo `.json`.
+2. Em "Firebase Admin SDK" deixe **Node.js** selecionado e procure por **Gerar nova chave privada** (botão) e confirme em **Gerar chave**. O navegador baixa um arquivo `.json`.
 3. Abra o arquivo. Dele você precisa de dois campos:
    - `client_email` → `FIREBASE_CLIENT_EMAIL`
    - `private_key` → `FIREBASE_PRIVATE_KEY` (texto longo que começa com `-----BEGIN PRIVATE KEY-----`; no JSON as quebras de linha aparecem como `\n`)
@@ -57,10 +59,15 @@ Esses três valores são públicos por natureza (vão no JavaScript do navegador
 
 O TelaViva faz o login do Google pelo próprio host (via `/__/auth`, veja o passo 3). Confira:
 
+Como `authDomain` é o host do próprio site, o navegador envia ao Google `redirect_uri=https://<host>/__/auth/handler`. Se esse endereço não estiver cadastrado, o login com Google falha com "redirect_uri_mismatch".
+
 1. Abra <https://console.cloud.google.com> com a mesma conta e selecione o projeto do Firebase no seletor no topo.
-2. Menu **APIs e serviços** → **Credenciais** → em "IDs do cliente OAuth 2.0" abra **Web client (auto created by Google Service)**.
-3. Em **URIs de redirecionamento autorizados**, confirme que existe `https://<ID-DO-PROJETO>.firebaseapp.com/__/auth/handler`. Esse é o endereço para onde o Google devolve o login; o proxy do site repassa para ele.
-4. Para garantir, acrescente também `https://telaviva.vercel.app/__/auth/handler` e `https://telaviva-git-v2-higorxyz-projects.vercel.app/__/auth/handler` (um para cada host do site). É inofensivo. Clique em **Salvar**.
+2. No menu, procure por **Credenciais** (em **APIs e serviços**). Em "IDs do cliente OAuth 2.0", procure por **Web client (auto created by Google Service)**, o cliente criado automaticamente pelo Firebase, e abra-o. Se ele não aparecer, volte ao passo 1.2 e ative o provedor Google no Firebase primeiro: é isso que cria o cliente.
+3. Em **URIs de redirecionamento autorizados** (procure por esse título), adicione, **obrigatoriamente um para cada host do site**:
+   - `https://telaviva.vercel.app/__/auth/handler`
+   - `https://telaviva-git-v2-higorxyz-projects.vercel.app/__/auth/handler`
+   - `http://localhost:3000/__/auth/handler`
+4. Mantenha o que já existe (`https://<ID-DO-PROJETO>.firebaseapp.com/__/auth/handler`) e clique em **Salvar**. A alteração pode levar alguns minutos para valer.
 
 ## 2. Neon (banco Postgres) pela Vercel
 
@@ -72,7 +79,7 @@ O TelaViva faz o login do Google pelo próprio host (via `/__/auth`, veja o pass
 
 ## 3. Variáveis de ambiente na Vercel (ambiente Preview)
 
-Projeto **telaviva** → **Settings** → **Environment Variables**. Para cada linha, clique em **Add New**, desmarque **Production** e **Development** e deixe marcado só **Preview**.
+Projeto **telaviva** → **Settings** → **Environment Variables**. Para cada linha, clique em **Add New**, desmarque **Production** e **Development** e deixe marcado só **Preview**. Em **Preview**, escolha **Select a custom Preview branch** e informe `v2`: assim as variáveis valem só para a branch `v2`, cujo host é o `telaviva-git-v2-higorxyz-projects.vercel.app` do `AUTH_DOMAIN`. Outras URLs de preview (de outras branches ou de deploys avulsos) não terão login. Marque `FIREBASE_PRIVATE_KEY` e `DATABASE_URL` como **Sensitive** (opção na hora de criar a variável).
 
 | Variável | Valor | De onde vem |
 | --- | --- | --- |
@@ -128,4 +135,4 @@ Rode de novo sempre que o esquema mudar (cada migração é aplicada só uma vez
 - **Nunca** commite o arquivo `.json` da conta de serviço, a `private_key`, o `.env.local` ou o `DATABASE_URL`.
 - **Nunca** coloque a chave privada, o `client_email` ou o `DATABASE_URL` em variável com prefixo `NEXT_PUBLIC_`: tudo que tem esse prefixo vai para o navegador de qualquer visitante.
 - **Nunca** cole esses valores em issues, PRs, prints ou conversas.
-- Se a chave vazar: Firebase → **Configurações do projeto** → **Contas de serviço** → **Gerenciar permissões da conta de serviço** (abre o Google Cloud) → **Chaves** → apague a chave comprometida e gere outra.
+- Se a chave vazar: Firebase → **Configurações do projeto** → **Contas de serviço** → procure por **Gerenciar permissões da conta de serviço** (abre o Google Cloud) → **Chaves** → apague a chave comprometida e gere outra.

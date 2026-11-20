@@ -4,7 +4,8 @@ import { parseEnv, parseServerAuthEnv, serverAuthConfigured } from './env-schema
 const full = {
   FIREBASE_PROJECT_ID: 'demo-telaviva',
   FIREBASE_CLIENT_EMAIL: 'svc@demo-telaviva.iam.gserviceaccount.com',
-  FIREBASE_PRIVATE_KEY: '-----BEGIN PRIVATE KEY-----\nabc\ndef\n-----END PRIVATE KEY-----\n',
+  // Literal backslash-n sequences, exactly as Vercel and the service-account JSON provide them.
+  FIREBASE_PRIVATE_KEY: '-----BEGIN PRIVATE KEY-----\\nabc\\ndef\\n-----END PRIVATE KEY-----\\n',
   DATABASE_URL: 'postgres://u:p@host/db',
 };
 
@@ -28,9 +29,14 @@ describe('parseServerAuthEnv', () => {
     expect(parsed.databaseDriver).toBe('neon');
     expect(serverAuthConfigured(parsed)).toBe(true);
   });
-  it('converte \n escapado da chave em quebra de linha real', () => {
+  it('converte a sequência literal barra-n da chave em quebra de linha real', () => {
+    expect(full.FIREBASE_PRIVATE_KEY).not.toContain('\n');
     const key = parseServerAuthEnv(full).firebase?.privateKey;
     expect(key).toBe('-----BEGIN PRIVATE KEY-----\nabc\ndef\n-----END PRIVATE KEY-----\n');
+  });
+  it('aceita a chave entre aspas, como a Vercel guarda quando coladas', () => {
+    const quoted = { ...full, FIREBASE_PRIVATE_KEY: `"${full.FIREBASE_PRIVATE_KEY}"` };
+    expect(parseServerAuthEnv(quoted).firebase?.privateKey).toContain('BEGIN PRIVATE KEY-----\nabc');
   });
   it('trata credencial do Firebase incompleta como ausente', () => {
     expect(parseServerAuthEnv({ ...full, FIREBASE_PRIVATE_KEY: undefined }).firebase).toBeNull();
