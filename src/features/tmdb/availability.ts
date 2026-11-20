@@ -95,14 +95,6 @@ export async function availablePage(page: Paginated<MediaSummary>): Promise<{ pa
   return { page: { ...page, results: screened.items }, unknown: screened.unknown };
 }
 
-/** Details whose "Você também pode gostar" keeps only titles available in Brazil (the title itself is never hidden). */
-export async function withAvailableRecommendations<T extends { recommendations: MediaSummary[] }>(
-  details: T,
-): Promise<{ details: T; unknown: boolean }> {
-  const screened = await screenAvailableInBr(details.recommendations);
-  return { details: { ...details, recommendations: screened.items }, unknown: screened.unknown };
-}
-
 /**
  * The cache profile of a function that screened titles: its normal one, or 'minutes' when a lookup failed, so a
  * TMDb hiccup is retried soon instead of living for the outer lifetime. Call it once, after the screening.

@@ -30,3 +30,21 @@ export async function getRecommendationsFor(media: MediaType, id: number, limit:
     throw error;
   }
 }
+
+/**
+ * A detail page's "Você também pode gostar", limited to titles available in Brazil (the title itself is never
+ * hidden). Its own cache entry, rendered behind Suspense: the details resolve without waiting on these lookups, and
+ * a failed lookup ('minutes') only shortens this entry. The list comes from the details' appended recommendations,
+ * so no extra TMDb call is made.
+ */
+export async function getAvailableRecommendations(
+  media: MediaType,
+  id: number,
+  recommendations: MediaSummary[],
+): Promise<MediaSummary[]> {
+  'use cache';
+  cacheTag('tmdb', `${media}:${id}`);
+  const screened = await screenAvailableInBr(recommendations);
+  screenedCacheLife(screened.unknown, 'tmdbDetail');
+  return screened.items;
+}

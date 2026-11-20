@@ -1,9 +1,9 @@
 import type { ReactNode } from 'react';
-import { Rail } from '@/features/catalog/Rail';
 import type { MovieDetails, TvDetails } from '@/features/tmdb/types';
 import { CastRail } from './CastRail';
 import { DetailSection } from './DetailSection';
 import { FactsList } from './FactsList';
+import { RecommendationsSection } from './RecommendationsSection';
 import { Trailer } from './Trailer';
 import { WatchProviders } from './WatchProviders';
 
@@ -49,13 +49,7 @@ export function DetailSections({
       <DetailSection id="ficha-tecnica" title={{ lead: 'Ficha', accent: 'técnica' }}>
         <FactsList facts={facts} />
       </DetailSection>
-      {item.recommendations.length > 0 ? (
-        <Rail
-          id="recomendacoes"
-          title={{ lead: 'Você também', accent: 'pode gostar' }}
-          items={item.recommendations}
-        />
-      ) : null}
+      <RecommendationsSection media={item.mediaType} id={item.id} items={item.recommendations} />
     </div>
   );
 }

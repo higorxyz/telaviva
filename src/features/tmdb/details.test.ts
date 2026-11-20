@@ -10,6 +10,7 @@ import { server } from '@/test/server';
 import { isTmdbNotFound } from './client';
 import { getMovieDetails } from './movies';
 import { getPerson } from './people';
+import { getAvailableRecommendations } from './recommendations';
 import { getSeason, getTvDetails } from './tv';
 
 const BASE = 'https://api.themoviedb.org/3';
@@ -194,15 +195,22 @@ describe('conteúdo adulto', () => {
 describe('disponibilidade no Brasil', () => {
   const evens = (results: { id: number }[]) => results.map((r) => r.id).filter((id) => id % 2 === 0);
 
-  it('as recomendações do detalhe (filme e série) mostram só títulos disponíveis', async () => {
-    onlyEvenAvailableInBr();
+  it('o detalhe não consulta provedores: as recomendações chegam cruas e a triagem fica para a seção (Suspense)', async () => {
+    const asked = onlyEvenAvailableInBr();
     lastRequest('movie/551', { ...movie550, id: 551 });
     lastRequest('tv/1401', { ...tv1399, id: 1401 });
     const m = await getMovieDetails(551);
-    expect(m.recommendations.length).toBeGreaterThan(0);
-    expect(m.recommendations.map((r) => r.id)).toEqual(evens(movie550.recommendations.results));
+    expect(m.recommendations.map((r) => r.id)).toEqual(movie550.recommendations.results.map((r) => r.id));
     const t = await getTvDetails(1401);
-    expect(t.recommendations.map((r) => r.id)).toEqual(evens(tv1399.recommendations.results));
+    expect(t.recommendations.map((r) => r.id)).toEqual(tv1399.recommendations.results.map((r) => r.id));
+    expect(asked).toEqual([]);
+
+    expect((await getAvailableRecommendations('movie', 551, m.recommendations)).map((r) => r.id)).toEqual(
+      evens(movie550.recommendations.results),
+    );
+    expect((await getAvailableRecommendations('tv', 1401, t.recommendations)).map((r) => r.id)).toEqual(
+      evens(tv1399.recommendations.results),
+    );
   });
 
   it('link direto e filmografia não filtram: o título indisponível abre e a pessoa mantém todos os créditos', async () => {
@@ -210,7 +218,7 @@ describe('disponibilidade no Brasil', () => {
     lastRequest('movie/553', { ...movie550, id: 553 });
     const m = await getMovieDetails(553);
     expect(m.id).toBe(553);
-    expect(m.recommendations).toEqual([]);
+    expect(await getAvailableRecommendations('movie', 553, m.recommendations)).toEqual([]);
 
     lastRequest('person/287', person287);
     const all = (await getPerson(287)).credits;

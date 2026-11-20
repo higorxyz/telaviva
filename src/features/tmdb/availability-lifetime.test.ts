@@ -7,7 +7,7 @@ import trendingAll from '@/test/fixtures/trending-all-day.json';
 import trendingTv from '@/test/fixtures/trending-tv-week.json';
 import { server } from '@/test/server';
 import { getMovieDetails, getMovieList, getTrending } from './movies';
-import { getRecommendationsFor } from './recommendations';
+import { getAvailableRecommendations, getRecommendationsFor } from './recommendations';
 import { getTvList } from './tv';
 
 // The cache profile is observed through a spy on cacheLife. The outer function calls it after its lookups finish,
@@ -84,17 +84,20 @@ describe('a failed availability lookup keeps the title and shortens the cache li
     expect(outerProfile()).toBe('minutes');
   });
 
-  it('detail recommendations: a failed lookup gives the detail the short profile', async () => {
-    server.use(http.get(`${BASE}/movie/8201`, () => HttpResponse.json({ ...movie550, id: 8201 })));
-    await getMovieDetails(8201);
-    expect(outerProfile()).toBe('tmdbDetail');
-
-    server.use(http.get(`${BASE}/movie/8202`, () => HttpResponse.json({ ...movie550, id: 8202 })));
+  it('details never wait on lookups: a failed lookup no longer shortens the detail, only the screened rail', async () => {
     const rec = movie550.recommendations.results[0]!;
     lookupFails('movie', rec.id);
-    cacheLife.mockClear();
+    server.use(http.get(`${BASE}/movie/8202`, () => HttpResponse.json({ ...movie550, id: 8202 })));
     const details = await getMovieDetails(8202);
-    expect(details.recommendations.map((r) => r.id)).toContain(rec.id);
+    expect(outerProfile()).toBe('tmdbDetail');
+
+    cacheLife.mockClear();
+    const screened = await getAvailableRecommendations('movie', 8202, details.recommendations);
+    expect(screened.map((r) => r.id)).toContain(rec.id);
     expect(outerProfile()).toBe('minutes');
+
+    cacheLife.mockClear();
+    await getAvailableRecommendations('movie', 8203, details.recommendations.slice(1));
+    expect(outerProfile()).toBe('tmdbDetail');
   });
 });

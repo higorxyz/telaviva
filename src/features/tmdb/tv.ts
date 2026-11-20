@@ -1,6 +1,6 @@
 import { cacheLife, cacheTag } from 'next/cache';
 import { sortByWeightedRating } from '@/features/catalog/curation';
-import { availablePage, brAvailabilityParams, screenedCacheLife, withAvailableRecommendations } from './availability';
+import { availablePage, brAvailabilityParams, screenedCacheLife } from './availability';
 import { isTmdbNotFound, TmdbError, tmdbFetch } from './client';
 import { toEpisode, toTvDetails } from './detail-mappers';
 import { overviewOnlySchema, seasonSchema, tvDetailSchema } from './detail-schemas';
@@ -54,13 +54,13 @@ async function loadTvDetails(id: number): Promise<TvDetails | null> {
       cacheLife('tmdbDetail');
       return null;
     }
-    const screened = await withAvailableRecommendations(
-      await withOverviewFallback(toTvDetails(raw), () =>
-        tmdbFetch(`tv/${id}`, { language: 'en-US' }, overviewOnlySchema),
-      ),
+    const details = await withOverviewFallback(toTvDetails(raw), () =>
+      tmdbFetch(`tv/${id}`, { language: 'en-US' }, overviewOnlySchema),
     );
-    screenedCacheLife(screened.unknown, 'tmdbDetail');
-    return screened.details;
+    // Recommendations stay unscreened here: the page screens them in a Suspense'd section (getAvailableRecommendations),
+    // so the hero never waits on provider lookups and a failed lookup never shortens this entry.
+    cacheLife('tmdbDetail');
+    return details;
   } catch (error) {
     if (isTmdbNotFound(error)) {
       // A transient 404 must not stick for the full detail lifetime.
