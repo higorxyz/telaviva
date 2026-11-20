@@ -6,7 +6,7 @@ import { useToast } from '@/ui/toast/useToast';
 import { NOTICE } from './copy';
 import type { LibraryNotice, LibraryRepository } from './repository';
 import { createLocalRepository } from './local-repository';
-import { createServerRepository } from './server-repository';
+import { createServerRepository, type OnUnauthenticated } from './server-repository';
 
 export const LIBRARY_KEY = ['library'] as const;
 
@@ -54,7 +54,7 @@ const NOTICE_REPEAT_MS = 2000;
 const noop = () => {};
 
 /** A stable function that always calls the latest `fn`, so it can be handed to a repository that is not rebuilt. */
-function useLatestCallback(fn: () => void): () => void {
+function useLatestCallback<R>(fn: () => R): () => R {
   const ref = useRef(fn);
   useEffect(() => {
     ref.current = fn;
@@ -66,7 +66,8 @@ type ProviderProps = {
   children: ReactNode;
   repository?: LibraryRepository;
   mode?: LibraryMode;
-  onUnauthenticated?: () => void;
+  /** Runs the session renewal; resolving `true` (renewed for the same user) lets the request be retried once. */
+  onUnauthenticated?: OnUnauthenticated;
 };
 
 /**

@@ -3,7 +3,8 @@
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { useState, type ReactNode } from 'react';
 import { NavigationTracker } from '@/features/detail/NavigationTracker';
-import { LibraryProvider } from '@/features/library/LibraryProvider';
+import { AuthLibrary } from '@/features/auth/AuthLibrary';
+import { AuthProvider } from '@/features/auth/AuthProvider';
 import { ToastProvider } from '@/ui/toast/ToastProvider';
 
 export function Providers({ children }: { children: ReactNode }) {
@@ -18,10 +19,13 @@ export function Providers({ children }: { children: ReactNode }) {
   return (
     <QueryClientProvider client={client}>
       <ToastProvider>
-        <LibraryProvider>
-          <NavigationTracker />
-          {children}
-        </LibraryProvider>
+        {/* Outside the library: an identity change remounts the library's tree, not the sign-in state. */}
+        <AuthProvider>
+          <AuthLibrary>
+            <NavigationTracker />
+            {children}
+          </AuthLibrary>
+        </AuthProvider>
       </ToastProvider>
     </QueryClientProvider>
   );

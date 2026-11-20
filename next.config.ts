@@ -5,6 +5,13 @@ const nextConfig: NextConfig = {
   partialPrefetching: false,
   reactCompiler: true,
   images: { unoptimized: true },
+  // Firebase's sign-in helper served from this site, so the Google redirect works without third-party cookies
+  // (Safari/iOS, installed PWA). Read when the config loads; absent without a project id (sign-in off).
+  async rewrites() {
+    const projectId = process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID;
+    if (!projectId) return [];
+    return [{ source: '/__/auth/:path*', destination: `https://${projectId}.firebaseapp.com/__/auth/:path*` }];
+  },
   // Fonts read with fs by the share-image and icon routes (keys are picomatch route globs, contains-matched).
   outputFileTracingIncludes: {
     '/opengraph-image': ['src/assets/fonts/*.ttf'],

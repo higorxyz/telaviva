@@ -38,8 +38,22 @@ async function readState(response: Response): Promise<LibraryState> {
   return normalizeLibraryState(parsed.state);
 }
 
+/**
+ * What to do when the session is gone (401). Resolving `true` means the session was renewed for the same user, so the
+ * request is sent once more; anything else rejects with LibrarySessionError.
+ */
+export type OnUnauthenticated = () => void | Promise<boolean>;
+
+async function renewed(onUnauthenticated: OnUnauthenticated): Promise<boolean> {
+  try {
+    return (await onUnauthenticated()) === true;
+  } catch {
+    return false;
+  }
+}
+
 /** The signed-in user's library, kept on the server. `onUnauthenticated` runs when the session is gone (401). */
-export function createServerRepository(opts: { onUnauthenticated: () => void }): LibraryRepository {
+export function createServerRepository(opts: { onUnauthenticated: OnUnauthenticated }): LibraryRepository {
   const listeners = new Set<(notice: LibraryNotice) => void>();
   let pending: LibraryNotice | null = null;
 
@@ -48,7 +62,7 @@ export function createServerRepository(opts: { onUnauthenticated: () => void }):
     else listeners.forEach((listener) => listener(notice));
   }
 
-  async function request(path: string, init: RequestInit): Promise<Response> {
+  async function request(path: string, init: RequestInit, retried = false): Promise<Response> {
     let response: Response;
     try {
       response = await fetch(path, { credentials: 'same-origin', cache: 'no-store', ...init });
@@ -57,7 +71,8 @@ export function createServerRepository(opts: { onUnauthenticated: () => void }):
     }
     if (response.ok) return response;
     if (response.status === 401) {
-      opts.onUnauthenticated();
+      // The server applied nothing (it checks the session first), so sending the same request again is safe.
+      if (!retried && (await renewed(opts.onUnauthenticated))) return request(path, init, true);
       throw new LibrarySessionError();
     }
     if (response.status === 409) {

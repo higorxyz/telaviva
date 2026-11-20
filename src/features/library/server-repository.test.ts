@@ -72,6 +72,38 @@ describe('createServerRepository', () => {
     expect(onUnauthenticated).toHaveBeenCalledTimes(1);
   });
 
+  it('retries once when onUnauthenticated renewed the session for the same user', async () => {
+    let calls = 0;
+    server.use(
+      http.post(url('/api/library/commands'), () => {
+        calls++;
+        return calls === 1 ? HttpResponse.json({ error: 'unauthenticated' }, { status: 401 }) : HttpResponse.json(saved);
+      }),
+    );
+    const onUnauthenticated = vi.fn(async () => true);
+    const repository = createServerRepository({ onUnauthenticated });
+    expect(await repository.apply(want(1))).toEqual(saved);
+    expect(calls).toBe(2);
+    expect(onUnauthenticated).toHaveBeenCalledTimes(1);
+  });
+
+  it('does not retry when the renewal failed, nor a second time', async () => {
+    let calls = 0;
+    server.use(
+      http.get(url('/api/library'), () => {
+        calls++;
+        return HttpResponse.json({ error: 'unauthenticated' }, { status: 401 });
+      }),
+    );
+    const failed = vi.fn(async () => false);
+    await expect(createServerRepository({ onUnauthenticated: failed }).load()).rejects.toBeInstanceOf(LibrarySessionError);
+    expect(calls).toBe(1);
+    const renewed = vi.fn(async () => true);
+    await expect(createServerRepository({ onUnauthenticated: renewed }).load()).rejects.toBeInstanceOf(LibrarySessionError);
+    expect(calls).toBe(3);
+    expect(renewed).toHaveBeenCalledTimes(1);
+  });
+
   it('emits the conflict notice and rejects with LibraryConflictError on 409', async () => {
     server.use(http.post(url('/api/library/commands'), () => HttpResponse.json({ error: 'conflict' }, { status: 409 })));
     const { repository, notices } = setup();
