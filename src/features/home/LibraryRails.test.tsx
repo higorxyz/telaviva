@@ -117,18 +117,24 @@ describe('LibraryRails', () => {
     expect(screen.queryByRole('region', { name: 'Continue assistindo' })).not.toBeInTheDocument();
   });
 
-  it('orders by the latest activity, marks included', async () => {
+  it('orders by the latest activity: marking an episode bumps the series to the front', async () => {
     progress({ '3': info(3, [2, 8]), '4': info(4, [2, 8]) });
     recommendations(0);
-    setup(
-      stateOf({
-        items: [
-          entry('tv', 3, 'watching', { title: 'Antiga', updatedAt: '2026-11-02T00:00:00.000Z' }),
-          entry('tv', 4, 'watching', { title: 'Recente', updatedAt: '2026-11-03T00:00:00.000Z' }),
-        ],
-        episodes: [mark(3, 1, 1), mark(4, 1, 1), { ...mark(3, 1, 2), watchedAt: '2026-11-10T00:00:00.000Z' }],
-      }),
+    const base = stateOf({
+      items: [
+        entry('tv', 3, 'watching', { title: 'Antiga', updatedAt: '2026-11-02T00:00:00.000Z' }),
+        entry('tv', 4, 'watching', { title: 'Recente', updatedAt: '2026-11-03T00:00:00.000Z' }),
+      ],
+      episodes: [mark(3, 1, 1), mark(4, 1, 1)],
+    });
+    // The reducer is the only writer: an episode mark always refreshes the series' updatedAt.
+    const snapshot = { title: 'Antiga', posterPath: null, releaseDate: null, genreIds: [] };
+    const marked = applyCommand(
+      base,
+      { type: 'setEpisodes', tvId: 3, marks: [{ seasonNumber: 1, episodeNumber: 2 }], watched: true, snapshot, progress: info(3, [2, 8]) },
+      '2026-11-10T00:00:00.000Z',
     );
+    setup(marked);
     const region = await screen.findByRole('region', { name: 'Continue assistindo' });
     const names = () => Array.from(region.querySelectorAll('li a')).map((a) => a.getAttribute('aria-label') ?? '');
     await waitFor(() => expect(names()).toHaveLength(2));

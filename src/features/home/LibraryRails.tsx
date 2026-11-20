@@ -13,16 +13,6 @@ import type { MediaSummary } from '@/features/tmdb/types';
 
 const MIN_RECOMMENDATIONS = 6;
 
-/** Latest of the item's own update and the last episode the visitor marked. */
-function lastActivity(state: LibraryState, item: LibraryItem): number {
-  let latest = Date.parse(item.updatedAt) || 0;
-  for (const mark of state.episodes) {
-    if (mark.tvId !== item.tmdbId) continue;
-    latest = Math.max(latest, Date.parse(mark.watchedAt) || 0);
-  }
-  return latest;
-}
-
 function continueWatching(
   state: LibraryState,
   progress: Record<string, TvProgressInfo>,
@@ -34,8 +24,9 @@ function continueWatching(
     if (!info) continue;
     const result = seriesProgress(info, state.episodes.filter((e) => e.tvId === item.tmdbId));
     if (result.kind !== 'in-progress') continue;
-    rows.push({ item, next: nextEpisodeLabel(result.next), at: lastActivity(state, item) });
+    rows.push({ item, next: nextEpisodeLabel(result.next), at: Date.parse(item.updatedAt) || 0 });
   }
+  // updatedAt is the latest activity: every episode mark goes through the reducer, which refreshes it.
   return rows.sort((a, b) => b.at - a.at);
 }
 
