@@ -6,11 +6,19 @@ import { useToast } from '@/ui/toast/useToast';
 import { applyCommand, findItem, findRating, type LibraryCommand } from './commands';
 import { NOTICE, UNDO_LABEL } from './copy';
 import { titleFingerprint } from './fingerprint';
-import { LIBRARY_KEY, useLibraryRepository } from './LibraryProvider';
-import { LibraryConflictError, LibraryLimitError, LibrarySessionError } from './repository';
+import { isRetired, LIBRARY_KEY, useLibraryRepository } from './LibraryProvider';
+import {
+  LibraryConflictError,
+  LibraryLimitError,
+  LibrarySessionError,
+  type LibraryRepository,
+} from './repository';
 import type { EpisodeMark, LibraryItem, LibraryState, LibraryStatus, Rating, TitleRef } from './types';
 
 const NO_MARKS: EpisodeMark[] = [];
+
+/** A lost session will not come back by asking again: retrying would also call `onUnauthenticated` repeatedly. */
+const retryLibrary = (failures: number, error: Error) => !(error instanceof LibrarySessionError) && failures < 3;
 
 const noopSubscribe = () => () => {};
 
@@ -29,6 +37,7 @@ export function useLibrary(): { state: LibraryState | undefined; ready: boolean 
     queryKey: LIBRARY_KEY,
     queryFn: () => repository.load(),
     staleTime: Infinity,
+    retry: retryLibrary,
   });
   const hydrated = useHydrated();
   return hydrated ? { state: data, ready: data !== undefined } : { state: undefined, ready: false };
@@ -62,6 +71,7 @@ export function useLibraryStatus(ref: TitleRef): { ready: boolean; status: Libra
     queryKey: LIBRARY_KEY,
     queryFn: () => repository.load(),
     staleTime: Infinity,
+    retry: retryLibrary,
     select: (state): LibraryStatus | null => findItem(state, ref)?.status ?? null,
   });
   const hydrated = useHydrated();
@@ -94,11 +104,14 @@ interface RunOptions {
 
 interface Variables {
   command: LibraryCommand;
+  /** The repository the command was issued against: it must survive an identity change while it runs. */
+  repository: LibraryRepository;
   undoable?: { message: string };
 }
 
 interface Context {
   previous: LibraryState | undefined;
+  repository: LibraryRepository;
 }
 
 export function useLibraryActions(): { run(command: LibraryCommand, opts?: RunOptions): void } {
@@ -108,8 +121,8 @@ export function useLibraryActions(): { run(command: LibraryCommand, opts?: RunOp
 
   const mutation = useMutation<LibraryState, Error, Variables, Context>({
     mutationKey: LIBRARY_KEY,
-    mutationFn: ({ command }) => repository.apply(command),
-    onMutate: async ({ command }) => {
+    mutationFn: ({ command, repository: target }) => target.apply(command),
+    onMutate: async ({ command, repository: target }) => {
       await queryClient.cancelQueries({ queryKey: LIBRARY_KEY });
       const previous = queryClient.getQueryData<LibraryState>(LIBRARY_KEY);
       if (previous) {
@@ -119,9 +132,11 @@ export function useLibraryActions(): { run(command: LibraryCommand, opts?: RunOp
           // The repository rejects the same command and onError restores the state.
         }
       }
-      return { previous };
+      return { previous, repository: target };
     },
     onError: (error, _variables, context) => {
+      // The identity changed while this ran: its cache is gone, and neither rollback nor toast belongs to the new one.
+      if (context && isRetired(context.repository)) return;
       if (context?.previous) queryClient.setQueryData(LIBRARY_KEY, context.previous);
       // These have their own message: the auth flow (session), or the repository's notice toast (conflict, limit).
       if (
@@ -131,15 +146,23 @@ export function useLibraryActions(): { run(command: LibraryCommand, opts?: RunOp
       ) {
         return;
       }
-      toast.show({ message: repository.errorMessage ?? NOTICE.saveFailed, tone: 'error' });
+      toast.show({ message: (context?.repository ?? repository).errorMessage ?? NOTICE.saveFailed, tone: 'error' });
     },
     onSuccess: (saved, { command, undoable }, context) => {
       // No cache write here: the optimistic value already holds, and an older response could revert it.
+      if (isRetired(context.repository)) return;
       if (undoable && context.previous) {
         const inverse = inverseOf(context.previous, saved, refOf(command));
         toast.show({
           message: undoable.message,
-          action: { label: UNDO_LABEL, onClick: () => mutation.mutate({ command: inverse }) },
+          action: {
+            label: UNDO_LABEL,
+            onClick: () => {
+              if (!isRetired(context.repository)) {
+                mutation.mutate({ command: inverse, repository: context.repository });
+              }
+            },
+          },
         });
       }
     },
@@ -153,8 +176,8 @@ export function useLibraryActions(): { run(command: LibraryCommand, opts?: RunOp
 
   const { mutate } = mutation;
   const run = useCallback(
-    (command: LibraryCommand, opts?: RunOptions) => mutate({ command, undoable: opts?.undoable }),
-    [mutate],
+    (command: LibraryCommand, opts?: RunOptions) => mutate({ command, repository, undoable: opts?.undoable }),
+    [mutate, repository],
   );
   return { run };
 }

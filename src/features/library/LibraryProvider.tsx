@@ -1,7 +1,7 @@
 'use client';
 
 import { useQueryClient } from '@tanstack/react-query';
-import { createContext, useCallback, useContext, useEffect, useRef, useState, type ReactNode } from 'react';
+import { createContext, useCallback, useContext, useEffect, useLayoutEffect, useRef, useState, type ReactNode } from 'react';
 import { useToast } from '@/ui/toast/useToast';
 import { NOTICE } from './copy';
 import type { LibraryNotice, LibraryRepository } from './repository';
@@ -37,6 +37,16 @@ const identityOf = (mode: LibraryMode) => (mode.kind === 'account' ? mode.uid : 
 /** Data of one identity must never show up in the other. */
 const IDENTITY_QUERIES = [['library'], ['recommendations'], ['tv-progress']] as const;
 
+const retired = new WeakSet<LibraryRepository>();
+
+/**
+ * True once the identity that owned `repository` is gone. A mutation started under it may still settle, and
+ * its callbacks must then touch neither the new identity's cache nor its toasts.
+ */
+export function isRetired(repository: LibraryRepository): boolean {
+  return retired.has(repository);
+}
+
 const NOTICE_REPEAT_MS = 2000;
 const noop = () => {};
 
@@ -49,42 +59,67 @@ function useLatestCallback(fn: () => void): () => void {
   return useCallback(() => ref.current(), []);
 }
 
-/**
- * Guests use the browser repository, signed-in users the server one; it is rebuilt when `mode` changes.
- * Tests inject a fake `repository`, which always wins.
- */
-export function LibraryProvider({
-  children,
-  repository,
-  mode = { kind: 'guest' },
-  onUnauthenticated = noop,
-}: {
+type ProviderProps = {
   children: ReactNode;
   repository?: LibraryRepository;
   mode?: LibraryMode;
   onUnauthenticated?: () => void;
-}) {
+};
+
+/**
+ * Guests use the browser repository, signed-in users the server one. Tests inject a fake `repository`, which
+ * always wins.
+ *
+ * When the identity changes, the old identity's queries are removed before the new scope mounts (a layout effect
+ * plus a synchronous re-render, so nothing paints in between). The scope is keyed by identity, so every observer
+ * below it starts fresh and no hook can keep serving the previous identity's data as a placeholder.
+ */
+export function LibraryProvider({ mode = { kind: 'guest' }, ...rest }: ProviderProps) {
+  const queryClient = useQueryClient();
+  const identity = identityOf(mode);
+  const [clearedFor, setClearedFor] = useState(identity);
+
+  useLayoutEffect(() => {
+    if (clearedFor === identity) return;
+    for (const queryKey of IDENTITY_QUERIES) queryClient.removeQueries({ queryKey });
+    // The synchronous re-render must happen before paint, which is why this is an effect and not derived state.
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    setClearedFor(identity);
+  }, [clearedFor, identity, queryClient]);
+
+  if (clearedFor !== identity) return null;
+  return <IdentityScope key={identity} identity={identity} mode={mode} {...rest} />;
+}
+
+function IdentityScope({
+  children,
+  repository,
+  mode = { kind: 'guest' },
+  identity,
+  onUnauthenticated = noop,
+}: ProviderProps & { identity: string }) {
   const queryClient = useQueryClient();
   const toast = useToast();
-  const identity = identityOf(mode);
   const handleUnauthenticated = useLatestCallback(onUnauthenticated);
-
-  const build = (): LibraryRepository =>
-    repository ??
-    (mode.kind === 'account'
-      ? createServerRepository({ onUnauthenticated: handleUnauthenticated })
-      : createLocalRepository());
-  const [built, setBuilt] = useState(() => ({ identity, repository: build() }));
-  let current = built.repository;
-  if (built.identity !== identity) {
-    // Derived state: rebuilt during render, before any child reads the cache, and the old identity's data is dropped.
-    for (const queryKey of IDENTITY_QUERIES) queryClient.removeQueries({ queryKey });
-    current = build();
-    setBuilt({ identity, repository: current });
-  }
+  const [current] = useState<LibraryRepository>(
+    () =>
+      repository ??
+      (mode.kind === 'account'
+        ? createServerRepository({ onUnauthenticated: handleUnauthenticated })
+        : createLocalRepository()),
+  );
   const warned = useRef(false);
   const recovered = useRef(false);
   const lastShown = useRef(new Map<LibraryNotice, number>());
+
+  // Toasts left over from this identity (undo actions) must not outlive it.
+  useEffect(() => {
+    retired.delete(current);
+    return () => {
+      retired.add(current);
+      toast.dismissAll();
+    };
+  }, [current, toast]);
 
   useEffect(() => {
     return current.subscribe(() => {

@@ -265,7 +265,6 @@ describe('LibraryView', () => {
     await waitFor(() =>
       expect(screen.getByRole('tab', { name: /Assistindo/ })).toHaveAttribute('aria-selected', 'true'),
     );
-    client.clear();
     rerender(tree('b', without));
     await waitFor(() =>
       expect(screen.getByRole('tab', { name: /Quero ver/ })).toHaveAttribute('aria-selected', 'true'),

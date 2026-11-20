@@ -10,6 +10,8 @@ export interface ToastInput {
 
 export interface ToastApi {
   show(toast: ToastInput): void;
+  /** Closes every toast, such as undo actions that stop making sense when the identity changes. */
+  dismissAll(): void;
 }
 
 export const ToastContext = createContext<ToastApi | null>(null);
