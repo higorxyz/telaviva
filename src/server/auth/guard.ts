@@ -1,0 +1,55 @@
+import 'server-only';
+import { NextResponse } from 'next/server';
+import { createRateLimiter } from '@/lib/api-guard';
+import { serverAuthEnabled } from '@/lib/env';
+import { readCookie, SESSION_COOKIE } from './cookies';
+import { isSameOrigin } from './origin';
+import { readSession, type SessionUser } from './session';
+
+/**
+ * Shared guards for the routes behind sign-in (/api/auth/*, /api/library/*, /api/account/*).
+ * With sign-in off (Firebase or database not configured) they answer 404, as if they did not exist.
+ */
+
+/** Per-IP budget for minting sessions, separate from the TMDb routes' budget so browsing never blocks sign-in. */
+export const authRateLimiter = createRateLimiter({ limit: 30, windowMs: 60_000 });
+
+const SAFE_METHODS = new Set(['GET', 'HEAD']);
+
+export function authRoutesEnabled(): boolean {
+  return serverAuthEnabled();
+}
+
+export function jsonError(error: string, status: number): NextResponse {
+  return NextResponse.json(
+    { error },
+    { status, headers: { 'Cache-Control': 'private, no-store' } },
+  );
+}
+
+/** 404 when sign-in is off; 403 when a state-changing request lacks a same-origin `Origin`; null to go on. */
+export function authGate(request: Request): NextResponse | null {
+  if (!authRoutesEnabled()) return jsonError('not_found', 404);
+  if (!SAFE_METHODS.has(request.method.toUpperCase()) && !isSameOrigin(request)) {
+    return jsonError('forbidden', 403);
+  }
+  return null;
+}
+
+/**
+ * The signed-in user, or the response to send instead (404 / 403 / 401 `{ error: 'unauthenticated' }`).
+ * Pass `checkRevoked` for sensitive operations: it costs a call to Firebase but rejects revoked sessions and
+ * disabled accounts at once.
+ */
+export async function requireUser(
+  request: Request,
+  opts: { checkRevoked?: boolean } = {},
+): Promise<SessionUser | NextResponse> {
+  // Read the request before anything else: under Cache Components this keeps GET handlers out of prerendering
+  // even when sign-in is off at build time.
+  const cookie = readCookie(request, SESSION_COOKIE);
+  const blocked = authGate(request);
+  if (blocked) return blocked;
+  const user = await readSession(cookie, { checkRevoked: opts.checkRevoked });
+  return user ?? jsonError('unauthenticated', 401);
+}
