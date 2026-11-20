@@ -137,6 +137,36 @@ describe('RatingControl', () => {
     expect(await screen.findByRole('button', { name: 'Dar nota para Clube da Luta' })).toHaveFocus();
   });
 
+  it('says a rated movie moved to Assistidos, with an undo that puts it back as it was', async () => {
+    const want = applyCommand(EMPTY_LIBRARY, { type: 'setStatus', ref, status: 'want', snapshot }, NOW);
+    const { user, applied } = setup(want);
+    await waitFor(() => expect(screen.getByRole('button', { name: 'Dar nota para Clube da Luta' })).toBeEnabled());
+    await user.click(screen.getByRole('button', { name: 'Dar nota para Clube da Luta' }));
+    await user.click(within(group()).getByRole('radio', { name: '8' }));
+    expect(await screen.findByText('Movido para Assistidos')).toBeInTheDocument();
+    await user.click(screen.getByRole('button', { name: 'Desfazer' }));
+    await waitFor(() => expect(applied).toHaveLength(2));
+    expect(applied[1]).toMatchObject({ type: 'restore', item: { status: 'want' }, rating: null });
+  });
+
+  it('shows no toast when re-rating a movie already in Assistidos', async () => {
+    const { user } = setup(rated(7));
+    await user.click(await screen.findByRole('button', { name: /Mudar nota/ }));
+    await user.click(within(group()).getByRole('radio', { name: '9' }));
+    await screen.findByRole('button', { name: /9 de 10/ });
+    expect(screen.queryByRole('button', { name: 'Desfazer' })).toBeNull();
+  });
+
+  it('says "Nota removida", with an undo that restores the score', async () => {
+    const { user, applied } = setup(rated(7));
+    await user.click(await screen.findByRole('button', { name: /Mudar nota/ }));
+    await user.click(screen.getByRole('button', { name: 'Remover nota' }));
+    expect(await screen.findByText('Nota removida')).toBeInTheDocument();
+    await user.click(screen.getByRole('button', { name: 'Desfazer' }));
+    await waitFor(() => expect(applied[1]).toMatchObject({ type: 'restore', rating: { score: 7 } }));
+    expect(await screen.findByRole('button', { name: /7 de 10/ })).toBeInTheDocument();
+  });
+
   it('has no "Remover nota" without a rating', async () => {
     const { user } = setup();
     await waitFor(() => expect(screen.getByRole('button', { name: 'Dar nota para Clube da Luta' })).toBeEnabled());

@@ -5,6 +5,7 @@ import { useRef, useState, type KeyboardEvent } from 'react';
 import { cn } from '@/lib/cn';
 import { PopoverSheet } from '@/ui/PopoverSheet';
 import { RatingRing } from '@/ui/RatingRing';
+import { UNDOABLE } from './copy';
 import { useLibraryActions, useLibraryEntry } from './hooks';
 import type { TitleRef, TitleSnapshot } from './types';
 
@@ -122,7 +123,7 @@ export function RatingControl({
   snapshot: TitleSnapshot;
   title: string;
 }) {
-  const { ready, rating } = useLibraryEntry(titleRef);
+  const { ready, item, rating } = useLibraryEntry(titleRef);
   const { run } = useLibraryActions();
   const [open, setOpen] = useState(false);
   const score = ready ? (rating?.score ?? null) : null;
@@ -170,11 +171,16 @@ export function RatingControl({
           title={title}
           score={score}
           onPick={(next) => {
-            run({ type: 'rate', ref: titleRef, score: next, snapshot });
+            // Rating a movie marks it as watched: say so (and offer the way back) when that moves it.
+            const moves = titleRef.mediaType === 'movie' && item?.status !== 'watched';
+            run(
+              { type: 'rate', ref: titleRef, score: next, snapshot },
+              moves ? { undoable: UNDOABLE.movedToWatched } : undefined,
+            );
             ctx.close();
           }}
           onRemove={() => {
-            run({ type: 'unrate', ref: titleRef });
+            run({ type: 'unrate', ref: titleRef }, { undoable: UNDOABLE.ratingRemoved });
             ctx.close();
           }}
         />
