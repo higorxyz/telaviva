@@ -10,6 +10,7 @@ export const adminAuthMock = {
   createSessionCookie: vi.fn(),
   verifySessionCookie: vi.fn(),
   revokeRefreshTokens: vi.fn(),
+  getUserByEmail: vi.fn(),
 };
 
 export const adminAppModule = {

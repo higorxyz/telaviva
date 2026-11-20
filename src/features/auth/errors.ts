@@ -4,17 +4,21 @@ import { SessionRequestError } from './session-client';
 
 export const GENERIC_AUTH_ERROR = 'Não foi possível entrar agora. Tente de novo.';
 
-const WRONG_CREDENTIALS = 'E-mail ou senha incorretos.';
+export const WRONG_CREDENTIALS = 'E-mail ou senha incorretos.';
+export const WEAK_PASSWORD = 'Use uma senha com pelo menos 8 caracteres.';
+export const INVALID_EMAIL = 'Confira o e-mail digitado.';
+export const TOO_MANY_REQUESTS = 'Muitas tentativas. Espere um pouco e tente de novo.';
+export const OFFLINE = 'Sem conexão. Verifique sua internet.';
 
 const MESSAGES: Readonly<Record<string, string | null>> = {
   'auth/invalid-credential': WRONG_CREDENTIALS,
   'auth/wrong-password': WRONG_CREDENTIALS,
   'auth/user-not-found': WRONG_CREDENTIALS,
   'auth/email-already-in-use': 'Já existe uma conta com esse e-mail.',
-  'auth/weak-password': 'Use uma senha com pelo menos 8 caracteres.',
-  'auth/invalid-email': 'Confira o e-mail digitado.',
-  'auth/too-many-requests': 'Muitas tentativas. Espere um pouco e tente de novo.',
-  'auth/network-request-failed': 'Sem conexão. Verifique sua internet.',
+  'auth/weak-password': WEAK_PASSWORD,
+  'auth/invalid-email': INVALID_EMAIL,
+  'auth/too-many-requests': TOO_MANY_REQUESTS,
+  'auth/network-request-failed': OFFLINE,
   'auth/popup-closed-by-user': null,
   'auth/cancelled-popup-request': null,
 };
