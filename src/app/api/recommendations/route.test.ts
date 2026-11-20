@@ -140,7 +140,7 @@ describe('POST /api/recommendations', () => {
     expect(res.status).toBe(413);
   });
 
-  it('429 with Retry-After after 30 requests a minute from one IP', async () => {
+  it('429 with Retry-After after 120 requests a minute from one IP', async () => {
     server.use(
       http.get(`${BASE}/movie/7500/recommendations`, () => HttpResponse.json(moviePage)),
       http.get(`${BASE}/trending/all/week`, () => HttpResponse.json(trendingAll)),
@@ -153,7 +153,7 @@ describe('POST /api/recommendations', () => {
           body: JSON.stringify({ seeds: [seed(7500)], exclude: [] }),
         }),
       );
-    for (let i = 0; i < 30; i++) expect((await fromIp()).status).toBe(200);
+    for (let i = 0; i < 120; i++) expect((await fromIp()).status).toBe(200);
     const blocked = await fromIp();
     expect(blocked.status).toBe(429);
     expect(blocked.headers.get('retry-after')).toMatch(/^\d+$/);

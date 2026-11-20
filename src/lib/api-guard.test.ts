@@ -39,16 +39,30 @@ describe('clientIp', () => {
 
 describe('limitByIp', () => {
   it('answers 429 with Retry-After once an IP is over the limit, and never limits a request without an IP', async () => {
-    const limiter = createRateLimiter({ limit: 30, windowMs: 60_000 });
+    const limiter = createRateLimiter({ limit: 120, windowMs: 60_000 });
     const from = (ip?: string) =>
       new Request('http://localhost', { headers: ip ? { 'x-forwarded-for': ip } : {} });
-    for (let i = 0; i < 30; i++) expect(limitByIp(from('198.51.100.1'), limiter)).toBeNull();
+    for (let i = 0; i < 120; i++) expect(limitByIp(from('198.51.100.1'), limiter)).toBeNull();
     const blocked = limitByIp(from('198.51.100.1'), limiter);
     expect(blocked?.status).toBe(429);
     expect(Number(blocked?.headers.get('retry-after'))).toBeGreaterThan(0);
     expect(await blocked?.json()).toEqual({ error: 'Muitas requisições. Tente de novo em instantes.' });
     expect(limitByIp(from('198.51.100.2'), limiter)).toBeNull();
-    for (let i = 0; i < 40; i++) expect(limitByIp(from(), limiter)).toBeNull();
+    for (let i = 0; i < 150; i++) expect(limitByIp(from(), limiter)).toBeNull();
+  });
+
+  it.each(['127.0.0.1', '127.1.2.3', '::1', '::ffff:127.0.0.1', '[::1]'])('never limits loopback %s', (ip) => {
+    const limiter = createRateLimiter({ limit: 120, windowMs: 60_000 });
+    const request = new Request('http://localhost', { headers: { 'x-forwarded-for': ip } });
+    for (let i = 0; i < 300; i++) expect(limitByIp(request, limiter)).toBeNull();
+    expect(limiter.size()).toBe(0);
+  });
+
+  it('limits a public IP at the 121st request within a minute', () => {
+    const limiter = createRateLimiter({ limit: 120, windowMs: 60_000 });
+    const request = new Request('http://localhost', { headers: { 'x-forwarded-for': '203.0.113.9' } });
+    for (let i = 0; i < 120; i++) expect(limitByIp(request, limiter)).toBeNull();
+    expect(limitByIp(request, limiter)?.status).toBe(429);
   });
 });
 

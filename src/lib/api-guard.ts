@@ -6,11 +6,14 @@ import { NextResponse } from 'next/server';
  * The rate limiter is best-effort: it lives in the memory of one server instance, so each instance (and each cold
  * start) counts on its own. It only caps a burst from one client against one instance; a platform firewall rule is
  * the real protection. It keys on the first `x-forwarded-for` hop, which the hosting platform sets (and overwrites)
- * on every request; a request without that header (local dev, the E2E server) is not limited.
+ * on every request. Next's own server fills that header with the socket address when it is missing, so under
+ * `next dev` / `next start` every request carries a loopback address (127.0.0.0/8, ::1, ::ffff:127.x.x.x): loopback
+ * clients, and requests without the header, are never limited. The budget is generous (120 a minute) because many
+ * users can share one IP behind carrier-grade NAT.
  */
 
 export const MAX_BODY_BYTES = 64 * 1024;
-const RATE_LIMIT = 30;
+const RATE_LIMIT = 120;
 const RATE_WINDOW_MS = 60_000;
 
 type Check = { ok: true } | { ok: false; retryAfterSeconds: number };
@@ -45,7 +48,7 @@ export function createRateLimiter(opts: { limit: number; windowMs: number; maxKe
   };
 }
 
-/** One budget for both TMDb fan-out routes: 30 requests per minute per IP, per instance. */
+/** One budget for both TMDb fan-out routes: 120 requests per minute per IP, per instance. */
 export const apiRateLimiter = createRateLimiter({ limit: RATE_LIMIT, windowMs: RATE_WINDOW_MS });
 
 export function clientIp(request: Request): string | null {
@@ -53,10 +56,18 @@ export function clientIp(request: Request): string | null {
   return first || null;
 }
 
+/** 127.0.0.0/8, ::1 and their IPv4-mapped forms: the machine itself, never a client worth limiting. */
+export function isLoopback(ip: string): boolean {
+  const v = ip.toLowerCase().replace(/^\[|\]$/g, '');
+  if (v === '::1') return true;
+  const v4 = v.startsWith('::ffff:') ? v.slice(7) : v;
+  return /^127\.\d{1,3}\.\d{1,3}\.\d{1,3}$/.test(v4);
+}
+
 /** A 429 (with Retry-After) when the caller's IP is over its budget; null when the request may go on. */
 export function limitByIp(request: Request, limiter = apiRateLimiter): NextResponse | null {
   const ip = clientIp(request);
-  if (!ip) return null;
+  if (!ip || isLoopback(ip)) return null;
   const result = limiter.check(ip);
   if (result.ok) return null;
   return NextResponse.json(
