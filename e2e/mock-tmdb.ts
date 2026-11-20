@@ -91,6 +91,7 @@ export function resolve(pathname: string, params: URLSearchParams, authorization
 
   switch (p) {
     case 'trending/all/day':
+    case 'trending/all/week': // pads short recommendation lists
       return ok('trending-all-day');
     case 'trending/movie/week':
     case 'trending/movie/day':

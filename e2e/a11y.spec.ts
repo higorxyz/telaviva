@@ -1,5 +1,7 @@
 import AxeBuilder from '@axe-core/playwright';
+import type { Locator, Page } from '@playwright/test';
 import { expect, test } from './fixtures';
+import { seedLibrary } from './library-state';
 
 const PAGES = [
   '/',
@@ -11,12 +13,48 @@ const PAGES = [
   '/pessoa/287-brad-pitt',
 ];
 
+async function expectNoViolations(page: Page): Promise<void> {
+  const results = await new AxeBuilder({ page }).withTags(['wcag2a', 'wcag2aa']).analyze();
+  expect(results.violations).toEqual([]);
+}
+
+/** Waits for entrance animations to finish, so contrast is measured on the settled colors. */
+async function settled(target: Locator): Promise<void> {
+  await target.evaluate((el) => Promise.all(el.getAnimations({ subtree: true }).map((a) => a.finished)));
+}
+
 for (const path of PAGES) {
   test(`no WCAG A/AA violations on ${path}`, async ({ page }) => {
     await page.goto(path);
     await expect(page.getByRole('heading', { level: 1 }).first()).toBeVisible();
     await expect(page.getByRole('status', { name: 'Carregando resultados' })).toHaveCount(0);
-    const results = await new AxeBuilder({ page }).withTags(['wcag2a', 'wcag2aa']).analyze();
-    expect(results.violations).toEqual([]);
+    await expectNoViolations(page);
   });
 }
+
+for (const tab of ['assistindo', 'quero-ver', 'assistidos']) {
+  test(`no WCAG A/AA violations on /minha-lista?aba=${tab} with a filled library`, async ({ page }) => {
+    await seedLibrary(page);
+    await page.goto(`/minha-lista?aba=${tab}`);
+    await expect(page.getByRole('region', { name: 'Resumo da sua biblioteca' })).toBeVisible();
+    await expect(page.getByRole('tabpanel').getByRole('link').first()).toBeVisible();
+    await expectNoViolations(page);
+  });
+}
+
+test('no WCAG A/AA violations on a series with progress and marked episodes', async ({ page }) => {
+  await seedLibrary(page);
+  await page.goto('/serie/1399-game-of-thrones?temporada=1');
+  await expect(page.getByRole('region', { name: 'Seu progresso' })).toContainText('Próximo: T1E6');
+  await expect(page.getByRole('button', { name: 'Visto', exact: true }).first()).toBeVisible();
+  await expectNoViolations(page);
+});
+
+test('no WCAG A/AA violations with the rating panel open', async ({ page }) => {
+  await page.goto('/filme/550-clube-da-luta');
+  await page.getByRole('button', { name: 'Dar nota para Clube da Luta' }).click();
+  const panel = page.getByRole('dialog', { name: 'Sua nota' });
+  await expect(panel.getByRole('radiogroup', { name: 'Sua nota para Clube da Luta' })).toBeVisible();
+  await settled(panel);
+  await expectNoViolations(page);
+});
