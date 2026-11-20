@@ -1,35 +1,7 @@
 import { describe, expect, it, vi } from 'vitest';
 import { LibraryStorageError, createLocalRepository } from './local-repository';
+import { DONE, KEY, memStorage, NOW, snap, want } from './test-storage';
 import { EMPTY_LIBRARY } from './types';
-import type { LibraryCommand } from './commands';
-
-const KEY = 'telaviva:library:v1';
-const DONE = 'telaviva:library:v1-import-done';
-const NOW = '2026-11-19T12:00:00.000Z';
-const snap = (title: string) => ({ title, posterPath: null, releaseDate: null, genreIds: [] });
-const want = (id: number): LibraryCommand => ({
-  type: 'setStatus',
-  ref: { mediaType: 'movie', tmdbId: id },
-  status: 'want',
-  snapshot: snap(`T${id}`),
-});
-
-function memStorage(initial: Record<string, string> = {}) {
-  const data = { ...initial };
-  const storage = {
-    getItem: (k: string) => (k in data ? data[k] : null),
-    setItem: (k: string, v: string) => {
-      data[k] = v;
-    },
-    removeItem: (k: string) => {
-      delete data[k];
-    },
-    clear: () => {},
-    key: () => null,
-    length: 0,
-  } as Storage;
-  return { storage, data };
-}
 
 describe('createLocalRepository', () => {
   it('loads empty and persists applied commands', async () => {
@@ -50,25 +22,6 @@ describe('createLocalRepository', () => {
     const final = await b.apply(want(2));
     expect(final.items.map((i) => i.tmdbId).sort()).toEqual([1, 2]);
     expect((await a.load()).items).toHaveLength(2);
-  });
-
-  it('backs up corrupted text, returns empty and keeps the backup', async () => {
-    const { storage, data } = memStorage({ [KEY]: '{oops' });
-    const repo = createLocalRepository({ storage, now: () => NOW });
-    expect(await repo.load()).toEqual(EMPTY_LIBRARY);
-    const backups = Object.keys(data).filter((k) => k.startsWith(`${KEY}:corrupt:`));
-    expect(backups).toHaveLength(1);
-    expect(data[backups[0]]).toBe('{oops');
-    await repo.apply(want(1));
-    expect(data[backups[0]]).toBe('{oops');
-  });
-
-  it('backs up schema-invalid JSON too', async () => {
-    const raw = JSON.stringify({ version: 9 });
-    const { storage, data } = memStorage({ [KEY]: raw });
-    const repo = createLocalRepository({ storage, now: () => NOW });
-    expect(await repo.load()).toEqual(EMPTY_LIBRARY);
-    expect(Object.keys(data).some((k) => k.startsWith(`${KEY}:corrupt:`))).toBe(true);
   });
 
   it('rejects with LibraryStorageError when storage is full and keeps saved state', async () => {
@@ -95,17 +48,6 @@ describe('createLocalRepository', () => {
     expect((await repo.load()).items).toHaveLength(1);
     await expect(repo.apply(want(2))).rejects.toBeInstanceOf(LibraryStorageError);
     expect(data[KEY]).toBe(before);
-  });
-
-  it('rejects and leaves the key untouched when the corrupt backup cannot be written', async () => {
-    const { storage, data } = memStorage({ [KEY]: '{oops' });
-    storage.setItem = () => {
-      throw new DOMException('full', 'QuotaExceededError');
-    };
-    const repo = createLocalRepository({ storage, now: () => NOW });
-    expect(repo.persistent).toBe(true);
-    await expect(repo.apply(want(1))).rejects.toBeInstanceOf(LibraryStorageError);
-    expect(data[KEY]).toBe('{oops');
   });
 
   it('falls back to memory when storage access throws', async () => {

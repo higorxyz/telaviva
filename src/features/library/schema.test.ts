@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { normalizeLibraryState, parseLibraryState } from './schema';
+import { isValidLibraryState, normalizeLibraryState, parseLibraryEntries, parseLibraryState } from './schema';
 import type { LibraryState } from './types';
 
 const NOW = '2026-11-19T12:00:00.000Z';
@@ -13,6 +13,32 @@ const valid: LibraryState = {
   episodes: [{ tvId: 1399, seasonNumber: 1, episodeNumber: 1, watchedAt: NOW }],
   ratings: [{ mediaType: 'movie', tmdbId: 550, score: 10, ratedAt: NOW, updatedAt: NOW }],
 };
+
+describe('parseLibraryEntries', () => {
+  it('keeps a valid state whole', () => {
+    expect(parseLibraryEntries(valid)).toEqual({ state: valid, dropped: 0 });
+  });
+
+  it('drops invalid rows one by one and counts them', () => {
+    const raw = {
+      ...valid,
+      items: [...valid.items, { ...valid.items[0], snapshot: { ...snapshot, title: '' } }],
+      ratings: [{ ...valid.ratings[0], score: 11 }],
+    };
+    expect(parseLibraryEntries(raw)).toEqual({ state: { ...valid, ratings: [] }, dropped: 2 });
+  });
+
+  it.each([null, 'x', [], { ...valid, version: 2 }, { ...valid, items: {} }])('is null for a wrong root (%j)', (raw) => {
+    expect(parseLibraryEntries(raw)).toBeNull();
+  });
+});
+
+describe('isValidLibraryState', () => {
+  it('refuses a state with an empty title', () => {
+    expect(isValidLibraryState(valid)).toBe(true);
+    expect(isValidLibraryState({ ...valid, items: [{ ...valid.items[0], snapshot: { ...snapshot, title: '' } }] })).toBe(false);
+  });
+});
 
 describe('parseLibraryState', () => {
   it('accepts a valid state', () => {

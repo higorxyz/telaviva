@@ -55,6 +55,44 @@ export function parseLibraryState(raw: unknown): LibraryState | null {
   return result.success ? result.data : null;
 }
 
+/** True when the state may be saved as is (the repository refuses to write anything else). */
+export function isValidLibraryState(state: unknown): boolean {
+  return stateSchema.safeParse(state).success;
+}
+
+const rootSchema = z.object({
+  version: z.literal(1),
+  items: z.array(z.unknown()),
+  episodes: z.array(z.unknown()),
+  ratings: z.array(z.unknown()),
+});
+
+function validRows<T>(rows: unknown[], schema: z.ZodType<T>): T[] {
+  return rows.flatMap((row) => {
+    const result = schema.safeParse(row);
+    return result.success ? [result.data] : [];
+  });
+}
+
+/**
+ * Parses a stored value row by row: an invalid item, episode mark or rating is dropped on its own and counted in
+ * `dropped`, instead of losing the whole library. Null only when the root itself is not a v1 library.
+ */
+export function parseLibraryEntries(raw: unknown): { state: LibraryState; dropped: number } | null {
+  const root = rootSchema.safeParse(raw);
+  if (!root.success) return null;
+  const { items, episodes, ratings } = root.data;
+  const state: LibraryState = {
+    version: 1,
+    items: validRows(items, itemSchema),
+    episodes: validRows(episodes, episodeSchema),
+    ratings: validRows(ratings, ratingSchema),
+  };
+  const dropped =
+    items.length - state.items.length + episodes.length - state.episodes.length + ratings.length - state.ratings.length;
+  return { state, dropped };
+}
+
 function dedupe<T>(list: T[], keyOf: (entry: T) => string, stampOf: (entry: T) => string): T[] {
   const best = new Map<string, T>();
   for (const entry of list) {

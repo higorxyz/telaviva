@@ -27,6 +27,10 @@ describe('toSnapshot', () => {
     });
   });
 
+  it.each(['', '   '])('names a title without a name "Sem título" (%j)', (title) => {
+    expect(toSnapshot({ title, posterPath: null, releaseDate: null, genreIds: [] }).title).toBe('Sem título');
+  });
+
   it('does not share the genreIds array', () => {
     const genreIds = [18];
     expect(toSnapshot({ title: 'a', posterPath: null, releaseDate: null, genreIds }).genreIds).not.toBe(genreIds);

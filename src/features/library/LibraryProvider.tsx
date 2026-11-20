@@ -28,12 +28,22 @@ export function LibraryProvider({ children, repository }: { children: ReactNode;
   const toast = useToast();
   const [current] = useState<LibraryRepository>(() => repository ?? createLocalRepository());
   const warned = useRef(false);
+  const recovered = useRef(false);
 
   useEffect(() => {
     return current.subscribe(() => {
       void queryClient.invalidateQueries({ queryKey: LIBRARY_KEY });
     });
   }, [current, queryClient]);
+
+  useEffect(() => {
+    if (!current.onNotice) return;
+    return current.onNotice((notice) => {
+      if (notice !== 'recovered' || recovered.current) return;
+      recovered.current = true;
+      toast.show({ message: NOTICE.recovered });
+    });
+  }, [current, toast]);
 
   useEffect(() => {
     if (current.persistent || warned.current) return;
