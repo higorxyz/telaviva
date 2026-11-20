@@ -7,6 +7,9 @@ export type Seed = { mediaType: MediaType; tmdbId: number; weight: number; genre
 
 export const MAX_POSITIVE_SEEDS = 8;
 export const MAX_NEGATIVE_SEEDS = 4;
+/** Limits of /api/recommendations (above them it answers 400); the client never sends more. */
+export const MAX_SEEDS = MAX_POSITIVE_SEEDS + MAX_NEGATIVE_SEEDS;
+export const MAX_EXCLUDE_KEYS = 500;
 const MAX_RESULTS = 20;
 const FREQUENCY_FACTOR = 5;
 const FREQUENCY_CAP = 40;

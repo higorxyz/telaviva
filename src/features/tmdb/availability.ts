@@ -63,18 +63,19 @@ export async function availabilityInBr(media: MediaType, id: number): Promise<Av
 
 /**
  * The titles available in Brazil, in their original order. A title whose lookup failed is kept (fail open) and
- * `unknown` says so, so the caller can cache its result briefly. Asks at most CHUNK titles at a time and stops as
- * soon as `limit` titles are kept.
+ * `unknown` says so, so the caller can cache its result briefly. Asks at most CHUNK titles at a time, stops as
+ * soon as `limit` titles are kept, and never asks about more than `maxLookups` titles.
  */
 export async function screenAvailableInBr(
   items: MediaSummary[],
-  opts: { limit?: number } = {},
+  opts: { limit?: number; maxLookups?: number } = {},
 ): Promise<{ items: MediaSummary[]; unknown: boolean }> {
   const limit = opts.limit ?? Infinity;
+  const asked = items.slice(0, opts.maxLookups ?? items.length);
   const kept: MediaSummary[] = [];
   let unknown = false;
-  for (let start = 0; start < items.length && kept.length < limit; start += CHUNK) {
-    const chunk = items.slice(start, start + CHUNK);
+  for (let start = 0; start < asked.length && kept.length < limit; start += CHUNK) {
+    const chunk = asked.slice(start, start + CHUNK);
     const answers = await Promise.all(chunk.map((item) => availabilityInBr(item.mediaType, item.id)));
     chunk.forEach((item, i) => {
       if (answers[i] === 'no' || kept.length >= limit) return;
@@ -85,7 +86,10 @@ export async function screenAvailableInBr(
   return { items: kept, unknown };
 }
 
-export async function filterAvailableInBr(items: MediaSummary[], opts: { limit?: number } = {}): Promise<MediaSummary[]> {
+export async function filterAvailableInBr(
+  items: MediaSummary[],
+  opts: { limit?: number; maxLookups?: number } = {},
+): Promise<MediaSummary[]> {
   return (await screenAvailableInBr(items, opts)).items;
 }
 

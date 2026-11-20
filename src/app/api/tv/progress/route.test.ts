@@ -72,4 +72,13 @@ describe('GET /api/tv/progress', () => {
     expect(res.status).toBe(200);
     expect(await res.json()).toEqual({});
   });
+  it('429 with Retry-After after 30 requests a minute from one IP', async () => {
+    getTvProgressSourceMock.mockImplementation((id: number) => Promise.resolve(tv(id)));
+    const fromIp = () =>
+      GET(new Request('http://localhost/api/tv/progress?ids=1', { headers: { 'x-forwarded-for': '192.0.2.88' } }));
+    for (let i = 0; i < 30; i++) expect((await fromIp()).status).toBe(200);
+    const blocked = await fromIp();
+    expect(blocked.status).toBe(429);
+    expect(blocked.headers.get('retry-after')).toMatch(/^\d+$/);
+  });
 });

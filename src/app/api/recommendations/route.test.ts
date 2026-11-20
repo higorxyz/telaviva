@@ -114,6 +114,51 @@ describe('POST /api/recommendations', () => {
     expect(lookups).toHaveLength(12 * 10);
   });
 
+  it('asks at most 120 provider lookups per request, however many seeds and unavailable titles', async () => {
+    const lookups: string[] = [];
+    server.use(
+      http.get(`${BASE}/movie/:id/recommendations`, () => HttpResponse.json(moviePage)),
+      http.get(`${BASE}/trending/all/week`, () => HttpResponse.json({ ...trendingAll, results: [] })),
+      http.get(`${BASE}/:media/:id/watch/providers`, ({ params }) => {
+        lookups.push(String(params.id));
+        return HttpResponse.json({ id: Number(params.id), results: {} });
+      }),
+    );
+    expect(moviePage.results.length).toBe(20);
+    const seeds = Array.from({ length: 12 }, (_, i) => seed(7300 + i));
+    expect((await call({ seeds, exclude: [] })).status).toBe(200);
+    expect(lookups.length).toBeLessThanOrEqual(120);
+
+    // A single seed still gets its whole page screened.
+    lookups.length = 0;
+    await call({ seeds: [seed(7400)], exclude: [] });
+    expect(lookups).toHaveLength(20);
+  });
+
+  it('413 for a body over 64 KB, before parsing it', async () => {
+    const res = await call(JSON.stringify({ seeds: [seed(1)], exclude: [], pad: 'x'.repeat(64 * 1024) }), true);
+    expect(res.status).toBe(413);
+  });
+
+  it('429 with Retry-After after 30 requests a minute from one IP', async () => {
+    server.use(
+      http.get(`${BASE}/movie/7500/recommendations`, () => HttpResponse.json(moviePage)),
+      http.get(`${BASE}/trending/all/week`, () => HttpResponse.json(trendingAll)),
+    );
+    const fromIp = () =>
+      POST(
+        new Request('http://localhost/api/recommendations', {
+          method: 'POST',
+          headers: { 'x-forwarded-for': '192.0.2.77' },
+          body: JSON.stringify({ seeds: [seed(7500)], exclude: [] }),
+        }),
+      );
+    for (let i = 0; i < 30; i++) expect((await fromIp()).status).toBe(200);
+    const blocked = await fromIp();
+    expect(blocked.status).toBe(429);
+    expect(blocked.headers.get('retry-after')).toMatch(/^\d+$/);
+  });
+
   it.each([
     ['not json', '{oops', true],
     ['no seeds', { seeds: [], exclude: [] }, false],

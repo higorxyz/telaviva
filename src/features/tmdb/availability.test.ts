@@ -101,6 +101,19 @@ describe('screenAvailableInBr / filterAvailableInBr', () => {
     expect(asked).toHaveLength(10);
   });
 
+  it('asks at most maxLookups titles, even when none of them is available', async () => {
+    const asked: string[] = [];
+    server.use(
+      http.get(`${BASE}/:media/:id/watch/providers`, ({ params }) => {
+        asked.push(String(params.id));
+        return HttpResponse.json({ id: Number(params.id), results: {} });
+      }),
+    );
+    const items = Array.from({ length: 20 }, (_, i) => movie({ id: 600 + i }));
+    expect(await filterAvailableInBr(items, { limit: 10, maxLookups: 13 })).toEqual([]);
+    expect(asked).toHaveLength(13);
+  });
+
   it(`keeps at most ${MAX_PROVIDER_LOOKUPS_IN_FLIGHT} provider lookups in flight, across parallel callers`, async () => {
     let inFlight = 0;
     let peak = 0;

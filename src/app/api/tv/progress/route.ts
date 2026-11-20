@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import { toProgressInfo, type TvProgressInfo } from '@/features/library/progress';
 import { isTmdbNotFound } from '@/features/tmdb/client';
 import { getTvProgressSource } from '@/features/tmdb/tv';
+import { limitByIp } from '@/lib/api-guard';
 
 const MAX_IDS = 40;
 
@@ -16,6 +17,8 @@ function parseIds(raw: string): number[] | null {
 }
 
 export async function GET(request: Request) {
+  const limited = limitByIp(request);
+  if (limited) return limited;
   const ids = parseIds(new URL(request.url).searchParams.get('ids') ?? '');
   if (!ids) {
     return NextResponse.json({ error: `Informe de 1 a ${MAX_IDS} ids numéricos.` }, { status: 400 });

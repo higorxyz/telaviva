@@ -1,15 +1,22 @@
 import { NextResponse } from 'next/server';
 import { z } from 'zod';
 import { mediaKey } from '@/features/catalog/media-key';
-import { scoreRecommendations, type Seed } from '@/features/library/recommend';
+import { MAX_EXCLUDE_KEYS, MAX_SEEDS, scoreRecommendations, type Seed } from '@/features/library/recommend';
 import { getTrending } from '@/features/tmdb/movies';
 import { getRecommendationsFor } from '@/features/tmdb/recommendations';
 import type { MediaSummary } from '@/features/tmdb/types';
+import { limitByIp, readJsonBody } from '@/lib/api-guard';
 
 const MIN_RESULTS = 10;
 /** Seeds asked at once, and available titles kept per seed: bounds the provider lookups one request can start. */
 const SEED_BATCH = 4;
 const RECS_PER_SEED = 10;
+/**
+ * Provider lookups the seeds of one request may ask for, split evenly (a recommendations page has 20 titles). The
+ * trending padding is not counted: it is one entry shared by every visitor, screened once per cache lifetime.
+ */
+const MAX_LOOKUPS = 120;
+const RECS_PAGE_SIZE = 20;
 
 const bodySchema = z.object({
   seeds: z
@@ -22,31 +29,38 @@ const bodySchema = z.object({
       }),
     )
     .min(1)
-    .max(12),
+    .max(MAX_SEEDS),
   exclude: z
     .array(z.string().regex(/^(movie|tv):\d+$/))
-    .max(500),
+    .max(MAX_EXCLUDE_KEYS),
 });
 
 export async function POST(request: Request) {
-  let json: unknown;
-  try {
-    json = await request.json();
-  } catch {
-    return NextResponse.json({ error: 'Corpo inválido.' }, { status: 400 });
+  const limited = limitByIp(request);
+  if (limited) return limited;
+  const body = await readJsonBody(request);
+  if (!body.ok) {
+    const error = body.status === 413 ? 'Corpo grande demais.' : 'Corpo inválido.';
+    return NextResponse.json({ error }, { status: body.status });
   }
-  const parsed = bodySchema.safeParse(json);
+  const parsed = bodySchema.safeParse(body.value);
   if (!parsed.success) {
-    return NextResponse.json({ error: 'Informe de 1 a 12 sementes e até 500 chaves de exclusão.' }, { status: 400 });
+    return NextResponse.json(
+      { error: `Informe de 1 a ${MAX_SEEDS} sementes e até ${MAX_EXCLUDE_KEYS} chaves de exclusão.` },
+      { status: 400 },
+    );
   }
   const seeds: Seed[] = parsed.data.seeds;
   const exclude = new Set(parsed.data.exclude);
+  const lookupsPerSeed = Math.min(RECS_PAGE_SIZE, Math.floor(MAX_LOOKUPS / seeds.length));
 
   const settled: PromiseSettledResult<MediaSummary[]>[] = [];
   for (let start = 0; start < seeds.length; start += SEED_BATCH) {
     const batch = seeds.slice(start, start + SEED_BATCH);
     settled.push(
-      ...(await Promise.allSettled(batch.map((s) => getRecommendationsFor(s.mediaType, s.tmdbId, RECS_PER_SEED)))),
+      ...(await Promise.allSettled(
+        batch.map((s) => getRecommendationsFor(s.mediaType, s.tmdbId, RECS_PER_SEED, lookupsPerSeed)),
+      )),
     );
   }
   const bySeed = new Map<string, MediaSummary[]>();
