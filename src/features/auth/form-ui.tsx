@@ -77,15 +77,16 @@ export function PasswordField(props: Omit<FieldProps, 'type'>) {
   );
 }
 
-/** The error under a form: announced on arrival; `hint` is a quieter line under it. */
+/**
+ * The error under a form, announced on arrival together with `hint` (a quieter line under it). Give it a new `key`
+ * per attempt, so the same error after another try mounts again and is announced again.
+ */
 export function FormError({ id, message, hint }: { id?: string; message: string; hint?: string | null }) {
   return (
-    <div className="flex gap-2.5">
+    <div id={id} role="alert" className="flex gap-2.5">
       <CircleAlert aria-hidden="true" className="mt-0.5 size-5 shrink-0 text-amber" />
       <div>
-        <p id={id} role="alert" className="font-sans text-sm font-medium text-ivory">
-          {message}
-        </p>
+        <p className="font-sans text-sm font-medium text-ivory">{message}</p>
         {hint ? <p className="mt-1 font-sans text-sm text-ivory-muted">{hint}</p> : null}
       </div>
     </div>

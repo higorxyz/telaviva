@@ -21,6 +21,8 @@ type State =
 export function ForgotPassword({ initialEmail, onBack }: { initialEmail: string; onBack(): void }) {
   const [email, setEmail] = useState(initialEmail);
   const [state, setState] = useState<State>({ kind: 'idle' });
+  // One per submit: the error's key, so a repeated identical error is announced again.
+  const [tries, setTries] = useState(0);
   const input = useRef<HTMLInputElement>(null);
 
   // The form replaced the one that had focus: carry focus over to its field.
@@ -31,6 +33,7 @@ export function ForgotPassword({ initialEmail, onBack }: { initialEmail: string;
   async function submit(event: FormEvent) {
     event.preventDefault();
     if (state.kind === 'sending') return;
+    setTries((n) => n + 1);
     const address = email.trim();
     if (!looksLikeEmail(address)) return setState({ kind: 'error', message: INVALID_EMAIL, field: true });
     setState({ kind: 'sending' });
@@ -79,11 +82,12 @@ export function ForgotPassword({ initialEmail, onBack }: { initialEmail: string;
         />
         {state.kind === 'error' ? (
           <div className="mt-1">
-            <FormError id={ERROR_ID} message={state.message} />
+            <FormError key={tries} id={ERROR_ID} message={state.message} />
           </div>
         ) : null}
-        {/* Always in the DOM so screen readers announce the message; no box (and no gap) while empty. */}
-        <div role="status" className="empty:contents">
+        {/* Always rendered (Safari drops live regions that are display: none or contents), so the message is
+            announced; while empty it has no height and cancels the gap above it. */}
+        <div role="status" className="empty:-mt-3">
           {state.kind === 'sent' ? (
             <p className="flex gap-2.5 font-sans text-sm text-ivory">
               <MailCheck aria-hidden="true" className="mt-0.5 size-5 shrink-0 text-amber" />
@@ -91,7 +95,12 @@ export function ForgotPassword({ initialEmail, onBack }: { initialEmail: string;
             </p>
           ) : null}
         </div>
-        <Button type="submit" variant="primary" disabled={state.kind === 'sending'} className="mt-3 h-12 w-full">
+        <Button
+          type="submit"
+          variant="primary"
+          aria-disabled={state.kind === 'sending' || undefined}
+          className="mt-3 h-12 w-full"
+        >
           {state.kind === 'sending' ? 'Enviando…' : 'Enviar link'}
         </Button>
       </form>

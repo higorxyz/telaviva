@@ -3,6 +3,7 @@ import { http, HttpResponse } from 'msw';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { adminAuthMock, resetAdminAuthMock, stubAuthEnv } from '@/test/admin-auth';
 import { server } from '@/test/server';
+import { env } from '@/lib/env';
 
 // `after()` needs Next's request scope: here it runs the task at once and keeps its promise, so a test can wait for
 // the work that follows the response.
@@ -25,14 +26,16 @@ import { POST } from './route';
 
 const MESSAGE = 'Se esse e-mail estiver cadastrado e confirmado, você vai receber um link para criar uma nova senha.';
 const LOCAL = 'http://localhost:3000';
+// The site itself, as a browser calling the same API would say (keeps a referrer-restricted key from failing silently).
+const SITE_REFERER = `${new URL(env.SITE_URL).origin}/`;
 
-type Sent = { url: string; body: unknown };
+type Sent = { url: string; body: unknown; referer: string | null };
 let sent: Sent[];
 
 function listen(base = 'https://identitytoolkit.googleapis.com/v1/*') {
   server.use(
     http.post(base, async ({ request }) => {
-      sent.push({ url: request.url, body: await request.json() });
+      sent.push({ url: request.url, body: await request.json(), referer: request.headers.get('referer') });
       return HttpResponse.json({ email: 'ana@example.com' });
     }),
   );
@@ -78,6 +81,7 @@ describe('POST /api/auth/password-reset', () => {
       {
         url: 'https://identitytoolkit.googleapis.com/v1/accounts:sendOobCode?key=test-api-key',
         body: { requestType: 'PASSWORD_RESET', email: 'ana@example.com' },
+        referer: SITE_REFERER,
       },
     ]);
   });

@@ -88,9 +88,32 @@ describe('SignInView', () => {
     render(<SignInView />);
     const u = await fill('ana@exemplo.com', 'senha-errada');
     await u.click(screen.getByRole('button', { name: 'Entrar' }));
-    expect(await screen.findByRole('alert')).toHaveTextContent('E-mail ou senha incorretos.');
-    expect(screen.getByText(GOOGLE_HINT)).toBeInTheDocument();
+    const alert = await screen.findByRole('alert');
+    expect(alert).toHaveTextContent('E-mail ou senha incorretos.');
+    // The hint is inside the alert, so it is announced with it.
+    expect(alert).toHaveTextContent(GOOGLE_HINT);
+    expect(screen.getByLabelText('E-mail')).not.toHaveAttribute('aria-describedby');
     expect(auth.current.signInWithEmail).toHaveBeenCalledWith('ana@exemplo.com', 'senha-errada');
+  });
+
+  it('mounts a fresh alert when the same error comes back, so it is announced again', async () => {
+    vi.mocked(auth.current.signInWithEmail).mockRejectedValue(authError('auth/invalid-credential'));
+    render(<SignInView />);
+    const u = await fill('ana@exemplo.com', 'senha-errada');
+    await u.click(screen.getByRole('button', { name: 'Entrar' }));
+    const first = await screen.findByRole('alert');
+    await u.click(screen.getByRole('button', { name: 'Entrar' }));
+    const second = await screen.findByRole('alert');
+    expect(second).toHaveTextContent('E-mail ou senha incorretos.');
+    expect(second).not.toBe(first);
+
+    await u.clear(screen.getByLabelText('E-mail'));
+    await u.type(screen.getByLabelText('E-mail'), 'ana@');
+    await u.click(screen.getByRole('button', { name: 'Entrar' }));
+    const invalid = screen.getByRole('alert');
+    await u.click(screen.getByRole('button', { name: 'Entrar' }));
+    expect(screen.getByRole('alert')).toHaveTextContent('Confira o e-mail digitado.');
+    expect(screen.getByRole('alert')).not.toBe(invalid);
   });
 
   it('shows other errors without the Google hint, and clears them on the other tab', async () => {
@@ -105,17 +128,25 @@ describe('SignInView', () => {
     expect(screen.queryByRole('alert')).not.toBeInTheDocument();
   });
 
-  it('disables both buttons with a pending label while signing in', async () => {
+  it('marks both buttons unavailable while signing in, keeping focus and ignoring more clicks', async () => {
     const pending = deferred();
     vi.mocked(auth.current.signInWithEmail).mockReturnValueOnce(pending.promise);
     render(<SignInView />);
     const u = await fill('ana@exemplo.com', 'senha-boa-123');
     await u.click(screen.getByRole('button', { name: 'Entrar' }));
-    expect(screen.getByRole('button', { name: 'Entrando…' })).toBeDisabled();
-    expect(screen.getByRole('button', { name: 'Continuar com Google' })).toBeDisabled();
+    const submit = screen.getByRole('button', { name: 'Entrando…' });
+    const google = screen.getByRole('button', { name: 'Continuar com Google' });
+    expect(submit).toHaveAttribute('aria-disabled', 'true');
+    expect(google).toHaveAttribute('aria-disabled', 'true');
+    // aria-disabled, not disabled: the focused button keeps focus for keyboard and screen reader users.
+    expect(submit).toHaveFocus();
+    await u.click(submit);
+    await u.click(google);
+    expect(auth.current.signInWithEmail).toHaveBeenCalledTimes(1);
+    expect(auth.current.signInWithGoogle).not.toHaveBeenCalled();
     await act(async () => pending.reject(authError('auth/too-many-requests')));
     expect(screen.getByRole('alert')).toHaveTextContent('Muitas tentativas. Espere um pouco e tente de novo.');
-    expect(screen.getByRole('button', { name: 'Entrar' })).toBeEnabled();
+    expect(screen.getByRole('button', { name: 'Entrar' })).not.toHaveAttribute('aria-disabled');
   });
 
   it('says nothing when the Google popup is closed, and the copy for other Google errors', async () => {

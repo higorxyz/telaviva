@@ -1,6 +1,7 @@
 import 'server-only';
 import { publicFirebaseConfig } from '@/lib/auth-config';
 import { looksLikeEmail } from '@/lib/email';
+import { env } from '@/lib/env';
 import { describeError } from '@/lib/setup-error';
 import { getAdminAuth } from './admin';
 
@@ -55,8 +56,14 @@ export async function sendResetIfVerified(email: string): Promise<void> {
     }
     const response = await fetch(sendOobCodeUrl(apiKey), {
       method: 'POST',
-      // Firebase writes the e-mail in this language when the template is the default one.
-      headers: { 'Content-Type': 'application/json', 'X-Firebase-Locale': 'pt-BR' },
+      headers: {
+        'Content-Type': 'application/json',
+        // Firebase writes the e-mail in this language when the template is the default one.
+        'X-Firebase-Locale': 'pt-BR',
+        // The site itself, like the browser's own calls with this key. The key must still carry no HTTP-referrer
+        // restriction (docs/setup/fase3-contas.md): a server's Referer is not something to rely on.
+        Referer: `${new URL(env.SITE_URL).origin}/`,
+      },
       body: JSON.stringify({ requestType: 'PASSWORD_RESET', email }),
       signal: AbortSignal.timeout(SEND_TIMEOUT_MS),
     });

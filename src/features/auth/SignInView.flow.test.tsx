@@ -46,6 +46,11 @@ describe('SignInView: where it goes next', () => {
     expect(nav.replace).toHaveBeenLastCalledWith('/minha-lista?aba=assistindo');
     unmount();
     nav.search = 'voltar=%2F%2Fmal.com';
+    const second = render(<SignInView />);
+    expect(nav.replace).toHaveBeenLastCalledWith('/conta');
+    second.unmount();
+    // Dot segments that the URL parser would collapse into //evil.com: no zero-click bounce off the site.
+    nav.search = `voltar=${encodeURIComponent('/.//evil.com')}`;
     render(<SignInView />);
     expect(nav.replace).toHaveBeenLastCalledWith('/conta');
   });

@@ -31,6 +31,18 @@ describe('safeReturnTo', () => {
     ' //mal.com',
     'javascript:alert(1)',
     'data:text/html,oi',
+    // Dot segments the URL parser collapses into a protocol-relative `//host` after the raw checks passed.
+    '/.//evil.com',
+    '/..//evil.com',
+    '/%2e//evil.com',
+    '/%2e%2e//evil.com',
+    '/x/..//evil.com',
+    '/./\\evil.com',
+    // Mixed encodings and separators of the same trick.
+    '/%2E%2e//evil.com',
+    '/.%2e//evil.com',
+    '/x/%2e%2E/\\evil.com',
+    '/./\t/evil.com',
   ])('falls back for %j', (raw) => {
     expect(safeReturnTo(raw, FALLBACK)).toBe(FALLBACK);
   });

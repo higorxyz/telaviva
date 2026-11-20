@@ -33,6 +33,8 @@ export function SignInView() {
   /** A sign-in started here is running (and stays set once it succeeded): its own handler picks the destination. */
   const [busy, setBusy] = useState<Busy>(null);
   const [googleError, setGoogleError] = useState<string | null>(null);
+  /** One per Google click: the error's key, so a repeated identical error is announced again. */
+  const [googleTries, setGoogleTries] = useState(0);
   /** Back from the Google redirect: this is a fresh sign-in, not someone already signed in. */
   const fresh = useRef(false);
   const left = useRef(false);
@@ -77,6 +79,7 @@ export function SignInView() {
 
   async function google() {
     if (busy) return;
+    setGoogleTries((n) => n + 1);
     setGoogleError(null);
     setGoogleError(await attempt('google', auth.signInWithGoogle));
   }
@@ -105,7 +108,7 @@ export function SignInView() {
           <button
             type="button"
             onClick={google}
-            disabled={busy !== null}
+            aria-disabled={busy !== null || undefined}
             className={cn(buttonClasses({ variant: 'ghost' }), 'h-12 w-full gap-3 bg-ink-900')}
           >
             <GoogleMark className="size-5" />
@@ -113,7 +116,7 @@ export function SignInView() {
           </button>
           {googleError ? (
             <div className="mt-3">
-              <FormError message={googleError} />
+              <FormError key={googleTries} message={googleError} />
             </div>
           ) : null}
 

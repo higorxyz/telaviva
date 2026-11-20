@@ -50,7 +50,9 @@ describe('ForgotPassword', () => {
     );
     const { u } = setup('ana@exemplo.com');
     await u.click(screen.getByRole('button', { name: 'Enviar link' }));
-    expect(await screen.findByRole('button', { name: 'Enviando…' })).toBeDisabled();
+    const sending = await screen.findByRole('button', { name: 'Enviando…' });
+    expect(sending).toHaveAttribute('aria-disabled', 'true');
+    expect(sending).toHaveFocus();
     release();
     await screen.findByText(MESSAGE);
     expect(screen.getByRole('status')).toHaveTextContent(MESSAGE);
@@ -63,7 +65,8 @@ describe('ForgotPassword', () => {
     expect(await screen.findByRole('alert')).toHaveTextContent('Muitas tentativas. Espere um pouco e tente de novo.');
     server.use(http.post(endpoint(), () => HttpResponse.error()));
     await u.click(screen.getByRole('button', { name: 'Enviar link' }));
-    expect(await screen.findByText('Sem conexão. Verifique sua internet.')).toHaveAttribute('role', 'alert');
+    await screen.findByText('Sem conexão. Verifique sua internet.');
+    expect(screen.getByRole('alert')).toHaveTextContent('Sem conexão. Verifique sua internet.');
     expect(screen.getByRole('status')).toBeEmptyDOMElement();
   });
 

@@ -137,4 +137,5 @@ Rode de novo sempre que o esquema mudar (cada migração é aplicada só uma vez
 - **Nunca** commite o arquivo `.json` da conta de serviço, a `private_key`, o `.env.local` ou o `DATABASE_URL`.
 - **Nunca** coloque a chave privada, o `client_email` ou o `DATABASE_URL` em variável com prefixo `NEXT_PUBLIC_`: tudo que tem esse prefixo vai para o navegador de qualquer visitante.
 - **Nunca** cole esses valores em issues, PRs, prints ou conversas.
+- **Não** adicione restrição por "referenciadores HTTP" à chave de API web (`NEXT_PUBLIC_FIREBASE_API_KEY`) no Google Cloud: o servidor usa essa chave para pedir o e-mail de nova senha, e a restrição faria esse envio falhar sem aviso.
 - Se a chave vazar: Firebase → **Configurações do projeto** → **Contas de serviço** → procure por **Gerenciar permissões da conta de serviço** (abre o Google Cloud) → **Chaves** → apague a chave comprometida e gere outra.

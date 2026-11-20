@@ -42,6 +42,8 @@ export function EmailForm({ mode, busy, initialEmail, onAttempt, onForgot, forgo
   // Kept with its mode: switching tabs hides it without an effect.
   const [error, setError] = useState<FormErrorState | null>(null);
   const shown = error?.mode === mode ? error : null;
+  // One per submit: the error's key, so a repeated identical error is announced again.
+  const [attempts, setAttempts] = useState(0);
 
   function invalid(message: string, field: FormErrorState['field']) {
     setError({ mode, message, field });
@@ -50,6 +52,7 @@ export function EmailForm({ mode, busy, initialEmail, onAttempt, onForgot, forgo
   async function submit(event: FormEvent) {
     event.preventDefault();
     if (busy) return;
+    setAttempts((n) => n + 1);
     const address = email.trim();
     if (!looksLikeEmail(address)) return invalid(INVALID_EMAIL, 'email');
     if (mode === 'criar' && password.length < MIN_PASSWORD) return invalid(WEAK_PASSWORD, 'password');
@@ -120,13 +123,14 @@ export function EmailForm({ mode, busy, initialEmail, onAttempt, onForgot, forgo
       {shown ? (
         <div className="mt-1">
           <FormError
+            key={attempts}
             id={ERROR_ID}
             message={shown.message}
             hint={shown.message === WRONG_CREDENTIALS ? GOOGLE_HINT : null}
           />
         </div>
       ) : null}
-      <Button type="submit" variant="primary" disabled={busy !== null} className="mt-3 h-12 w-full">
+      <Button type="submit" variant="primary" aria-disabled={busy !== null || undefined} className="mt-3 h-12 w-full">
         {busy === 'email' ? submitLabel.pending : submitLabel.idle}
       </Button>
     </form>
