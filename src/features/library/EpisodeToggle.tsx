@@ -2,8 +2,9 @@
 
 import { Check } from 'lucide-react';
 import { cn } from '@/lib/cn';
+import { UNDOABLE } from './copy';
 import { useLibraryActions, useLibraryEntry } from './hooks';
-import { episodeCode, marksUpTo, type EpisodeRef, type TvProgressInfo } from './progress';
+import { episodeCode, marksThrough, type EpisodeRef, type TvProgressInfo } from './progress';
 import type { TitleSnapshot } from './types';
 
 const PILL =
@@ -69,16 +70,20 @@ export function EpisodeToggle({
         <button
           type="button"
           disabled={!ready}
-          aria-label={`Marcar até ${episodeCode(episode)}`}
+          // The accessible name starts with the visible text (WCAG 2.5.3).
+          aria-label={`Até aqui: marcar até ${episodeCode(episode)}`}
           onClick={() =>
-            run({
-              type: 'setEpisodes',
-              tvId,
-              marks: marksUpTo(info, episode),
-              watched: true,
-              snapshot,
-              progress: info,
-            })
+            run(
+              {
+                type: 'setEpisodes',
+                tvId,
+                marks: marksThrough(info, episode),
+                watched: true,
+                snapshot,
+                progress: info,
+              },
+              { undoable: UNDOABLE.markedUpTo(episode) },
+            )
           }
           className={cn(PILL, 'px-3 text-ivory-muted hover:text-ivory')}
         >

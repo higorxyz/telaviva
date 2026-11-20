@@ -114,14 +114,17 @@ describe('SeriesActions', () => {
     expect(screen.getByRole('button', { name: 'Quero ver', pressed: false })).toBeInTheDocument();
   });
 
-  it('sends setStatus with progress for "Assistido", without a toast', async () => {
+  it('sends setStatus with progress for "Assistido", with an undo that restores the marks', async () => {
     const { user, applied } = setup(withStatus('watching'));
     await waitFor(() => expect(trigger('Assistindo')).toBeEnabled());
     await user.click(trigger('Assistindo'));
     await user.click(option('Assistido'));
     expect(applied).toEqual([{ type: 'setStatus', ref, status: 'watched', snapshot, progress: info }]);
     await waitFor(() => expect(trigger('Assistido')).toBeInTheDocument());
-    expect(screen.queryByRole('button', { name: 'Desfazer' })).toBeNull();
+    expect(await screen.findByText('Série marcada como assistida')).toBeInTheDocument();
+    await user.click(screen.getByRole('button', { name: 'Desfazer' }));
+    await waitFor(() => expect(trigger('Assistindo')).toBeInTheDocument());
+    expect(applied[1]).toMatchObject({ type: 'restore', item: { status: 'watching' }, marks: [] });
   });
 
   it('removes with the removal toast', async () => {

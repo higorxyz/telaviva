@@ -96,9 +96,11 @@ describe('EpisodeToggle', () => {
     );
   });
 
-  it('"Até aqui" sends every aired episode up to this one', async () => {
+  it('"Até aqui" sends every aired episode up to this one, and its name contains the visible text', async () => {
     const { user, applied } = setup({ season: 2, episode: 1 });
-    await user.click(await screen.findByRole('button', { name: 'Marcar até T2E1' }));
+    const button = await screen.findByRole('button', { name: 'Até aqui: marcar até T2E1' });
+    expect(button).toHaveTextContent('Até aqui');
+    await user.click(button);
     expect(applied).toEqual([
       {
         type: 'setEpisodes',
@@ -116,18 +118,43 @@ describe('EpisodeToggle', () => {
     ]);
   });
 
+  it('"Até aqui" offers an undo that puts the marks back as they were', async () => {
+    const { user, applied } = setup({ season: 2, episode: 1 }, { ...EMPTY_LIBRARY, episodes: [mark(1, 1)] });
+    await user.click(await screen.findByRole('button', { name: 'Até aqui: marcar até T2E1' }));
+    expect(await screen.findByText('Marcado até T2E1')).toBeInTheDocument();
+    await user.click(screen.getByRole('button', { name: 'Desfazer' }));
+    await waitFor(() => expect(applied).toHaveLength(2));
+    expect(applied[1]).toMatchObject({ type: 'restore', item: null, marks: [mark(1, 1)] });
+  });
+
+  it('"Até aqui" on an episode aired today but past TMDb\'s last aired one still marks it', async () => {
+    // info.lastAired is T2E2; the page knows T2E2 aired, and pretends a third T2 episode aired today.
+    const { user, applied } = setup({ season: 2, episode: 3 });
+    await user.click(await screen.findByRole('button', { name: 'Até aqui: marcar até T2E3' }));
+    const marks = (applied[0] as { marks: { seasonNumber: number; episodeNumber: number }[] }).marks;
+    expect(marks.at(-1)).toEqual({ seasonNumber: 2, episodeNumber: 3 });
+    expect(marks).toHaveLength(6);
+  });
+
+  it('a single episode toggle shows no toast', async () => {
+    const { user } = setup({});
+    await user.click(await screen.findByRole('button', { name: 'Marcar como visto' }));
+    await screen.findByRole('button', { name: 'Visto' });
+    expect(screen.queryByRole('button', { name: 'Desfazer' })).toBeNull();
+  });
+
   it('is disabled with "Ainda não exibido" and has no "Até aqui" for an unaired episode', async () => {
     setup({ aired: false });
     const button = await screen.findByRole('button', { name: 'Ainda não exibido' });
     expect(button).toBeDisabled();
     expect(button).toHaveAttribute('aria-disabled', 'true');
-    expect(screen.queryByRole('button', { name: /Marcar até/ })).toBeNull();
+    expect(screen.queryByRole('button', { name: /Até aqui/ })).toBeNull();
   });
 
   it('has no "Até aqui" for specials, but can still mark them', async () => {
     const { user, applied } = setup({ season: 0, episode: 1 });
     await user.click(await screen.findByRole('button', { name: 'Marcar como visto' }));
-    expect(screen.queryByRole('button', { name: /Marcar até/ })).toBeNull();
+    expect(screen.queryByRole('button', { name: /Até aqui/ })).toBeNull();
     expect(applied[0]).toMatchObject({ marks: [{ seasonNumber: 0, episodeNumber: 1 }], watched: true });
   });
 });

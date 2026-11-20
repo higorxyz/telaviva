@@ -2,7 +2,15 @@ import { describe, expect, it } from 'vitest';
 import tv1399 from '@/test/fixtures/tv-1399.json';
 import { tvDetailSchema } from '../tmdb/detail-schemas';
 import { toTvDetails } from '../tmdb/detail-mappers';
-import { airedEpisodes, episodeCode, marksUpTo, seriesProgress, toProgressInfo, type TvProgressInfo } from './progress';
+import {
+  airedEpisodes,
+  episodeCode,
+  marksThrough,
+  marksUpTo,
+  seriesProgress,
+  toProgressInfo,
+  type TvProgressInfo,
+} from './progress';
 import type { EpisodeMark } from './types';
 
 const info = (over: Partial<TvProgressInfo> = {}): TvProgressInfo => ({
@@ -104,6 +112,29 @@ describe('seriesProgress', () => {
 describe('helpers', () => {
   it('marksUpTo includes aired episodes through the target', () => {
     expect(marksUpTo(info(), { seasonNumber: 2, episodeNumber: 3 })).toHaveLength(13);
+  });
+
+  it('marksThrough equals marksUpTo for an episode TMDb already counts as aired', () => {
+    const target = { seasonNumber: 2, episodeNumber: 3 };
+    expect(marksThrough(info(), target)).toEqual(marksUpTo(info(), target));
+  });
+
+  it('marksThrough includes an episode aired today that lastAired does not count yet, and its season before it', () => {
+    // lastAired is T3E4; T3E6 aired today (the page knows it by date), T3E5 too.
+    const marks = marksThrough(info(), { seasonNumber: 3, episodeNumber: 6 });
+    expect(marks).toHaveLength(26);
+    expect(marks.slice(-3)).toEqual([
+      { seasonNumber: 3, episodeNumber: 4 },
+      { seasonNumber: 3, episodeNumber: 5 },
+      { seasonNumber: 3, episodeNumber: 6 },
+    ]);
+    // First episode of a brand-new season: everything aired before it, plus itself.
+    const premiere = marksThrough(info({ seasons: [...info().seasons, { seasonNumber: 4, episodeCount: 8 }] }), {
+      seasonNumber: 4,
+      episodeNumber: 1,
+    });
+    expect(premiere).toHaveLength(25);
+    expect(premiere.at(-1)).toEqual({ seasonNumber: 4, episodeNumber: 1 });
   });
 
   it('episodeCode formats T{s}E{e}', () => {

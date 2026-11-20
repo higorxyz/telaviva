@@ -1,5 +1,5 @@
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { render, screen } from '@testing-library/react';
+import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { describe, expect, it } from 'vitest';
 import { ToastProvider } from '@/ui/toast/ToastProvider';
@@ -79,6 +79,19 @@ describe('SeasonActions', () => {
         { seasonNumber: 1, episodeNumber: 2 },
       ],
     });
+  });
+
+  it('offers an undo after marking or unmarking a season', async () => {
+    const { user, applied } = setup([1, 2], { ...EMPTY_LIBRARY, episodes: [mark(1)] });
+    await user.click(await screen.findByRole('button', { name: 'Marcar temporada' }));
+    expect(await screen.findByText('Temporada 1 marcada')).toBeInTheDocument();
+    await user.click(screen.getByRole('button', { name: 'Desfazer' }));
+    await waitFor(() => expect(applied).toHaveLength(2));
+    expect(applied[1]).toMatchObject({ type: 'restore', item: null, marks: [mark(1)] });
+
+    await user.click(await screen.findByRole('button', { name: 'Marcar temporada' }));
+    await user.click(await screen.findByRole('button', { name: 'Desmarcar temporada' }));
+    expect(await screen.findByText('Temporada 1 desmarcada')).toBeInTheDocument();
   });
 
   it('renders nothing without aired episodes', async () => {

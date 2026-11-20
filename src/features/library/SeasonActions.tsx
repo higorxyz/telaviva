@@ -2,6 +2,7 @@
 
 import { Check, CircleOff } from 'lucide-react';
 import { buttonClasses } from '@/ui/Button';
+import { UNDOABLE } from './copy';
 import { useLibraryActions, useLibraryEntry } from './hooks';
 import type { TvProgressInfo } from './progress';
 import type { TitleSnapshot } from './types';
@@ -35,14 +36,17 @@ export function SeasonActions({
         disabled={!ready}
         className={buttonClasses({ variant: 'ghost' })}
         onClick={() =>
-          run({
-            type: 'setEpisodes',
-            tvId,
-            marks: airedEpisodeNumbers.map((episodeNumber) => ({ seasonNumber, episodeNumber })),
-            watched: !allMarked,
-            snapshot,
-            progress: info,
-          })
+          run(
+            {
+              type: 'setEpisodes',
+              tvId,
+              marks: airedEpisodeNumbers.map((episodeNumber) => ({ seasonNumber, episodeNumber })),
+              watched: !allMarked,
+              snapshot,
+              progress: info,
+            },
+            { undoable: UNDOABLE.season(seasonNumber, !allMarked) },
+          )
         }
       >
         <Icon aria-hidden="true" className="size-4" />

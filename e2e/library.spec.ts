@@ -62,7 +62,7 @@ test('marking episodes moves the series progress, and it shows in Assistindo and
   // The next episode's name arrives with the season data.
   await expect(card).toContainText(/Próximo: T1E3 · \S/);
 
-  await episode(page, 5).getByRole('button', { name: 'Marcar até T1E5' }).click();
+  await episode(page, 5).getByRole('button', { name: 'Até aqui: marcar até T1E5' }).click();
   await expect(card).toContainText('Próximo: T1E6');
   await expect(card.getByRole('progressbar', { name: 'Episódios vistos' })).toHaveAttribute('aria-valuenow', '5');
   // Marking an episode puts the series in Assistindo.

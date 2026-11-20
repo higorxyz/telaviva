@@ -92,3 +92,18 @@ export function seriesProgress(info: TvProgressInfo, marks: EpisodeMark[]): Seri
 export function marksUpTo(info: TvProgressInfo, target: EpisodeRef): EpisodeRef[] {
   return airedEpisodes(info).filter((ep) => !before(target, ep));
 }
+
+/**
+ * What "Até aqui" marks for an episode the page knows has aired (by its air date). On release day TMDb's
+ * `lastAired` can still point at an earlier episode, so `marksUpTo` alone would leave the target out: the target
+ * and the episodes of its season before it (aired too, in order) are added.
+ */
+export function marksThrough(info: TvProgressInfo, target: EpisodeRef): EpisodeRef[] {
+  const marks = marksUpTo(info, target);
+  const have = new Set(marks.map(refKey));
+  for (let e = 1; e <= target.episodeNumber; e++) {
+    const ref = { seasonNumber: target.seasonNumber, episodeNumber: e };
+    if (!have.has(refKey(ref))) marks.push(ref);
+  }
+  return marks;
+}

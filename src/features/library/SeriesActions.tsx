@@ -65,6 +65,13 @@ function StatusPanel({
   );
 }
 
+/** Saving to "Quero ver" and "Assistido" (which marks every aired episode) can be undone from a toast. */
+function undoableFor(current: LibraryStatus | null, next: LibraryStatus) {
+  if (next === 'watched') return { undoable: UNDOABLE.seriesWatched };
+  if (current === null && next === 'want') return { undoable: UNDOABLE.saved };
+  return undefined;
+}
+
 /** Status selector ("Quero ver" / "Assistindo" / "Assistido") and the personal rating, for a series page. */
 export function SeriesActions({
   tv,
@@ -110,10 +117,7 @@ export function SeriesActions({
             ctx={ctx}
             onPick={(status) => {
               if (status !== current) {
-                run(
-                  { type: 'setStatus', ref, status, snapshot, progress: info },
-                  current === null && status === 'want' ? { undoable: UNDOABLE.saved } : undefined,
-                );
+                run({ type: 'setStatus', ref, status, snapshot, progress: info }, undoableFor(current, status));
               }
               ctx.close();
             }}
