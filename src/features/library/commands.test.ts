@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { applyCommand, findItem, findRating, itemKey } from './commands';
+import { applyCommand, findItem, findRating, itemKey, type LibraryCommand } from './commands';
 import { EMPTY_LIBRARY, type LibraryState, type LibraryStatus, type TitleRef, type TitleSnapshot } from './types';
 
 const NOW = '2026-11-19T12:00:00.000Z';
@@ -167,5 +167,13 @@ describe('restore', () => {
     expect(next.items).toEqual([changed]);
     expect(next.ratings).toEqual([]);
     expect(next.episodes).toEqual([]);
+  });
+
+  it('ignores expectedUpdatedAt locally (only the server checks it)', () => {
+    const full = applyCommand(EMPTY_LIBRARY, { type: 'restore', ref: tv, item, rating, marks: [mark] }, NOW);
+    const changed = { ...item, status: 'want' as const };
+    const command: LibraryCommand = { type: 'restore', ref: tv, item: changed, rating: null, marks: [] };
+    const checked = applyCommand(full, { ...command, expectedUpdatedAt: '2000-01-01T00:00:00.000Z' }, LATER);
+    expect(checked).toEqual(applyCommand(full, command, LATER));
   });
 });

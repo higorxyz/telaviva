@@ -70,14 +70,19 @@ function refOf(command: LibraryCommand): TitleRef {
   return command.type === 'setEpisodes' ? { mediaType: 'tv', tmdbId: command.tvId } : command.ref;
 }
 
-/** The command that puts the title back as it is in `state`. */
-function inverseOf(state: LibraryState, ref: TitleRef): LibraryCommand {
+/**
+ * The command that puts the title back as it is in `state`. It expects the item as `after` holds it: the state the
+ * repository saved for the action, stamped with the repository's own clock (the server's, when signed in), which the
+ * optimistic copy cannot know. The server refuses the undo if the item changed since (another device wrote it).
+ */
+function inverseOf(state: LibraryState, after: LibraryState, ref: TitleRef): LibraryCommand {
   return {
     type: 'restore',
     ref,
     item: findItem(state, ref) ?? null,
     rating: findRating(state, ref) ?? null,
     marks: ref.mediaType === 'tv' ? state.episodes.filter((e) => e.tvId === ref.tmdbId) : [],
+    expectedUpdatedAt: findItem(after, ref)?.updatedAt ?? null,
   };
 }
 
@@ -118,10 +123,10 @@ export function useLibraryActions(): { run(command: LibraryCommand, opts?: RunOp
       if (context?.previous) queryClient.setQueryData(LIBRARY_KEY, context.previous);
       toast.show({ message: NOTICE.saveFailed, tone: 'error' });
     },
-    onSuccess: (_state, { command, undoable }, context) => {
+    onSuccess: (saved, { command, undoable }, context) => {
       // No cache write here: the optimistic value already holds, and an older response could revert it.
       if (undoable && context.previous) {
-        const inverse = inverseOf(context.previous, refOf(command));
+        const inverse = inverseOf(context.previous, saved, refOf(command));
         toast.show({
           message: undoable.message,
           action: { label: UNDO_LABEL, onClick: () => mutation.mutate({ command: inverse }) },

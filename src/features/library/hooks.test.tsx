@@ -165,11 +165,38 @@ describe('useLibraryActions', () => {
     expect(await screen.findByText('Removido da sua lista')).toBeInTheDocument();
     fireEvent.click(screen.getByRole('button', { name: 'Desfazer' }));
     await waitFor(() => expect(fake.pending).toHaveLength(2));
-    expect(fake.pending[1]!.command.type).toBe('restore');
+    // After the removal the item did not exist: the undo is refused if it exists by then.
+    expect(fake.pending[1]!.command).toEqual({
+      type: 'restore',
+      ref: movie,
+      item: initial.items[0],
+      rating: null,
+      marks: [],
+      expectedUpdatedAt: null,
+    });
     await waitFor(() => expect(result.current.entry.item?.status).toBe('want'));
     await act(async () => fake.pending[1]!.resolve());
     await waitFor(() => expect(result.current.entry.item?.status).toBe('want'));
     expect(screen.queryByRole('button', { name: 'Desfazer' })).not.toBeInTheDocument();
+  });
+
+  it("the undo expects the item's updatedAt that the repository saved for the action", async () => {
+    const EARLIER = '2026-11-01T08:00:00.000Z';
+    const initial = applyCommand(EMPTY_LIBRARY, setStatus('want'), EARLIER);
+    const { wrapper, fake } = setup(fakeRepository({ initial }));
+    const { result } = renderHook(useAll, { wrapper });
+    await waitFor(() => expect(result.current.entry.ready).toBe(true));
+    act(() => result.current.actions.run(setStatus('watched'), { undoable: { message: 'Marcado como visto' } }));
+    await waitFor(() => expect(fake.pending).toHaveLength(1));
+    await act(async () => fake.pending[0]!.resolve());
+    fireEvent.click(await screen.findByRole('button', { name: 'Desfazer' }));
+    await waitFor(() => expect(fake.pending).toHaveLength(2));
+    // The repository stamped the action with its own clock (NOW), not the optimistic one.
+    expect(fake.pending[1]!.command).toMatchObject({
+      type: 'restore',
+      item: { status: 'want', updatedAt: EARLIER },
+      expectedUpdatedAt: NOW,
+    });
   });
 });
 

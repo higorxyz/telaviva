@@ -14,8 +14,19 @@ export type LibraryCommand =
   | { type: 'remove'; ref: TitleRef }
   | { type: 'rate'; ref: TitleRef; score: number; snapshot: TitleSnapshot }
   | { type: 'unrate'; ref: TitleRef }
-  /** Internal: puts a title back as it was (used by undo). null and [] remove. */
-  | { type: 'restore'; ref: TitleRef; item: LibraryItem | null; rating: Rating | null; marks: EpisodeMark[] }
+  /**
+   * Internal: puts a title back as it was (used by undo). null and [] remove. `expectedUpdatedAt` is the item's
+   * `updatedAt` right after the action being undone (null: the action left no item). The server refuses the restore
+   * when the item changed since then (another device wrote it); this reducer ignores it.
+   */
+  | {
+      type: 'restore';
+      ref: TitleRef;
+      item: LibraryItem | null;
+      rating: Rating | null;
+      marks: EpisodeMark[];
+      expectedUpdatedAt?: string | null;
+    }
   | {
       type: 'setEpisodes';
       tvId: number;
@@ -95,6 +106,8 @@ function rate(state: LibraryState, ref: TitleRef, score: number, snapshot: Title
   return rated;
 }
 
+const episodeKey = (r: { seasonNumber: number; episodeNumber: number }) => `${r.seasonNumber}:${r.episodeNumber}`;
+
 function addMarks(
   episodes: EpisodeMark[],
   tvId: number,
@@ -103,11 +116,15 @@ function addMarks(
   refresh: boolean,
 ): EpisodeMark[] {
   const out = [...episodes];
+  // Indexed by episode: a server library can hold tens of thousands of marks.
+  const index = new Map<string, number>();
+  out.forEach((e, i) => {
+    if (e.tvId === tvId && !index.has(episodeKey(e))) index.set(episodeKey(e), i);
+  });
   for (const r of refs) {
-    const idx = out.findIndex(
-      (e) => e.tvId === tvId && e.seasonNumber === r.seasonNumber && e.episodeNumber === r.episodeNumber,
-    );
-    if (idx === -1) {
+    const idx = index.get(episodeKey(r));
+    if (idx === undefined) {
+      index.set(episodeKey(r), out.length);
       out.push({ tvId, seasonNumber: r.seasonNumber, episodeNumber: r.episodeNumber, watchedAt: now });
     } else if (refresh) {
       out[idx] = { ...out[idx]!, watchedAt: now };
@@ -123,11 +140,10 @@ function setEpisodes(
 ): LibraryState {
   const { tvId, marks, watched, snapshot, progress } = command;
   const ref: TitleRef = { mediaType: 'tv', tmdbId: tvId };
+  const unmarked = new Set(marks.map(episodeKey));
   const episodes = watched
     ? addMarks(state.episodes, tvId, marks, now, true)
-    : state.episodes.filter(
-        (e) => !(e.tvId === tvId && marks.some((m) => m.seasonNumber === e.seasonNumber && m.episodeNumber === e.episodeNumber)),
-      );
+    : state.episodes.filter((e) => !(e.tvId === tvId && unmarked.has(episodeKey(e))));
   const next = { ...state, episodes };
   const existing = findItem(next, ref);
   const hasMarks = episodes.some((e) => e.tvId === tvId);

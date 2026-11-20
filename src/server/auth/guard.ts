@@ -14,6 +14,9 @@ import { readSession, type SessionUser } from './session';
 /** Per-IP budget for minting sessions, separate from the TMDb routes' budget so browsing never blocks sign-in. */
 export const authRateLimiter = createRateLimiter({ limit: 30, windowMs: 60_000 });
 
+/** Per-IP budget for /api/library/*: generous, since marking episodes one by one sends a command per click. */
+export const libraryRateLimiter = createRateLimiter({ limit: 120, windowMs: 60_000 });
+
 const SAFE_METHODS = new Set(['GET', 'HEAD']);
 
 export function authRoutesEnabled(): boolean {
