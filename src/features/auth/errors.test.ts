@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
-import { authErrorMessage, GENERIC_AUTH_ERROR } from './errors';
+import { authErrorMessage, endsSession, GENERIC_AUTH_ERROR } from './errors';
+import { SessionRequestError } from './session-client';
 import { authError } from './test-firebase';
 
 describe('authErrorMessage', () => {
@@ -26,5 +27,22 @@ describe('authErrorMessage', () => {
     expect(authErrorMessage(authError('toString'))).toBe(GENERIC_AUTH_ERROR);
     expect(authErrorMessage(new Error('boom'))).toBe(GENERIC_AUTH_ERROR);
     expect(authErrorMessage('x')).toBe(GENERIC_AUTH_ERROR);
+  });
+});
+
+describe('endsSession', () => {
+  it.each(['auth/user-token-expired', 'auth/user-disabled', 'auth/user-not-found', 'auth/invalid-user-token'])(
+    'treats %s as the end of the session',
+    (code) => {
+      expect(endsSession(authError(code))).toBe(true);
+    },
+  );
+
+  it('treats a 401 from the session service as definitive, and passing failures as not', () => {
+    expect(endsSession(new SessionRequestError(401))).toBe(true);
+    expect(endsSession(new SessionRequestError(503))).toBe(false);
+    expect(endsSession(new SessionRequestError(null))).toBe(false);
+    expect(endsSession(authError('auth/network-request-failed'))).toBe(false);
+    expect(endsSession(new Error('chunk failed'))).toBe(false);
   });
 });

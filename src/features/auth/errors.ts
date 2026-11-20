@@ -32,7 +32,12 @@ export function authErrorMessage(error: unknown): string | null {
 }
 
 /** Firebase answers that mean the signed-in user cannot get a token any more (not a passing network problem). */
-const SESSION_ENDING_CODES = new Set(['auth/user-token-expired', 'auth/user-disabled', 'auth/user-not-found']);
+const SESSION_ENDING_CODES = new Set([
+  'auth/user-token-expired',
+  'auth/invalid-user-token',
+  'auth/user-disabled',
+  'auth/user-not-found',
+]);
 
 /**
  * True when a failed renewal is a definitive answer (the server refused the token, or Firebase says the user is gone).
