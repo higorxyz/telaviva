@@ -112,6 +112,15 @@ describe('Toaster', () => {
     expect(screen.getByText('quatro')).toBeInTheDocument();
   });
 
+  it('gives both buttons the amber focus-visible outline', () => {
+    const { open } = setup({ message: 'Removido da sua lista', action: { label: 'Desfazer', onClick: () => {} } });
+    open();
+    for (const name of ['Desfazer', 'Fechar aviso']) {
+      const classes = screen.getByRole('button', { name }).className.split(' ');
+      expect(classes).toEqual(expect.arrayContaining(['focus-visible:outline-2', 'focus-visible:outline-amber']));
+    }
+  });
+
   it('marks the error tone', () => {
     const { open } = setup({ message: 'Falhou', tone: 'error' });
     open();

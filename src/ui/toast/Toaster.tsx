@@ -10,6 +10,8 @@ export interface ToastEntry extends ToastInput {
 }
 
 const LIFETIME_MS = 5000;
+// The amber ring used across the app; the toast's 4px inner padding leaves room for it.
+const FOCUS = 'focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-amber';
 
 function ToastItem({ toast, onDismiss }: { toast: ToastEntry; onDismiss: (id: number) => void }) {
   const [hovered, setHovered] = useState(false);
@@ -51,7 +53,7 @@ function ToastItem({ toast, onDismiss }: { toast: ToastEntry; onDismiss: (id: nu
             toast.action?.onClick();
             onDismiss(id);
           }}
-          className="min-h-11 shrink-0 rounded-xl px-3 font-medium text-amber hover:text-amber-strong"
+          className={cn('min-h-11 shrink-0 rounded-xl px-3 font-medium text-amber hover:text-amber-strong', FOCUS)}
         >
           {toast.action.label}
         </button>
@@ -60,7 +62,10 @@ function ToastItem({ toast, onDismiss }: { toast: ToastEntry; onDismiss: (id: nu
         type="button"
         aria-label="Fechar aviso"
         onClick={() => onDismiss(id)}
-        className="flex size-11 shrink-0 items-center justify-center rounded-xl text-ivory-muted hover:text-ivory"
+        className={cn(
+          'flex size-11 shrink-0 items-center justify-center rounded-xl text-ivory-muted hover:text-ivory',
+          FOCUS,
+        )}
       >
         <X aria-hidden="true" className="size-4" />
       </button>
