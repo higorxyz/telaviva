@@ -35,6 +35,8 @@ export function resetSignIn() {
     sendVerification: vi.fn(async () => {}),
     signOut: vi.fn(async () => {}),
     refresh: vi.fn(async () => {}),
+    reauthenticate: vi.fn(async () => true),
+    accountDeleted: vi.fn(async () => {}),
   };
 }
 

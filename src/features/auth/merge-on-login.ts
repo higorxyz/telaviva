@@ -11,7 +11,7 @@ export const preMergeKey = (uid: string) => `${KEY}:pre-merge:${uid}`;
  * Fingerprint of a local copy the account already confirmed but that could not be cleared (no room for the backup).
  * It stops the same copy from being sent, and announced, on every load.
  */
-const confirmedKey = (uid: string) => `${KEY}:merged:${uid}`;
+export const confirmedKey = (uid: string) => `${KEY}:merged:${uid}`;
 
 /** Well under the route's 2 MB body limit. */
 export const MERGE_CHUNK_BYTES = 1.5 * 1024 * 1024;

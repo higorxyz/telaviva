@@ -8,6 +8,8 @@ export type SessionUser = {
   photoUrl: string | null;
   emailVerified: boolean;
   authTime: number;
+  /** How the sign-in behind the session was made: what signing in again (to delete the account) must use. */
+  provider: 'google' | 'password' | null;
 };
 
 const userBody = z.object({
@@ -18,6 +20,7 @@ const userBody = z.object({
     photoUrl: z.string().nullable(),
     emailVerified: z.boolean(),
     authTime: z.number(),
+    provider: z.enum(['google', 'password']).nullable().catch(null),
   }),
 });
 

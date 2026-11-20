@@ -15,7 +15,13 @@ export type SessionUser = {
   emailVerified: boolean;
   /** Seconds since the epoch of the last real sign-in (the token's `auth_time`). */
   authTime: number;
+  /** How that sign-in was made (the token's `firebase.sign_in_provider`): what signing in again must use. */
+  provider: SignInProvider | null;
 };
+
+export type SignInProvider = 'google' | 'password';
+
+const PROVIDERS: Readonly<Record<string, SignInProvider>> = { 'google.com': 'google', password: 'password' };
 
 export const SESSION_DURATION_MS = SESSION_MAX_AGE_SECONDS * 1000;
 /** How fresh a token must be to mint a session, and how recent a sign-in must be to delete the account. */
@@ -58,6 +64,7 @@ function toSessionUser(decoded: DecodedIdToken): SessionUser {
     photoUrl: str(decoded.picture),
     emailVerified: decoded.email_verified === true,
     authTime: decoded.auth_time,
+    provider: PROVIDERS[str(decoded.firebase?.sign_in_provider) ?? ''] ?? null,
   };
 }
 

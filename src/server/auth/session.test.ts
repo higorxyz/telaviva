@@ -42,6 +42,7 @@ describe('createSession', () => {
       photoUrl: 'https://example.com/ana.png',
       emailVerified: true,
       authTime: expect.any(Number),
+      provider: 'google',
     });
     expect(await rowFor('user-1')).toMatchObject({
       email: 'ana@example.com',
@@ -187,8 +188,20 @@ describe('readSession', () => {
       photoUrl: 'https://example.com/ana.png',
       emailVerified: false,
       authTime: 1_700_000_000,
+      provider: 'google',
     });
     expect(adminAuthMock.verifySessionCookie).toHaveBeenCalledWith('cookie', false);
+  });
+
+  it('names the provider of the sign-in behind the session: google, password or null', async () => {
+    const withProvider = (sign_in_provider: string) =>
+      decodedToken({ firebase: { identities: {}, sign_in_provider } });
+    adminAuthMock.verifySessionCookie.mockResolvedValueOnce(withProvider('password'));
+    expect((await readSession('cookie'))?.provider).toBe('password');
+    adminAuthMock.verifySessionCookie.mockResolvedValueOnce(withProvider('custom'));
+    expect((await readSession('cookie'))?.provider).toBeNull();
+    adminAuthMock.verifySessionCookie.mockResolvedValueOnce(decodedToken({ firebase: undefined }));
+    expect((await readSession('cookie'))?.provider).toBeNull();
   });
 
   it('passes checkRevoked through', async () => {

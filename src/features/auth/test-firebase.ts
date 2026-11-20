@@ -51,6 +51,7 @@ export const sdk = {
   browserLocalPersistence: { type: 'LOCAL' },
   browserPopupRedirectResolver: { type: 'resolver' },
   GoogleAuthProvider: class GoogleAuthProvider {},
+  EmailAuthProvider: { credential: (email: string, password: string) => ({ email, password }) },
   signInWithPopup: vi.fn(),
   signInWithRedirect: vi.fn(),
   getRedirectResult: vi.fn(),
@@ -59,6 +60,9 @@ export const sdk = {
   updateProfile: vi.fn(),
   sendEmailVerification: vi.fn(),
   signOut: vi.fn(),
+  reauthenticateWithPopup: vi.fn(),
+  reauthenticateWithRedirect: vi.fn(),
+  reauthenticateWithCredential: vi.fn(),
 };
 
 export const app = { initializeApp: vi.fn(), getApps: vi.fn() };
@@ -95,6 +99,15 @@ export function resetFakeFirebase(): void {
     log.push('signOut');
     fakeAuth.currentUser = null;
   });
+  const reauth = (name: string) => async (user: FakeUser) => {
+    log.push(`${name}:${user.uid}`);
+    return credential(user);
+  };
+  sdk.reauthenticateWithPopup.mockReset().mockImplementation(reauth('reauthenticateWithPopup'));
+  sdk.reauthenticateWithRedirect.mockReset().mockImplementation(async (user: FakeUser) => {
+    log.push(`reauthenticateWithRedirect:${user.uid}`);
+  });
+  sdk.reauthenticateWithCredential.mockReset().mockImplementation(reauth('reauthenticateWithCredential'));
   app.initializeApp.mockReset().mockImplementation(() => ({ name: '[DEFAULT]' }));
   app.getApps.mockReset().mockImplementation(() => []);
 }

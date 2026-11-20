@@ -1,0 +1,35 @@
+import { NextResponse } from 'next/server';
+import { limitByIp } from '@/lib/api-guard';
+import { describeError } from '@/lib/setup-error';
+import { AccountAuthError, deleteAccount } from '@/server/account';
+import { getAdminAuth } from '@/server/auth/admin';
+import { clearedCookies, withCookies } from '@/server/auth/cookies';
+import { authRateLimiter, jsonError, requireUser } from '@/server/auth/guard';
+import { isRecentSignIn } from '@/server/auth/session';
+import { getDb } from '@/server/db/client';
+
+const NO_STORE = { 'Cache-Control': 'private, no-store' };
+
+/**
+ * Deletes the signed-in user's account and all of its data (LGPD). The session is checked for revocation, and the
+ * sign-in behind it must be at most 5 minutes old (`authTime` comes from the verified cookie, and a renewed session
+ * keeps the original sign-in time): otherwise 401 `{ error: 'reauth' }` and the client signs in again.
+ */
+export async function DELETE(request: Request) {
+  const user = await requireUser(request, { checkRevoked: true });
+  if (user instanceof Response) return user;
+  const limited = limitByIp(request, authRateLimiter);
+  if (limited) return limited;
+  if (!isRecentSignIn(user.authTime)) return jsonError('reauth', 401);
+
+  try {
+    await deleteAccount(getDb(), getAdminAuth(), user.id);
+  } catch (error) {
+    // The data is gone when Firebase fails: 502, and a retry finishes the job.
+    const firebase = error instanceof AccountAuthError;
+    const cause = firebase ? error.cause : error;
+    console.error(`[api/account] could not delete the account (${firebase ? 'firebase' : 'database'}):`, describeError(cause));
+    return jsonError('server_error', firebase ? 502 : 500);
+  }
+  return withCookies(new NextResponse(null, { status: 204, headers: NO_STORE }), clearedCookies(request));
+}

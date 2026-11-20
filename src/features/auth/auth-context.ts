@@ -18,6 +18,13 @@ export interface AuthApi {
   signOut(): Promise<void>;
   /** Reloads the Firebase user and the session user (after confirming the e-mail, say). */
   refresh(): Promise<void>;
+  /**
+   * Signs the same user in again (Google, or e-mail with `password`) and mints a new session, so it counts as a recent
+   * sign-in (required to delete the account). Resolves false when leaving for the Google redirect.
+   */
+  reauthenticate(password?: string): Promise<boolean>;
+  /** The account was deleted: forget it on this device, become a visitor, then show `notice`. */
+  accountDeleted(notice: string): Promise<void>;
 }
 
 /** What the library needs from sign-in: whose library to show, and how to renew a lost session. */

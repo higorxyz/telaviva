@@ -34,7 +34,8 @@ function GuestLink() {
   );
 }
 
-function initialOf(name: string | null, email: string | null): string | null {
+/** The first letter of the name, or of the e-mail, upper-cased; null when there is neither. */
+export function initialOf(name: string | null, email: string | null): string | null {
   const source = name?.trim() || email?.trim() || '';
   const first = Array.from(source)[0];
   return first ? first.toLocaleUpperCase('pt-BR') : null;

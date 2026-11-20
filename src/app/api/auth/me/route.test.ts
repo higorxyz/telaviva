@@ -33,6 +33,7 @@ describe('GET /api/auth/me', () => {
         photoUrl: 'https://example.com/ana.png',
         emailVerified: true,
         authTime: 1_700_000_000,
+        provider: 'google',
       },
     });
     expect(res.headers.get('cache-control')).toBe('private, no-store');

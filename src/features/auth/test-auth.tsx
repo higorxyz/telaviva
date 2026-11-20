@@ -23,6 +23,7 @@ export const sessionUser = (id: string, overrides: Partial<SessionUser> = {}): S
   photoUrl: null,
   emailVerified: false,
   authTime: 1_700_000_000,
+  provider: null,
   ...overrides,
 });
 

@@ -4,6 +4,7 @@ import type { AuthStatus } from './auth-context';
 import { authErrorMessage, endsSession } from './errors';
 import { isFirebaseLoaded, loadFirebase, type FirebaseClient } from './firebase-client';
 import { clearAuthHint, createSession, deleteSession, fetchMe, hasAuthHint, type SessionUser } from './session-client';
+import { reauthenticateSession } from './reauth';
 import { clearRedirectFlag, emailSignIn, emailSignUp, googleSignIn, redirectPending, takeRedirectResult } from './sign-in';
 
 export const SESSION_EXPIRED = 'Sua sessão expirou. Entre de novo para sincronizar.';
@@ -34,6 +35,7 @@ const quietly = async (work: () => Promise<unknown>) => {
  */
 export function createAuthFlows(deps: Deps) {
   let uid: string | null = null;
+  let email: string | null = null;
   let generation = 0;
   let renewing: Promise<boolean> | null = null;
   const notices: ToastInput[] = [];
@@ -45,11 +47,19 @@ export function createAuthFlows(deps: Deps) {
 
   function signedIn(user: SessionUser) {
     uid = user.id;
+    email = user.email;
     deps.setSnapshot({ status: 'signed-in', user });
+  }
+
+  /** Signed in with a session just minted from this Firebase user. */
+  function adopt(user: User, sessionUser: SessionUser) {
+    deps.setFirebaseVerified({ uid: user.uid, verified: user.emailVerified });
+    signedIn(sessionUser);
   }
 
   function guest(notice?: string) {
     uid = null;
+    email = null;
     deps.setSnapshot({ status: 'guest', user: null });
     if (notice) notify({ message: notice });
   }
@@ -64,8 +74,7 @@ export function createAuthFlows(deps: Deps) {
       throw error;
     }
     generation += 1;
-    deps.setFirebaseVerified({ uid: user.uid, verified: user.emailVerified });
-    signedIn(sessionUser);
+    adopt(user, sessionUser);
     return sessionUser;
   }
 
@@ -103,8 +112,7 @@ export function createAuthFlows(deps: Deps) {
         if (user) {
           const sessionUser = await createSession(await user.getIdToken(true));
           if (started !== generation) return false;
-          deps.setFirebaseVerified({ uid: user.uid, verified: user.emailVerified });
-          signedIn(sessionUser);
+          adopt(user, sessionUser);
           return sessionUser.id === before;
         }
       } catch (error) {
@@ -135,6 +143,19 @@ export function createAuthFlows(deps: Deps) {
       if (message) notify({ message, tone: 'error' });
       return false;
     }
+  }
+
+  /** Back to the visitor; `endSession` also ends the session on the server (a deleted account has none left). */
+  async function leave(endSession: boolean, notice?: string) {
+    generation += 1;
+    uid = null; // A 401 from here on is the sign-out itself, not a session to renew.
+    if (endSession) await deleteSession();
+    clearAuthHint();
+    await quietly(async () => {
+      const { auth, sdk } = await loadFirebase();
+      await sdk.signOut(auth);
+    });
+    guest(notice);
   }
 
   return {
@@ -171,16 +192,18 @@ export function createAuthFlows(deps: Deps) {
       await sdk.sendEmailVerification(auth.currentUser);
     },
 
-    async signOut() {
-      generation += 1;
-      uid = null; // A 401 from here on is the sign-out itself, not a session to renew.
-      await deleteSession();
-      clearAuthHint();
-      await quietly(async () => {
-        const { auth, sdk } = await loadFirebase();
-        await sdk.signOut(auth);
-      });
-      guest();
+    signOut: () => leave(true),
+
+    /** The account was deleted (the server already cleared the cookies): forget it here, and say so once a visitor. */
+    accountDeleted: (notice: string) => leave(false, notice),
+
+    /** A new session with a recent `auth_time`, to delete the account (see `reauthenticateSession`). */
+    async reauthenticate(password?: string): Promise<boolean> {
+      const target = uid;
+      if (target === null) throw new Error('No one is signed in');
+      const result = await reauthenticateSession(await loadFirebase(), { id: target, email }, password);
+      if (result && uid === target) adopt(result.user, result.sessionUser);
+      return result !== null;
     },
 
     async refresh() {

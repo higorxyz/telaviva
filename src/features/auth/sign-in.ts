@@ -56,6 +56,34 @@ export async function googleSignIn({ auth, sdk }: FirebaseClient): Promise<User 
   return null;
 }
 
+/**
+ * Google again for the user already signed in here, to refresh their sign-in time. Firebase refuses another Google
+ * account (`auth/user-mismatch`) and keeps the current user. Resolves false when leaving for the redirect.
+ */
+export async function googleReauth({ sdk }: FirebaseClient, user: User): Promise<boolean> {
+  const provider = new sdk.GoogleAuthProvider();
+  try {
+    await sdk.reauthenticateWithPopup(user, provider);
+    return true;
+  } catch (error) {
+    const code = authErrorCode(error);
+    if (code === null || !REDIRECT_CODES.has(code)) throw error;
+  }
+  setFlag(true);
+  try {
+    await sdk.reauthenticateWithRedirect(user, provider);
+  } catch (error) {
+    setFlag(false);
+    throw error;
+  }
+  return false;
+}
+
+/** The password again for the user already signed in here, to refresh their sign-in time. */
+export async function passwordReauth({ sdk }: FirebaseClient, user: User, email: string, password: string) {
+  await sdk.reauthenticateWithCredential(user, sdk.EmailAuthProvider.credential(email, password));
+}
+
 export async function emailSignIn({ auth, sdk }: FirebaseClient, email: string, password: string): Promise<User> {
   return (await sdk.signInWithEmailAndPassword(auth, email, password)).user;
 }
