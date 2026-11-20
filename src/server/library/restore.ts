@@ -6,31 +6,24 @@ import type { LibraryState, TitleRef } from '@/features/library/types';
 import type { Database } from '@/server/db/client';
 import { episodeProgress as marks, libraryItems as items, ratings } from '@/server/db/schema';
 import type { Statement } from './atomic';
+import { clampItem, clampMark, clampRating } from './clamp';
 import { LibraryConflictError } from './errors';
 
 /** The rules that make an undo (`restore`) safe on a library shared by several devices. */
 
 type Restore = Extract<LibraryCommand, { type: 'restore' }>;
 
-const notAfter = (value: string, now: string) => (Date.parse(value) > Date.parse(now) ? now : value);
-
 /**
  * A restore carries timestamps from the client's cache, and restores are written without the newer-wins guard. A
- * timestamp in the future (a device clock ahead, or a forged one) would freeze the row: every later write, stamped
- * with the server's `now`, would look older and be skipped. So nothing from a restore is later than `now`.
+ * timestamp in the future would freeze the row (see clamp.ts), so nothing from a restore is later than `now`.
  */
 export function clampRestore(command: Restore, now: string): Restore {
   const { item, rating } = command;
   return {
     ...command,
-    item: item && {
-      ...item,
-      addedAt: notAfter(item.addedAt, now),
-      updatedAt: notAfter(item.updatedAt, now),
-      watchedAt: item.watchedAt && notAfter(item.watchedAt, now),
-    },
-    rating: rating && { ...rating, ratedAt: notAfter(rating.ratedAt, now), updatedAt: notAfter(rating.updatedAt, now) },
-    marks: command.marks.map((m) => ({ ...m, watchedAt: notAfter(m.watchedAt, now) })),
+    item: item && clampItem(item, now),
+    rating: rating && clampRating(rating, now),
+    marks: command.marks.map((m) => clampMark(m, now)),
   };
 }
 

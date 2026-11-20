@@ -21,7 +21,7 @@ import { diffStatements } from './write';
  */
 
 /** Validates the rows read from the database. A row the schema cannot read is left out, never rewritten. */
-function fromResult(result: unknown): LibraryState {
+export function fromResult(result: unknown): LibraryState {
   const parsed = parseLibraryEntries(toRawLibrary(result));
   if (!parsed) return EMPTY_LIBRARY;
   if (parsed.dropped > 0) {
@@ -36,7 +36,7 @@ export async function loadLibrary(db: Database, userId: string): Promise<Library
 }
 
 /** Refuses growing past a limit; a library already over it may still shrink or change in place. */
-function assertWithinLimits(before: LibraryState, after: LibraryState): void {
+export function assertWithinLimits(before: LibraryState, after: LibraryState): void {
   const checks = [
     ['items', before.items.length, after.items.length, LIBRARY_LIMITS.items],
     ['ratings', before.ratings.length, after.ratings.length, LIBRARY_LIMITS.ratings],
