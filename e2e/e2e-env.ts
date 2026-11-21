@@ -10,14 +10,20 @@ export const FIREBASE_PROJECT_ID = 'demo-telaviva';
 export const FIREBASE_API_KEY = 'e2e-fake-api-key';
 /** Wiped and migrated before every `next start` of the E2E server (e2e/prepare-db.ts). */
 export const PGLITE_DIR = '.e2e/pglite';
+/** The E2E build's own output (next.config.ts `distDir`): the real `.next` is never touched by `npm run e2e`. */
+export const E2E_DIST_DIR = '.e2e/next';
 
 /**
- * Environment of the E2E build and server. `NEXT_PUBLIC_*` are inlined at build time, so the build must see these too.
+ * Environment of the E2E build and server. `NEXT_PUBLIC_*` are inlined at build time, so the build must see these too;
+ * it goes to `E2E_DIST_DIR`, type-checked with tsconfig.e2e.json (whose includes already name that directory's types,
+ * so the build never rewrites the real tsconfig.json).
  * Every account-related variable is set, empty ones included: an empty value still counts as defined for Next, so
  * nothing from a developer's `.env.local` (the real Neon URL, the real service account, a `VERCEL=1` written by
  * `vercel env pull`) can leak into the test server.
  */
 export const E2E_SERVER_ENV: Record<string, string> = {
+  NEXT_DIST_DIR: E2E_DIST_DIR,
+  NEXT_TSCONFIG_PATH: 'tsconfig.e2e.json',
   TMDB_API_BASE_URL: 'http://127.0.0.1:4010/3',
   TMDB_READ_TOKEN: 'e2e',
   NEXT_PUBLIC_SITE_URL: APP_URL,

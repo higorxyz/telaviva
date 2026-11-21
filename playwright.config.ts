@@ -35,8 +35,8 @@ export default defineConfig({
       reuseExistingServer: !process.env.CI,
     },
     {
-      // The production build with the E2E environment (NEXT_PUBLIC_* are inlined here, so `npm run build` must run
-      // again with the real .env.local afterwards), then a fresh migrated PGlite, then the server.
+      // The production build with the E2E environment (NEXT_PUBLIC_* are inlined here) into its own directory,
+      // .e2e/next (the real .next is never touched), then a fresh migrated PGlite, then the server on that build.
       command: 'npm run build && npx tsx e2e/prepare-db.ts && npm run start -- -p 3100',
       port: 3100,
       timeout: 300_000,

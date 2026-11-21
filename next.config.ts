@@ -1,6 +1,10 @@
 import type { NextConfig } from 'next';
 
 const nextConfig: NextConfig = {
+  // The E2E build (playwright.config.ts) goes to its own directory with its own tsconfig, so its fake Firebase config
+  // and emulator host never end up in the real `.next`, the one `npm run start` and `vercel deploy --prebuilt` use.
+  distDir: process.env.NEXT_DIST_DIR || '.next',
+  typescript: { tsconfigPath: process.env.NEXT_TSCONFIG_PATH || 'tsconfig.json' },
   cacheComponents: true,
   partialPrefetching: false,
   reactCompiler: true,

@@ -35,8 +35,8 @@ jobs:
       - name: Install Playwright browser
         run: npx playwright install --with-deps chromium
 
-      # Runs `npm run build` (the production build, which prerenders against the local TMDb mock) and then
-      # serves it for the tests (see playwright.config.ts). It is the same build as a plain `npm run build`
+      # Runs `npm run build` (the production build, which prerenders against the local TMDb mock) into
+      # .e2e/next and then serves it for the tests (see playwright.config.ts). It is the same build as a plain `npm run build`
       # except for the TMDb base URL and token and the test sign-in config (Auth emulator, PGlite), so a
       # separate build step would only repeat it.
       #

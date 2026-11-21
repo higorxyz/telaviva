@@ -24,3 +24,26 @@ describe('next.config rewrites', () => {
     expect(await nextConfig.rewrites?.()).toEqual([]);
   });
 });
+
+describe('next.config build directory', () => {
+  async function freshConfig() {
+    vi.resetModules();
+    return (await import('../../../next.config')).default;
+  }
+
+  it('builds into .next with the real tsconfig by default', async () => {
+    vi.stubEnv('NEXT_DIST_DIR', '');
+    vi.stubEnv('NEXT_TSCONFIG_PATH', '');
+    const config = await freshConfig();
+    expect(config.distDir).toBe('.next');
+    expect(config.typescript?.tsconfigPath).toBe('tsconfig.json');
+  });
+
+  it('lets the E2E build use its own directory and tsconfig, so the real .next is never touched', async () => {
+    vi.stubEnv('NEXT_DIST_DIR', '.e2e/next');
+    vi.stubEnv('NEXT_TSCONFIG_PATH', 'tsconfig.e2e.json');
+    const config = await freshConfig();
+    expect(config.distDir).toBe('.e2e/next');
+    expect(config.typescript?.tsconfigPath).toBe('tsconfig.e2e.json');
+  });
+});
