@@ -2,6 +2,7 @@ import { act, render, screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { REDIRECT_FLAG } from './sign-in';
+import { authError } from './test-firebase';
 import { auth, deferred, fill, nav, resetSignIn, tab } from './test-signin';
 
 vi.mock('next/navigation', async () => (await import('./test-signin')).navigationModule);
@@ -67,6 +68,48 @@ describe('SignInView: where it goes next', () => {
     await act(async () => pending.resolve());
     expect(nav.replace).toHaveBeenCalledTimes(1);
     expect(nav.replace).toHaveBeenCalledWith('/minha-lista');
+  });
+
+  // Becoming signed in switches the library to the account: LibraryProvider renders nothing for one pass, then mounts
+  // the page again under a new key.
+  it('still goes to the list when the switch to the account remounts the page mid sign-in', async () => {
+    const pending = deferred();
+    vi.mocked(auth.current.signInWithEmail).mockReturnValueOnce(pending.promise);
+    const view = render(<SignInView key="guest" />);
+    const u = await fill('ana@exemplo.com', 'senha-boa-123');
+    await u.click(screen.getByRole('button', { name: 'Entrar' }));
+    auth.current = { ...auth.current, status: 'signed-in' };
+    view.rerender(<></>);
+    view.rerender(<SignInView key="account" />);
+    await act(async () => pending.resolve());
+    expect(nav.replace).toHaveBeenCalled();
+    expect(nav.replace).not.toHaveBeenCalledWith('/conta');
+    expect(nav.replace).toHaveBeenLastCalledWith('/minha-lista');
+  });
+
+  it('forgets a failed sign-in: arriving signed in later still goes to the account', async () => {
+    vi.mocked(auth.current.signInWithEmail).mockRejectedValueOnce(authError('auth/invalid-credential'));
+    const view = render(<SignInView key="first" />);
+    const u = await fill('ana@exemplo.com', 'senha-errada');
+    await u.click(screen.getByRole('button', { name: 'Entrar' }));
+    expect(await screen.findByRole('alert')).toHaveTextContent('E-mail ou senha incorretos.');
+    auth.current = { ...auth.current, status: 'signed-in' };
+    view.rerender(<></>);
+    view.rerender(<SignInView key="later" />);
+    expect(nav.replace).toHaveBeenLastCalledWith('/conta');
+  });
+
+  it('sends a later visit, once signed in, to the account again', async () => {
+    const view = render(<SignInView key="guest" />);
+    const u = await fill('ana@exemplo.com', 'senha-boa-123');
+    await u.click(screen.getByRole('button', { name: 'Entrar' }));
+    auth.current = { ...auth.current, status: 'signed-in' };
+    view.rerender(<></>);
+    view.rerender(<SignInView key="account" />);
+    expect(nav.replace).toHaveBeenLastCalledWith('/minha-lista');
+    view.rerender(<></>);
+    view.rerender(<SignInView key="later-visit" />);
+    expect(nav.replace).toHaveBeenLastCalledWith('/conta');
   });
 
   it('treats the return from the Google redirect as a fresh sign-in', () => {

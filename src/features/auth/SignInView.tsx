@@ -19,6 +19,14 @@ export const PRIVACY_NOTICE =
   'Guardamos seu nome, seu e-mail e sua lista. Você pode exportar ou excluir tudo em Sua conta.';
 
 /**
+ * Set when a sign-in starts on this screen, cleared when it fails. Becoming signed in switches the library to the
+ * account, which unmounts the page and mounts a new one: that new instance reads this, so it knows the sign-in was made
+ * here and sends the person where their own sign-in goes (`AFTER_SIGN_IN`), not where someone who arrived already
+ * signed in goes. It is consumed by that instance, and also forgotten whenever the form is shown to a visitor.
+ */
+let signInStartedHere = false;
+
+/**
  * The /entrar screen: Google, then e-mail with "Entrar" / "Criar conta" tabs, or the reset form in their place.
  * After its own sign-in it goes to `?voltar=` or the list; someone who arrives already signed in goes to `?voltar=`
  * or their account.
@@ -37,6 +45,8 @@ export function SignInView() {
   const [googleTries, setGoogleTries] = useState(0);
   /** Back from the Google redirect: this is a fresh sign-in, not someone already signed in. */
   const fresh = useRef(false);
+  /** This instance replaced the one where the sign-in was started (see `signInStartedHere`). */
+  const [inherited] = useState(() => signInStartedHere);
   const left = useRef(false);
   const backFromForgot = useRef(false);
   const forgotButton = useRef<HTMLButtonElement>(null);
@@ -49,13 +59,17 @@ export function SignInView() {
     preloadFirebase();
   }, []);
 
+  useEffect(() => {
+    if (inherited || auth.status === 'guest') signInStartedHere = false;
+  }, [inherited, auth.status]);
+
   const signedIn = auth.status === 'signed-in';
   const acting = busy !== null;
   useEffect(() => {
     if (!signedIn || acting || left.current) return;
     left.current = true;
-    router.replace(safeReturnTo(voltar, fresh.current ? AFTER_SIGN_IN : ALREADY_SIGNED_IN));
-  }, [signedIn, acting, voltar, router]);
+    router.replace(safeReturnTo(voltar, fresh.current || inherited ? AFTER_SIGN_IN : ALREADY_SIGNED_IN));
+  }, [signedIn, acting, voltar, router, inherited]);
 
   useEffect(() => {
     if (view !== 'form' || !backFromForgot.current) return;
@@ -65,9 +79,11 @@ export function SignInView() {
 
   async function attempt(kind: 'google' | 'email', action: () => Promise<void>): Promise<string | null> {
     setBusy(kind);
+    signInStartedHere = true;
     try {
       await action();
     } catch (error) {
+      signInStartedHere = false;
       setBusy(null);
       return authErrorMessage(error);
     }
