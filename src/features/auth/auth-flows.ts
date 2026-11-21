@@ -22,6 +22,9 @@ type Deps = {
   onNotice(): void;
 };
 
+/** The confirmation e-mail links back to the account page of this very site (preview or production). */
+const verificationSettings = () => ({ url: `${window.location.origin}/conta` });
+
 const quietly = async (work: () => Promise<unknown>) => {
   try {
     await work();
@@ -40,6 +43,8 @@ const quietly = async (work: () => Promise<unknown>) => {
 export function createAuthFlows(deps: Deps) {
   let uid: string | null = null;
   let email: string | null = null;
+  /** What the session cookie says about the e-mail (frozen when the session was minted). */
+  let sessionVerified = false;
   let generation = 0;
   let renewing: Promise<boolean> | null = null;
   const notices: ToastInput[] = [];
@@ -52,6 +57,7 @@ export function createAuthFlows(deps: Deps) {
   function signedIn(user: SessionUser) {
     uid = user.id;
     email = user.email;
+    sessionVerified = user.emailVerified;
     deps.setSnapshot({ status: 'signed-in', user });
   }
 
@@ -134,6 +140,19 @@ export function createAuthFlows(deps: Deps) {
     return renewing;
   }
 
+  /** True when it minted a session that says the e-mail is confirmed (see `refresh`). */
+  async function remintVerified(user: User | null, started: number): Promise<boolean> {
+    if (!user?.emailVerified || user.uid !== uid || sessionVerified) return false;
+    try {
+      const sessionUser = await createSession(await user.getIdToken(true));
+      if (started !== generation || sessionUser.id !== uid) return false;
+      adopt(user, sessionUser);
+      return true;
+    } catch {
+      return false; // The old cookie still works; the next refresh tries again.
+    }
+  }
+
   /** A Google redirect's return trip (see `readRedirectReturn`); true when it signed someone in. */
   async function completeRedirect(): Promise<boolean> {
     const back = await readRedirectReturn();
@@ -188,13 +207,13 @@ export function createAuthFlows(deps: Deps) {
     signUpWithEmail: (name: string, email: string, password: string) =>
       withSignIn(
         (c) => emailSignUp(c, name, email, password),
-        (c, user) => c.sdk.sendEmailVerification(user),
+        (c, user) => c.sdk.sendEmailVerification(user, verificationSettings()),
       ),
 
     async sendVerification() {
       const { auth, sdk } = await loadFirebase();
       if (!auth.currentUser) throw new Error('No Firebase user to verify');
-      await sdk.sendEmailVerification(auth.currentUser);
+      await sdk.sendEmailVerification(auth.currentUser, verificationSettings());
     },
 
     signOut: () => leave(true),
@@ -223,16 +242,25 @@ export function createAuthFlows(deps: Deps) {
       return 'renewed';
     },
 
+    /**
+     * Reloads the Firebase user and the session user. Once Firebase says the e-mail is confirmed but the session
+     * cookie (which froze `email_verified` when it was minted) does not, it mints a fresh session from a new ID token
+     * (its fresh `iat` is accepted), so the next full load does not flash the verification banner again.
+     */
     async refresh() {
       if (uid === null) return;
       const started = generation;
+      let reloaded: User | null = null;
       await quietly(async () => {
         const { auth } = await loadFirebase();
         const user = auth.currentUser;
         if (!user) return;
         await user.reload();
         deps.setFirebaseVerified({ uid: user.uid, verified: user.emailVerified });
+        reloaded = user;
       });
+      if (started !== generation || uid === null) return;
+      if (await remintVerified(reloaded, started)) return;
       const me = await fetchMe();
       if (started !== generation || uid === null) return;
       if (me.kind === 'user') signedIn(me.user);
