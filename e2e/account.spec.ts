@@ -61,10 +61,12 @@ test('the confirmation notice sits under the toasts, above the TabBar, never ove
     expect(noticeBox.x + noticeBox.width).toBeGreaterThan(viewport.width - 64);
   }
 
-  // /conta offers the same resend beside the status.
+  // /conta offers the same resend beside the status, and the notice stays off there (one button, one cooldown).
   await page.goto('/conta');
   await expect(page.getByText('E-mail não confirmado')).toBeVisible();
+  await expect(page.getByRole('button', { name: 'Reenviar e-mail' })).toHaveCount(1);
   await expect(page.getByRole('main').getByRole('button', { name: 'Reenviar e-mail' })).toBeVisible();
+  await expect(notice).toHaveCount(0);
 });
 
 test('once the e-mail is confirmed, the next full load shows no notice, not even for a moment', async ({ page, accounts }) => {

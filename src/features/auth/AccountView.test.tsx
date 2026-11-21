@@ -78,10 +78,17 @@ describe('AccountView', () => {
     expect(await within(details).findByRole('status')).toHaveTextContent('E-mail enviado.');
   });
 
-  it('offers no resend once the e-mail is confirmed', () => {
+  it('offers no resend once the e-mail is confirmed, and stops asking Firebase about it', () => {
     as('signed-in', ana({ emailVerified: true }));
     show();
     expect(screen.queryByRole('button', { name: 'Reenviar e-mail' })).toBeNull();
+    expect(auth.current.refresh).not.toHaveBeenCalled();
+  });
+
+  it('asks Firebase whether the e-mail is confirmed while it is not (the banner stays off /conta)', async () => {
+    as('signed-in', ana());
+    show();
+    await waitFor(() => expect(auth.current.refresh).toHaveBeenCalledTimes(1));
   });
 
   it('shows the photo and Google for a confirmed Google account', () => {

@@ -218,12 +218,13 @@ test.describe('accessibility', () => {
     await expectNoViolations(page);
   });
 
-  // Unconfirmed on purpose: the verification banner is on screen and checked too.
+  // Unconfirmed on purpose: the inline "Reenviar e-mail" is on screen and checked too (the banner stays off /conta).
   test('no WCAG A/AA violations on /conta and with the deletion dialog open', async ({ page, accounts }) => {
     await signIn(page, await accounts.create('a11y'));
     await page.goto('/conta');
     await expect(page.getByRole('button', { name: 'Exportar meus dados' })).toBeVisible();
-    await expect(page.getByRole('region', { name: 'Confirmação de e-mail' })).toBeVisible();
+    await expect(page.getByRole('main').getByRole('button', { name: 'Reenviar e-mail' })).toBeVisible();
+    await expect(page.getByRole('region', { name: 'Confirmação de e-mail' })).toHaveCount(0);
     await settled(page.locator('body'));
     await expectNoViolations(page);
 

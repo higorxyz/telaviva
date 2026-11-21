@@ -2,11 +2,13 @@
 
 import { CircleAlert, CircleCheck } from 'lucide-react';
 import { PROVIDER_LABEL } from './account-copy';
+import { useFreshVerification } from './fresh-verification';
 import { RESEND_LABEL, useResendVerification } from './resend-verification';
 import type { SessionUser } from './session-client';
 
 /** "Reenviar e-mail" beside "E-mail não confirmado": the same action as the banner, where people look for it. */
 function Resend() {
+  useFreshVerification(); // The banner stays off /conta: keep asking whether the e-mail is confirmed here.
   const { resend, cooling, message } = useResendVerification();
   return (
     <span className="flex flex-wrap items-center gap-x-3">

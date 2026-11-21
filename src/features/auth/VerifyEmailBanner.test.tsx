@@ -6,8 +6,9 @@ import type { AuthApi } from './auth-context';
 import { sessionUser } from './test-auth';
 import { VerifyEmailBanner } from './VerifyEmailBanner';
 
-const state = vi.hoisted(() => ({ api: {} as Partial<AuthApi> }));
+const state = vi.hoisted(() => ({ api: {} as Partial<AuthApi>, pathname: '/filmes' }));
 vi.mock('./useAuth', () => ({ useAuth: () => state.api }));
+vi.mock('next/navigation', () => ({ usePathname: () => state.pathname }));
 
 const sendVerification = vi.fn<() => Promise<void>>();
 const refresh = vi.fn<() => Promise<void>>();
@@ -31,6 +32,7 @@ describe('VerifyEmailBanner', () => {
     sendVerification.mockReset().mockResolvedValue();
     refresh.mockReset().mockResolvedValue();
     window.sessionStorage.clear();
+    state.pathname = '/filmes';
     as('signed-in');
   });
   afterEach(() => {
@@ -68,6 +70,12 @@ describe('VerifyEmailBanner', () => {
     expect(stack).toContainElement(toast as HTMLElement);
     // Later in the column means lower on screen: the banner comes after every toast.
     expect(toast.compareDocumentPosition(banner()) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+  });
+
+  it('stays off /conta, which has its own "Reenviar e-mail" (two buttons would keep two cooldowns)', () => {
+    state.pathname = '/conta';
+    render(<VerifyEmailBanner />, { wrapper });
+    expect(screen.queryByText(TEXT)).toBeNull();
   });
 
   it('shows the notice to a signed-in user with an unverified e-mail', () => {
