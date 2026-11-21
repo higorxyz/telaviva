@@ -2,7 +2,7 @@
 
 Este guia é para quem mantém o TelaViva e já conhece a Vercel, mas nunca usou o Firebase. Tudo aqui é gratuito (Firebase Spark, Neon Free, Vercel Hobby). Sem estas contas o site continua funcionando como visitante: o botão "Entrar" simplesmente não aparece.
 
-Os nomes de menus e botões do Firebase e do Google Cloud mudam conforme o idioma do console e a versão, então onde o guia diz "procure por" use a busca do console ou o texto mais parecido. O login só funciona de ponta a ponta depois que o proxy `/__/auth` for adicionado ao site (Tarefa 7 da Fase 3); até lá você pode criar as contas e configurar tudo, mas não testar o login real.
+Os nomes de menus e botões do Firebase e do Google Cloud mudam conforme o idioma do console e a versão, então onde o guia diz "procure por" use a busca do console ou o texto mais parecido.
 
 Hosts do site usados neste guia:
 
@@ -33,6 +33,7 @@ Hosts do site usados neste guia:
    - `telaviva.vercel.app`
    - `telaviva-git-v2-higorxyz-projects.vercel.app`
 3. `localhost` já vem na lista; não precisa adicionar.
+4. Esses domínios também valem para o link do e-mail de confirmação: ele leva de volta a `/conta` no mesmo endereço em que a pessoa criou a conta.
 
 ### 1.4 Registrar o app web (configuração pública)
 
@@ -72,7 +73,7 @@ Como `authDomain` é o host do próprio site, o navegador envia ao Google `redir
 ## 2. Neon (banco Postgres) pela Vercel
 
 1. Abra o painel da Vercel → projeto **telaviva** → aba **Storage**.
-2. **Create Database** → escolha **Neon** (Postgres) → plano **Free** → siga o assistente (região mais próxima, por exemplo São Paulo, se disponível) → **Create**.
+2. **Create Database** → escolha **Neon** (Postgres) → plano **Free** → siga o assistente (região **São Paulo**, `sa-east-1`: as funções do site rodam em São Paulo, `gru1` no `vercel.json`, e cada pedido da lista conversa com o banco) → **Create**.
 3. Na tela de conexão, marque os ambientes **Preview** e **Development** e confirme. Você pode marcar Production depois, na hora de publicar.
 4. A integração cria a variável `DATABASE_URL` sozinha. Para conferir: projeto → **Settings** → **Environment Variables**.
 5. Para usar o banco localmente, copie o valor: **Settings** → **Environment Variables** → `DATABASE_URL` → ícone de olho (mostrar) → copiar. Se preferir, rode `vercel env pull .env.local` na pasta do projeto.
