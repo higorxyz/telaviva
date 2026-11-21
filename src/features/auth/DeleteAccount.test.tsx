@@ -1,5 +1,6 @@
 import { act, screen, waitFor } from '@testing-library/react';
 import { HttpResponse } from 'msw';
+import { Activity, useState } from 'react';
 import { afterEach, beforeAll, beforeEach, describe, expect, it, vi } from 'vitest';
 import { resetFirebaseClient } from './firebase-client';
 import {
@@ -13,7 +14,8 @@ import {
   renderSignedIn,
   STALE,
 } from './test-account';
-import { clearCookies, installDefaultApi, probe, signedInOnServer } from './test-auth';
+import { clearCookies, installDefaultApi, probe, renderAuth, signedInOnServer } from './test-auth';
+import { DeleteAccount } from './DeleteAccount';
 import { authConfig, log, resetFakeFirebase } from './test-firebase';
 
 vi.mock('firebase/app', async () => (await import('./test-firebase')).fakeAppModule);
@@ -87,6 +89,33 @@ describe('DeleteAccount: the confirmation dialog', () => {
     await renderSignedIn();
     const user = await openAndType('EXCLUIR');
     await user.click(screen.getByRole('button', { name: 'Cancelar' }));
+    await user.click(screen.getByRole('button', { name: 'Excluir minha conta' }));
+    expect(screen.getByLabelText('Digite EXCLUIR')).toHaveValue('');
+  });
+
+  it('closes when /conta is hidden in an Activity (browser Back), so the page behind is never left inert', async () => {
+    function Route() {
+      const [mode, setMode] = useState<'visible' | 'hidden'>('visible');
+      return (
+        <>
+          <button onClick={() => setMode((m) => (m === 'visible' ? 'hidden' : 'visible'))}>trocar rota</button>
+          <Activity mode={mode}>
+            <DeleteAccount />
+          </Activity>
+        </>
+      );
+    }
+    signedInOnServer('u1');
+    renderAuth(<Route />);
+    await waitFor(() => expect(probe()).toMatch(/^signed-in/));
+    const user = await openAndType('EXC');
+    expect(dialog()).toHaveAttribute('open');
+
+    await user.click(screen.getByRole('button', { name: 'trocar rota' }));
+    expect(document.querySelector('dialog')).not.toHaveAttribute('open');
+
+    await user.click(screen.getByRole('button', { name: 'trocar rota' }));
+    expect(document.querySelector('dialog')).not.toHaveAttribute('open');
     await user.click(screen.getByRole('button', { name: 'Excluir minha conta' }));
     expect(screen.getByLabelText('Digite EXCLUIR')).toHaveValue('');
   });

@@ -1,7 +1,7 @@
 'use client';
 
 import { useRouter } from 'next/navigation';
-import { useEffect, useId, useRef, useState } from 'react';
+import { useEffect, useId, useLayoutEffect, useRef, useState } from 'react';
 import { cn } from '@/lib/cn';
 import { buttonClasses } from '@/ui/Button';
 import { clearLocalAccountData } from './account-client';
@@ -42,6 +42,16 @@ export function DeleteAccount({ onLeaving }: { onLeaving?: () => void }) {
     }
     if (!open && el.open) el.close();
   }, [open]);
+
+  // Leaving /conta (browser Back included) hides it in a React <Activity> instead of unmounting it. A modal <dialog>
+  // left open there would keep the rest of the app inert: close it right away, and come back with it closed.
+  useLayoutEffect(() => {
+    const el = dialog.current;
+    return () => {
+      if (el?.open) el.close();
+      setOpen(false);
+    };
+  }, []);
 
   async function finish() {
     onLeaving?.();
