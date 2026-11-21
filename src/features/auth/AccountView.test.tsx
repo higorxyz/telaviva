@@ -136,6 +136,38 @@ describe('AccountView', () => {
     expect(auth.current.refresh).toHaveBeenCalled();
   });
 
+  it('401: renews the session and tries the export once more, with no error toast', async () => {
+    let calls = 0;
+    server.use(
+      http.get(url('/api/account/export'), () => {
+        calls++;
+        return calls === 1 ? HttpResponse.json({ error: 'unauthenticated' }, { status: 401 }) : HttpResponse.json({ ok: 1 });
+      }),
+    );
+    vi.stubGlobal('URL', Object.assign(URL, { createObjectURL: vi.fn(() => 'blob:x'), revokeObjectURL: vi.fn() }));
+    const click = vi.spyOn(HTMLAnchorElement.prototype, 'click').mockImplementation(() => {});
+    auth.current.renewSession = vi.fn(async () => true);
+    as('signed-in', ana());
+    show();
+    await userEvent.click(screen.getByRole('button', { name: 'Exportar meus dados' }));
+    await waitFor(() => expect(click).toHaveBeenCalledTimes(1));
+    expect(calls).toBe(2);
+    expect(auth.current.renewSession).toHaveBeenCalledTimes(1);
+    expect(screen.queryByText('Não foi possível exportar seus dados. Tente de novo.')).toBeNull();
+    click.mockRestore();
+  });
+
+  it('401 that the renewal cannot fix: leaves the message to the expiry, not a generic error', async () => {
+    server.use(http.get(url('/api/account/export'), () => HttpResponse.json({ error: 'unauthenticated' }, { status: 401 })));
+    auth.current.renewSession = vi.fn(async () => false);
+    as('signed-in', ana());
+    show();
+    await userEvent.click(screen.getByRole('button', { name: 'Exportar meus dados' }));
+    await waitFor(() => expect(auth.current.renewSession).toHaveBeenCalledTimes(1));
+    await new Promise((r) => setTimeout(r, 20));
+    expect(screen.queryByText('Não foi possível exportar seus dados. Tente de novo.')).toBeNull();
+  });
+
   it('says so in a toast when the export fails', async () => {
     server.use(http.get(url('/api/account/export'), () => HttpResponse.json({ error: 'x' }, { status: 500 })));
     as('signed-in', ana());

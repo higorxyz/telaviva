@@ -20,6 +20,11 @@ export interface AuthApi {
   /** Reloads the Firebase user and the session user (after confirming the e-mail, say). */
   refresh(): Promise<void>;
   /**
+   * A request met 401: renews the session in silence. True when renewed for the same user (try once more); otherwise
+   * the renewal already did what is true (the visitor, with "Sua sessão expirou" when the session is gone for good).
+   */
+  renewSession(): Promise<boolean>;
+  /**
    * Signs the same user in again (Google, or e-mail with `password`) and mints a new session, so it counts as a recent
    * sign-in (required to delete the account). See `ReauthOutcome`.
    */

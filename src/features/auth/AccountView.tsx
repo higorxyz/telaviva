@@ -6,7 +6,7 @@ import { useState } from 'react';
 import { Button, ButtonLink } from '@/ui/Button';
 import { Skeleton } from '@/ui/Skeleton';
 import { useToast } from '@/ui/toast/useToast';
-import { downloadAccountExport, WrongAccountError } from './account-client';
+import { downloadAccountExport, ExportSessionError, WrongAccountError } from './account-client';
 import { EXPORT_ERROR, STALE_ACCOUNT } from './account-copy';
 import { AccountDetails } from './AccountDetails';
 import { initialOf } from './AccountButton';
@@ -99,7 +99,15 @@ export function AccountView() {
     if (exporting) return;
     setExporting(true);
     try {
-      await downloadAccountExport(uid);
+      try {
+        await downloadAccountExport(uid);
+      } catch (error) {
+        if (!(error instanceof ExportSessionError)) throw error;
+        // The session lapsed: renew it in silence and try once more. A renewal that fails already told the truth
+        // (the visitor, with "Sua sessão expirou"), so nothing more is said here.
+        if (!(await auth.renewSession())) return;
+        await downloadAccountExport(uid);
+      }
     } catch (error) {
       const stale = error instanceof WrongAccountError;
       toast.show({ message: stale ? STALE_ACCOUNT : EXPORT_ERROR, tone: 'error' });

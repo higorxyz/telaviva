@@ -19,6 +19,14 @@ export class WrongAccountError extends Error {
   }
 }
 
+/** The export met 401: the session must be renewed first (see `AuthApi.renewSession`). */
+export class ExportSessionError extends Error {
+  constructor() {
+    super('The session is gone');
+    this.name = 'ExportSessionError';
+  }
+}
+
 /**
  * `deleted` (204), `reauth` (the sign-in is not recent, or the session is gone: signing in again fixes both),
  * `wrong_account` (409: the session is someone else's), `offline` (the request never reached the server) or `error`
@@ -45,11 +53,13 @@ function filenameOf(response: Response): string {
 
 /**
  * Downloads the account export through fetch → Blob → `a[download]` (instead of a plain link) so a failure can be
- * told to the person. Throws when the export did not arrive (`WrongAccountError` on a 409).
+ * told to the person. Throws when the export did not arrive (`WrongAccountError` on a 409, `ExportSessionError` on
+ * a 401).
  */
 export async function downloadAccountExport(expectedUid: string): Promise<void> {
   const response = await fetch('/api/account/export', forUser(expectedUid));
   if (response.status === 409) throw new WrongAccountError();
+  if (response.status === 401) throw new ExportSessionError();
   if (!response.ok) throw new Error(`The export answered ${response.status}`);
   const blob = await response.blob();
   const href = URL.createObjectURL(blob);

@@ -88,6 +88,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       sendVerification: flows.sendVerification,
       signOut: flows.signOut,
       refresh: flows.refresh,
+      renewSession: flows.onUnauthenticated,
       reauthenticate: flows.reauthenticate,
       accountDeleted: flows.accountDeleted,
     }),
