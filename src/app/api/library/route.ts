@@ -1,21 +1,19 @@
-import { limitByIp } from '@/lib/api-guard';
 import { describeError } from '@/lib/setup-error';
 import { requireAccount } from '@/server/auth/account-guard';
-import { jsonError, libraryRateLimiter, noStoreJson } from '@/server/auth/guard';
+import { jsonError, noStoreJson } from '@/server/auth/guard';
 import { getDb } from '@/server/db/client';
-import { loadLibrary } from '@/server/library/store';
+import { LibraryAccountMissingError } from '@/server/library/errors';
+import { loadAccountLibrary } from '@/server/library/store';
 
-
-/** The signed-in user's library. */
+/** The signed-in user's library (with `X-Expected-User` naming them). */
 export async function GET(request: Request) {
   const user = await requireAccount(request);
   if (user instanceof Response) return user;
-  const limited = limitByIp(request, libraryRateLimiter);
-  if (limited) return limited;
 
   try {
-    return noStoreJson(await loadLibrary(getDb(), user.id));
+    return noStoreJson(await loadAccountLibrary(getDb(), user.id));
   } catch (error) {
+    if (error instanceof LibraryAccountMissingError) return jsonError('unauthenticated', 401);
     console.error('[api/library] could not load the library:', describeError(error));
     return jsonError('server_error', 500);
   }

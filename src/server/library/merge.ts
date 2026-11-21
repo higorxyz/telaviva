@@ -8,7 +8,7 @@ import { clampState } from './clamp';
 import { diffStates, isEmptyDiff, type LibraryDiff } from './diff';
 import { LibraryInvalidError } from './errors';
 import { selectLibrary } from './rows';
-import { assertWithinLimits, fromResult, loadLibrary } from './store';
+import { assertWithinLimits, fromResult, loadAccountLibrary } from './store';
 import { diffStatements } from './write';
 
 /**
@@ -33,7 +33,7 @@ export async function mergeGuestLibrary(
   guest: LibraryState,
   now: string,
 ): Promise<LibraryState> {
-  const account = await loadLibrary(db, userId);
+  const account = await loadAccountLibrary(db, userId);
   const merged = mergeLibraries(account, clampState(guest, now));
   if (!isValidLibraryState(merged)) throw new LibraryInvalidError();
   assertWithinLimits(account, merged);

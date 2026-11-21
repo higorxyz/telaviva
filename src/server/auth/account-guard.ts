@@ -1,26 +1,20 @@
 import 'server-only';
-import { eq } from 'drizzle-orm';
 import type { NextResponse } from 'next/server';
-import { describeError } from '@/lib/setup-error';
-import { getDb } from '@/server/db/client';
-import { users } from '@/server/db/schema';
-import { jsonError, requireUser } from './guard';
+import { expectedUserGate, libraryRateLimiter, requireUser } from './guard';
 import type { SessionUser } from './session';
 
 /**
- * `requireUser` for the library routes, which also need the user's row. A session cookie outlives an account deleted
- * on another device (it is checked without revocation here, to save a call to Firebase per click): without the row
- * it answers 401 `unauthenticated`, so that device renews the session, and on failing, falls back to the visitor,
- * instead of failing every write on the foreign key.
+ * `requireUser` for the library routes, in the order that costs least: the per-IP limiter first, then the session,
+ * then the `X-Expected-User` header (409 `wrong_account` when another tab switched accounts and the shared cookie now
+ * names someone else; 400 without it).
+ *
+ * The user's row is not read here: the store reads it in the same statement as the library (one round trip) and
+ * throws LibraryAccountMissingError when it is gone, which the routes answer with 401 `unauthenticated`. A session
+ * cookie outlives an account deleted on another device (it is checked without revocation here, to save a call to
+ * Firebase per click); that device then renews the session and, failing, falls back to the visitor.
  */
 export async function requireAccount(request: Request): Promise<SessionUser | NextResponse> {
-  const user = await requireUser(request);
+  const user = await requireUser(request, { limiter: libraryRateLimiter });
   if (user instanceof Response) return user;
-  try {
-    const [row] = await getDb().select({ id: users.id }).from(users).where(eq(users.id, user.id)).limit(1);
-    return row ? user : jsonError('unauthenticated', 401);
-  } catch (error) {
-    console.error('[auth] could not read the account:', describeError(error));
-    return jsonError('server_error', 500);
-  }
+  return expectedUserGate(request, user) ?? user;
 }

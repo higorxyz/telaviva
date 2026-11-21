@@ -6,9 +6,9 @@ import { EMPTY_LIBRARY, type LibraryState } from '@/features/library/types';
 import type { Database } from '@/server/db/client';
 import { writeAtomically } from './atomic';
 import { diffStates, isEmptyDiff } from './diff';
-import { LibraryConflictError, LibraryInvalidError, LibraryLimitError } from './errors';
+import { LibraryAccountMissingError, LibraryConflictError, LibraryInvalidError, LibraryLimitError } from './errors';
 import { assertExpected, clampRestore, expectedGuard, isGuardAbort } from './restore';
-import { selectLibrary, toRawLibrary } from './rows';
+import { hasAccount, selectLibrary, toRawLibrary } from './rows';
 import { diffStatements } from './write';
 
 /**
@@ -33,6 +33,16 @@ export function fromResult(result: unknown): LibraryState {
 
 export async function loadLibrary(db: Database, userId: string): Promise<LibraryState> {
   return fromResult(await selectLibrary(db, userId));
+}
+
+/**
+ * The library of a user who must still have an account (every library route): the same single statement, which
+ * also says whether the user's row exists. Throws LibraryAccountMissingError when it is gone.
+ */
+export async function loadAccountLibrary(db: Database, userId: string): Promise<LibraryState> {
+  const result = await selectLibrary(db, userId);
+  if (!hasAccount(result)) throw new LibraryAccountMissingError();
+  return fromResult(result);
 }
 
 /** Refuses growing past a limit; a library already over it may still shrink or change in place. */
@@ -70,7 +80,7 @@ export async function applyLibraryCommand(
   command: LibraryCommand,
   now: string,
 ): Promise<LibraryState> {
-  const before = await loadLibrary(db, userId);
+  const before = await loadAccountLibrary(db, userId);
   const applied = command.type === 'restore' ? clampRestore(command, now) : command;
   if (applied.type === 'restore') assertExpected(before, applied);
   const after = reduce(before, applied, now);

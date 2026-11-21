@@ -21,3 +21,14 @@ export class LibraryLimitError extends Error {
     this.name = 'LibraryLimitError';
   }
 }
+
+/**
+ * The session's user has no row any more: the account was deleted on another device while this session cookie lived
+ * on (401 `{ error: 'unauthenticated' }`, so the client renews the session and, failing, falls back to the visitor).
+ */
+export class LibraryAccountMissingError extends Error {
+  constructor() {
+    super('the account has no row');
+    this.name = 'LibraryAccountMissingError';
+  }
+}

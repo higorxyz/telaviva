@@ -1,11 +1,11 @@
 import { normalizeLibraryState, parseLibraryEntries } from '@/features/library/schema';
 import type { LibraryState } from '@/features/library/types';
-import { limitByIp, readJsonBody } from '@/lib/api-guard';
+import { readJsonBody } from '@/lib/api-guard';
 import { describeError } from '@/lib/setup-error';
 import { requireAccount } from '@/server/auth/account-guard';
-import { jsonError, libraryRateLimiter, noStoreJson } from '@/server/auth/guard';
+import { jsonError, noStoreJson } from '@/server/auth/guard';
 import { getDb } from '@/server/db/client';
-import { LibraryInvalidError, LibraryLimitError } from '@/server/library/errors';
+import { LibraryAccountMissingError, LibraryInvalidError, LibraryLimitError } from '@/server/library/errors';
 import { mergeGuestLibrary } from '@/server/library/merge';
 
 /** A whole visitor library: far larger than one command (plan, "Limites"). */
@@ -33,8 +33,6 @@ function guestOf(body: unknown): LibraryState | null {
 export async function POST(request: Request) {
   const user = await requireAccount(request);
   if (user instanceof Response) return user;
-  const limited = limitByIp(request, libraryRateLimiter);
-  if (limited) return limited;
 
   const body = await readJsonBody(request, MAX_MERGE_BYTES);
   if (!body.ok) return body.status === 413 ? jsonError('payload_too_large', 413) : jsonError('invalid', 400);
@@ -45,6 +43,7 @@ export async function POST(request: Request) {
     const state = await mergeGuestLibrary(getDb(), user.id, guest, new Date().toISOString());
     return noStoreJson(state);
   } catch (error) {
+    if (error instanceof LibraryAccountMissingError) return jsonError('unauthenticated', 401);
     if (error instanceof LibraryInvalidError) return jsonError('invalid', 400);
     if (error instanceof LibraryLimitError) return jsonError('limit', 413);
     console.error('[api/library/merge] could not merge the guest library:', describeError(error));

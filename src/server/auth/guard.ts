@@ -1,6 +1,8 @@
 import 'server-only';
 import { NextResponse } from 'next/server';
-import { createRateLimiter } from '@/lib/api-guard';
+import { createRateLimiter, limitByIp } from '@/lib/api-guard';
+
+type RateLimiter = ReturnType<typeof createRateLimiter>;
 import { serverAuthEnabled } from '@/lib/env';
 import { readCookie, SESSION_COOKIE } from './cookies';
 import { isSameOrigin } from './origin';
@@ -26,7 +28,7 @@ export const libraryRateLimiter = createRateLimiter({ limit: 120, windowMs: 60_0
 /** Per-IP budget for the account export: it reads the whole library, and nobody needs it often. */
 export const exportRateLimiter = createRateLimiter({ limit: 5, windowMs: 60_000 });
 
-/** The uid the page showed when the person acted on their account (DELETE and export of /api/account). */
+/** The uid the page shows, sent with every library and account request (see `expectedUserGate`). */
 export const EXPECTED_USER_HEADER = 'x-expected-user';
 
 const SAFE_METHODS = new Set(['GET', 'HEAD']);
@@ -65,16 +67,17 @@ export function authGate(request: Request): NextResponse | null {
  * The signed-in user, or the response to send instead (404 / 403 / 401 `{ error: 'unauthenticated' }`, or 503
  * `{ error: 'unavailable' }` when the cookie could not be checked right now).
  * Pass `checkRevoked` for sensitive operations: it costs a call to Firebase but rejects revoked sessions and
- * disabled accounts at once.
+ * disabled accounts at once. Pass `limiter` to spend the caller's per-IP budget (429) before the session is read, so
+ * a flood costs no call to Firebase.
  */
 export async function requireUser(
   request: Request,
-  opts: { checkRevoked?: boolean } = {},
+  opts: { checkRevoked?: boolean; limiter?: RateLimiter } = {},
 ): Promise<SessionUser | NextResponse> {
   // Read the request before anything else: under Cache Components this keeps GET handlers out of prerendering
   // even when sign-in is off at build time.
   const cookie = readCookie(request, SESSION_COOKIE);
-  const blocked = authGate(request);
+  const blocked = authGate(request) ?? (opts.limiter ? limitByIp(request, opts.limiter) : null);
   if (blocked) return blocked;
   try {
     const user = await readSession(cookie, { checkRevoked: opts.checkRevoked });

@@ -1,15 +1,17 @@
 import 'server-only';
 import { sql } from 'drizzle-orm';
 import type { Database } from '@/server/db/client';
-import { episodeProgress as marks, libraryItems as items, ratings } from '@/server/db/schema';
+import { episodeProgress as marks, libraryItems as items, ratings, users } from '@/server/db/schema';
 
 /**
  * Reads a user's whole library in ONE statement (three json_agg subqueries), so items, marks and ratings always come
  * from the same snapshot, even when another device writes in between. Marks travel as arrays to keep a large
- * library small on the wire.
+ * library small on the wire. `account` says whether the user's row still exists (see `hasAccount`), so checking
+ * the account costs no round trip of its own.
  */
 export function selectLibrary(q: Database, userId: string) {
   return q.execute(sql`select
+    exists (select 1 from ${users} where ${users.id} = ${userId}) as account,
     (select coalesce(json_agg(json_build_object(
         'mediaType', ${items.mediaType}, 'tmdbId', ${items.tmdbId}, 'status', ${items.status},
         'addedAt', ${items.addedAt}, 'updatedAt', ${items.updatedAt}, 'watchedAt', ${items.watchedAt},
@@ -74,4 +76,10 @@ export function toRawLibrary(result: unknown) {
       };
     }),
   };
+}
+
+/** True when the result of `selectLibrary` found the user's row. */
+export function hasAccount(result: unknown): boolean {
+  const row = (result as { rows?: Json[] } | undefined)?.rows?.[0];
+  return row?.account === true || row?.account === 't';
 }

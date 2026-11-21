@@ -10,6 +10,7 @@ vi.mock('@/server/db/client', () => ({ getDb: () => holder.db }));
 vi.mock('firebase-admin/app', async () => (await import('@/test/admin-auth')).adminAppModule);
 vi.mock('firebase-admin/auth', async () => (await import('@/test/admin-auth')).adminAuthModule);
 
+import { libraryRateLimiter } from '@/server/auth/guard';
 import { POST } from './route';
 
 let db: Awaited<ReturnType<typeof createTestDb>>;
@@ -43,6 +44,7 @@ const post = (body: string, headers: Record<string, string> = {}) =>
         host: 'localhost:3000',
         origin: LOCAL,
         cookie: 'tv_session=abc; tv_auth=1',
+        'x-expected-user': 'user-1',
         'content-type': 'application/json',
         ...headers,
       },
@@ -54,9 +56,31 @@ const send = (command: unknown, headers?: Record<string, string>) => post(JSON.s
 describe('POST /api/library/commands: an account deleted on another device', () => {
   it('401 unauthenticated instead of failing the write on the foreign key', async () => {
     adminAuthMock.verifySessionCookie.mockResolvedValue(decodedToken({ uid: 'deleted-user', sub: 'deleted-user' }));
-    const res = await post(JSON.stringify({ command: setStatus('want') }));
+    const res = await post(JSON.stringify({ command: setStatus('want') }), { 'x-expected-user': 'deleted-user' });
     expect(res.status).toBe(401);
     expect(await res.json()).toEqual({ error: 'unauthenticated' });
+  });
+});
+
+describe('POST /api/library/commands: the account the page shows', () => {
+  it('409 wrong_account when X-Expected-User names someone else (another tab switched accounts), writing nothing', async () => {
+    const res = await send(setStatus('want'), { 'x-expected-user': 'user-2' });
+    expect(res.status).toBe(409);
+    expect(await res.json()).toEqual({ error: 'wrong_account' });
+    expect((await loadLibrary(db, 'user-1')).items).toEqual([]);
+  });
+
+  it('400 without X-Expected-User', async () => {
+    const res = await send(setStatus('want'), { 'x-expected-user': '' });
+    expect(res.status).toBe(400);
+    expect((await loadLibrary(db, 'user-1')).items).toEqual([]);
+  });
+
+  it('429 from the rate limiter before the session is even read', async () => {
+    for (let i = 0; i < 120; i++) libraryRateLimiter.check('198.51.100.9');
+    const res = await send(setStatus('want'), { 'x-forwarded-for': '198.51.100.9' });
+    expect(res.status).toBe(429);
+    expect(adminAuthMock.verifySessionCookie).not.toHaveBeenCalled();
   });
 });
 
@@ -142,7 +166,9 @@ describe('POST /api/library/commands', () => {
 
   it('500 { error: server_error } on a database failure, logging no user data', async () => {
     const log = vi.spyOn(console, 'error').mockImplementation(() => {});
+    // Everything but the library statement works: the failure happens in the store, inside the route's own catch.
     holder.db = {
+      select: db.select.bind(db),
       execute: () => {
         throw new Error('db down for user-1 / Clube da Luta');
       },
@@ -152,7 +178,7 @@ describe('POST /api/library/commands', () => {
       expect(res.status).toBe(500);
       expect(await res.json()).toEqual({ error: 'server_error' });
       const printed = JSON.stringify(log.mock.calls);
-      expect(log).toHaveBeenCalled();
+      expect(printed).toContain('[api/library/commands] could not apply the command');
       expect(printed).not.toContain('user-1');
       expect(printed).not.toContain('Clube');
       expect(printed).not.toContain('abc');
