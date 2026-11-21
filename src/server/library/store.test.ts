@@ -65,7 +65,7 @@ function canonical(state: LibraryState) {
   };
 }
 
-const run = (command: LibraryCommand, now: string) => applyLibraryCommand(db, userId, command, now);
+const run = async (command: LibraryCommand, now: string) => (await applyLibraryCommand(db, userId, command, now)).state;
 
 async function countRows(table: typeof libraryItems | typeof ratings | typeof episodeProgress) {
   const [row] = await db.select({ n: count() }).from(table).where(eq(table.userId, userId));

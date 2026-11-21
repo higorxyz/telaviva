@@ -85,13 +85,17 @@ describe('POST /api/library/commands: the account the page shows', () => {
 });
 
 describe('POST /api/library/commands', () => {
-  it('applies the command for the signed-in user and answers the new state, never cached', async () => {
+  it('applies the command for the signed-in user and answers the new state and the pre-image, never cached', async () => {
     const res = await send(setStatus('want'));
     expect(res.status).toBe(200);
     expect(res.headers.get('cache-control')).toBe('private, no-store');
-    const state = await res.json();
-    expect(state).toMatchObject({ version: 1, items: [{ ...movie, status: 'want', snapshot }], episodes: [], ratings: [] });
-    expect(await loadLibrary(db, 'user-1')).toEqual(state);
+    const { library, previous } = await res.json();
+    expect(library).toMatchObject({ version: 1, items: [{ ...movie, status: 'want', snapshot }], episodes: [], ratings: [] });
+    expect(await loadLibrary(db, 'user-1')).toEqual(library);
+    expect(previous).toEqual({ item: null, rating: null, marks: [] });
+
+    const again = await (await send(setStatus('watched'))).json();
+    expect(again.previous.item).toEqual(library.items[0]);
   });
 
   it('401 without a valid session, writing nothing', async () => {
@@ -133,8 +137,8 @@ describe('POST /api/library/commands', () => {
   });
 
   it('409 { error: conflict } when an undo finds the title changed since the action', async () => {
-    const first = await (await send(setStatus('want'))).json();
-    const saved = await (await send(setStatus('watched'))).json();
+    const first = (await (await send(setStatus('want'))).json()).library;
+    const saved = (await (await send(setStatus('watched'))).json()).library;
     await new Promise((r) => setTimeout(r, 5)); // the server stamps with its clock: make the next write later
     await send(setStatus('want')); // another device
     const res = await send({

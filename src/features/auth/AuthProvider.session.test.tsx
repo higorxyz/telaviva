@@ -160,7 +160,7 @@ describe('AuthProvider: start and session renewal', () => {
         if (calls === 1) return HttpResponse.json({ error: 'unauthenticated' }, { status: 401 });
         const saved = applyCommand(EMPTY_LIBRARY, want(1), NOW);
         accounts.set('u1', saved);
-        return HttpResponse.json(saved);
+        return HttpResponse.json({ library: saved, previous: { item: null, rating: null, marks: [] } });
       }),
     );
     function Save() {

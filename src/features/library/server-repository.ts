@@ -6,9 +6,11 @@ import {
   LibraryRemoteError,
   LibrarySessionError,
   LibraryWrongAccountError,
+  type AppliedCommand,
   type LibraryNotice,
   type LibraryRepository,
 } from './repository';
+import { parsePreImage } from './pre-image';
 import { normalizeLibraryState, parseLibraryEntries } from './schema';
 import type { LibraryState } from './types';
 
@@ -26,17 +28,25 @@ async function readError(response: Response): Promise<string | undefined> {
   return undefined;
 }
 
-/** One bad row never breaks the UI: rows that fail the schema are dropped, a wrong root shape is an error. */
-async function readState(response: Response): Promise<LibraryState> {
-  let json: unknown;
+async function readJson(response: Response): Promise<unknown> {
   try {
-    json = await response.json();
+    return await response.json();
   } catch (cause) {
     throw new LibraryRemoteError('The library response was not JSON', { cause });
   }
+}
+
+/** One bad row never breaks the UI: rows that fail the schema are dropped, a wrong root shape is an error. */
+function toState(json: unknown): LibraryState {
   const parsed = parseLibraryEntries(json);
   if (!parsed) throw new LibraryRemoteError('The library response had an unexpected shape');
   return normalizeLibraryState(parsed.state);
+}
+
+/** `{ library, previous }`, as POST /api/library/commands answers it. */
+function toApplied(json: unknown): AppliedCommand {
+  const body = typeof json === 'object' && json !== null ? (json as { library?: unknown; previous?: unknown }) : {};
+  return { state: toState(body.library), previous: parsePreImage(body.previous) };
 }
 
 /**
@@ -110,22 +120,29 @@ export function createServerRepository(opts: Options): LibraryRepository {
     throw new LibraryRemoteError(`The library service answered ${response.status}`);
   }
 
+  async function applyWithPreImage(command: LibraryCommand): Promise<AppliedCommand> {
+    const response = await request('/api/library/commands', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ command }),
+    });
+    return toApplied(await readJson(response));
+  }
+
   return {
     persistent: true,
+    remote: true,
     errorMessage: NOTICE.saveFailedAccount,
 
     async load() {
-      return readState(await request('/api/library', {}));
+      return toState(await readJson(await request('/api/library', {})));
     },
 
     async apply(command: LibraryCommand) {
-      const response = await request('/api/library/commands', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ command }),
-      });
-      return readState(response);
+      return (await applyWithPreImage(command)).state;
     },
+
+    applyWithPreImage,
 
     subscribe(onChange) {
       if (typeof document === 'undefined') return () => {};

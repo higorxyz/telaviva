@@ -290,7 +290,10 @@ describe('LibraryProvider modes', () => {
       server.use(
         http.get(url('/api/library'), () => HttpResponse.json(accountState)),
         http.post(url('/api/library/commands'), () =>
-          HttpResponse.json(applyCommand(accountState, want(1), '2026-11-20T10:00:00.000Z')),
+          HttpResponse.json({
+            library: applyCommand(accountState, want(1), '2026-11-20T10:00:00.000Z'),
+            previous: { item: null, rating: null, marks: [] },
+          }),
         ),
       );
       function Other() {
@@ -323,7 +326,10 @@ describe('LibraryProvider modes', () => {
       server.use(
         http.get(url('/api/library'), () => HttpResponse.json(accountState)),
         http.post(url('/api/library/commands'), () =>
-          HttpResponse.json(applyCommand(accountState, want(1), '2026-11-20T10:00:00.000Z')),
+          HttpResponse.json({
+            library: applyCommand(accountState, want(1), '2026-11-20T10:00:00.000Z'),
+            previous: { item: null, rating: null, marks: [] },
+          }),
         ),
       );
       const { view, rerender } = setupSwitch(true);

@@ -16,6 +16,9 @@ import { EMPTY_LIBRARY } from './types';
 
 const url = (path: string) => `${window.location.origin}${path}`;
 const saved = applyCommand(EMPTY_LIBRARY, want(1), NOW);
+const NOTHING_BEFORE = { item: null, rating: null, marks: [] };
+/** What POST /api/library/commands answers: the stored list and the title as it was before. */
+const answered = { library: saved, previous: NOTHING_BEFORE };
 
 function setup() {
   const onUnauthenticated = vi.fn();
@@ -48,11 +51,27 @@ describe('createServerRepository', () => {
     server.use(
       http.post(url('/api/library/commands'), async ({ request }) => {
         received = { body: await request.json(), type: request.headers.get('content-type') };
-        return HttpResponse.json(saved);
+        return HttpResponse.json(answered);
       }),
     );
     expect(await setup().repository.apply(want(1))).toEqual(saved);
     expect(received).toEqual({ body: { command: want(1) }, type: 'application/json' });
+  });
+
+  it('applyWithPreImage answers the stored list and the pre-image the server took for the undo', async () => {
+    const before = saved.items[0];
+    server.use(http.post(url('/api/library/commands'), () => HttpResponse.json({ library: EMPTY_LIBRARY, previous: { item: before, rating: null, marks: [] } })));
+    const applied = await setup().repository.applyWithPreImage!({ type: 'remove', ref: { mediaType: 'movie', tmdbId: 1 } });
+    expect(applied).toEqual({ state: EMPTY_LIBRARY, previous: { item: before, rating: null, marks: [] } });
+  });
+
+  it('answers a null pre-image when the one sent cannot be read, keeping the list', async () => {
+    server.use(http.post(url('/api/library/commands'), () => HttpResponse.json({ library: saved, previous: { item: { broken: true }, rating: null, marks: [] } })));
+    expect(await setup().repository.applyWithPreImage!(want(1))).toEqual({ state: saved, previous: null });
+  });
+
+  it('is remote: the list each apply answers is the whole list as stored', () => {
+    expect(setup().repository.remote).toBe(true);
   });
 
   it('drops a bad row instead of failing the whole response', async () => {
@@ -79,7 +98,7 @@ describe('createServerRepository', () => {
     server.use(
       http.post(url('/api/library/commands'), () => {
         calls++;
-        return calls === 1 ? HttpResponse.json({ error: 'unauthenticated' }, { status: 401 }) : HttpResponse.json(saved);
+        return calls === 1 ? HttpResponse.json({ error: 'unauthenticated' }, { status: 401 }) : HttpResponse.json(answered);
       }),
     );
     const onUnauthenticated = vi.fn(async () => true);
@@ -122,7 +141,7 @@ describe('createServerRepository', () => {
       }),
       http.post(url('/api/library/commands'), ({ request }) => {
         seen.push(request.headers.get('x-expected-user'));
-        return HttpResponse.json(saved);
+        return HttpResponse.json(answered);
       }),
     );
     const { repository } = setup();

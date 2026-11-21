@@ -14,7 +14,10 @@ function commandOf(body: unknown): unknown {
   return (body as { command?: unknown }).command;
 }
 
-/** Applies one library command (`{ command }`) for the signed-in user and answers the library as stored. */
+/**
+ * Applies one library command (`{ command }`) for the signed-in user and answers `{ library, previous }`: the library
+ * as stored, and the title as it was before the command (what an undo puts back).
+ */
 export async function POST(request: Request) {
   const user = await requireAccount(request);
   if (user instanceof Response) return user;
@@ -25,8 +28,8 @@ export async function POST(request: Request) {
   if (!command) return jsonError('invalid', 400);
 
   try {
-    const state = await applyLibraryCommand(getDb(), user.id, command, new Date().toISOString());
-    return noStoreJson(state);
+    const { state, previous } = await applyLibraryCommand(getDb(), user.id, command, new Date().toISOString());
+    return noStoreJson({ library: state, previous });
   } catch (error) {
     if (error instanceof LibraryAccountMissingError) return jsonError('unauthenticated', 401);
     if (error instanceof LibraryInvalidError) return jsonError('invalid', 400);

@@ -1,6 +1,7 @@
 import 'server-only';
 import { applyCommand, type LibraryCommand } from '@/features/library/commands';
 import { LIBRARY_LIMITS } from '@/features/library/limits';
+import { refOfCommand, titlePreImage, type TitlePreImage } from '@/features/library/pre-image';
 import { isValidLibraryState, normalizeLibraryState, parseLibraryEntries } from '@/features/library/schema';
 import { EMPTY_LIBRARY, type LibraryState } from '@/features/library/types';
 import type { Database } from '@/server/db/client';
@@ -69,25 +70,30 @@ function reduce(before: LibraryState, command: LibraryCommand, now: string): Lib
   return after;
 }
 
+/** What a command leaves: the library as stored, and the title as it was before (what an undo puts back). */
+export type AppliedCommand = { state: LibraryState; previous: TitlePreImage };
+
 /**
- * Applies one command for the user and resolves to the library as stored afterwards. The changed rows and a fresh
- * read of the library go in one transaction, so the answer shows what was really kept (a guarded upsert may have
- * kept a newer row) and nothing is written when any statement fails.
+ * Applies one command for the user and resolves to the library as stored afterwards, with the title's pre-image taken
+ * from the state loaded for the command (so the undo a client builds from it never reverts another device's change).
+ * The changed rows and a fresh read of the library go in one transaction, so the answer shows what was really kept (a
+ * guarded upsert may have kept a newer row) and nothing is written when any statement fails.
  */
 export async function applyLibraryCommand(
   db: Database,
   userId: string,
   command: LibraryCommand,
   now: string,
-): Promise<LibraryState> {
+): Promise<AppliedCommand> {
   const before = await loadAccountLibrary(db, userId);
+  const previous = titlePreImage(before, refOfCommand(command));
   const applied = command.type === 'restore' ? clampRestore(command, now) : command;
   if (applied.type === 'restore') assertExpected(before, applied);
   const after = reduce(before, applied, now);
   assertWithinLimits(before, after);
 
   const diff = diffStates(before, after);
-  if (isEmptyDiff(diff)) return after;
+  if (isEmptyDiff(diff)) return { state: after, previous };
   // A restore re-checks its fingerprint inside the transaction, so a write landing after the load aborts it.
   const guard = applied.type === 'restore' && applied.expected ? { ref: applied.ref, expected: applied.expected } : null;
   try {
@@ -96,7 +102,7 @@ export async function applyLibraryCommand(
       ...diffStatements(q, userId, diff, applied.type !== 'restore'),
       selectLibrary(q, userId),
     ]);
-    return fromResult(results.at(-1));
+    return { state: fromResult(results.at(-1)), previous };
   } catch (error) {
     if (isGuardAbort(error)) throw new LibraryConflictError();
     throw error;
