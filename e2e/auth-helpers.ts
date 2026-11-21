@@ -41,14 +41,17 @@ export async function createUser(opts: { email: string; password?: string; name?
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ email: opts.email, password, displayName: opts.name, returnSecureToken: true }),
   });
-  if (opts.verified) {
-    await call(`${ADMIN}/accounts:update`, {
-      method: 'POST',
-      headers: OWNER,
-      body: JSON.stringify({ localId, emailVerified: true }),
-    });
-  }
+  if (opts.verified) await markVerified(localId);
   return { uid: localId, email: opts.email, password } satisfies TestUser;
+}
+
+/** Marks the account's e-mail as confirmed, as following the link in the confirmation e-mail does. */
+export async function markVerified(uid: string): Promise<void> {
+  await call(`${ADMIN}/accounts:update`, {
+    method: 'POST',
+    headers: OWNER,
+    body: JSON.stringify({ localId: uid, emailVerified: true }),
+  });
 }
 
 /** Removes the accounts behind these addresses (those that still exist). */
