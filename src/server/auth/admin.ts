@@ -2,6 +2,7 @@ import 'server-only';
 import { cert, getApps, initializeApp, type App } from 'firebase-admin/app';
 import { getAuth, type Auth } from 'firebase-admin/auth';
 import { serverAuthEnv } from '@/lib/env';
+import { describeKeyProblem } from '@/lib/private-key';
 import { SetupError } from '@/lib/setup-error';
 
 const APP_NAME = 'telaviva';
@@ -36,9 +37,11 @@ function createApp(): App {
     credential = cert(firebase);
   } catch (cause) {
     // Only the code is kept: the original message is firebase-admin's and could, in some version, quote the key.
+    // The shape hint is our own text and never quotes the key either.
     const code = (cause as { code?: unknown } | null)?.code;
+    const problem = describeKeyProblem(firebase.privateKey);
     throw new SetupError(
-      `Credencial do Firebase inválida${typeof code === 'string' ? ` (${code})` : ''}: confira FIREBASE_CLIENT_EMAIL e FIREBASE_PRIVATE_KEY.`,
+      `Credencial do Firebase inválida${typeof code === 'string' ? ` (${code})` : ''}${problem ? ` — ${problem}` : ''}: confira FIREBASE_CLIENT_EMAIL e FIREBASE_PRIVATE_KEY.`,
       { cause },
     );
   }

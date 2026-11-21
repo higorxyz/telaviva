@@ -29,14 +29,15 @@ describe('parseServerAuthEnv', () => {
     expect(parsed.databaseDriver).toBe('neon');
     expect(serverAuthConfigured(parsed)).toBe(true);
   });
-  it('converte a sequência literal barra-n da chave em quebra de linha real', () => {
+  it('converte a sequência literal barra-n da chave num PEM com quebras de linha reais', () => {
     expect(full.FIREBASE_PRIVATE_KEY).not.toContain('\n');
     const key = parseServerAuthEnv(full).firebase?.privateKey;
-    expect(key).toBe('-----BEGIN PRIVATE KEY-----\nabc\ndef\n-----END PRIVATE KEY-----\n');
+    // The body is re-wrapped at 64 characters (see private-key.ts), so the two fake lines join into one.
+    expect(key).toBe('-----BEGIN PRIVATE KEY-----\nabcdef\n-----END PRIVATE KEY-----\n');
   });
   it('aceita a chave entre aspas, como a Vercel guarda quando coladas', () => {
     const quoted = { ...full, FIREBASE_PRIVATE_KEY: `"${full.FIREBASE_PRIVATE_KEY}"` };
-    expect(parseServerAuthEnv(quoted).firebase?.privateKey).toContain('BEGIN PRIVATE KEY-----\nabc');
+    expect(parseServerAuthEnv(quoted).firebase?.privateKey).toContain('BEGIN PRIVATE KEY-----\nabcdef');
   });
   it('trata credencial do Firebase incompleta como ausente', () => {
     expect(parseServerAuthEnv({ ...full, FIREBASE_PRIVATE_KEY: undefined }).firebase).toBeNull();

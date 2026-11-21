@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import { normalizePrivateKey } from './private-key';
 import { SetupError } from './setup-error';
 
 const envSchema = z.object({
@@ -34,15 +35,6 @@ export type ServerAuthEnv = {
   pgliteDir: string | null;
 };
 
-/** Vercel stores the key with literal backslash-n sequences; quotes survive if the user pasted them. */
-function unescapeKey(raw: string | undefined): string | undefined {
-  return raw
-    ?.trim()
-    .replace(/^"|"$/g, '')
-    .replace(/\\n/g, '\n')
-    .trim();
-}
-
 /**
  * Server-only: reads secrets, never import it from client code (use auth-config.ts there).
  * Accounts are optional: every variable may be missing, which turns sign-in off.
@@ -55,12 +47,9 @@ export function parseServerAuthEnv(source: Record<string, string | undefined>): 
   }
   const projectId = source.FIREBASE_PROJECT_ID?.trim();
   const clientEmail = source.FIREBASE_CLIENT_EMAIL?.trim();
-  const privateKey = unescapeKey(source.FIREBASE_PRIVATE_KEY);
+  const privateKey = normalizePrivateKey(source.FIREBASE_PRIVATE_KEY);
   return {
-    firebase:
-      projectId && clientEmail && privateKey
-        ? { projectId, clientEmail, privateKey: `${privateKey}\n` }
-        : null,
+    firebase: projectId && clientEmail && privateKey ? { projectId, clientEmail, privateKey } : null,
     databaseUrl: source.DATABASE_URL?.trim() || null,
     databaseDriver,
     pgliteDir: source.PGLITE_DIR?.trim() || null,

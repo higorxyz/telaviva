@@ -32,7 +32,7 @@ describe('getAdminAuth', () => {
     expect(adminAppModule.cert).toHaveBeenCalledWith({
       projectId: 'demo-telaviva',
       clientEmail: 'test@demo-telaviva.iam.gserviceaccount.com',
-      privateKey: 'fake-key\n',
+      privateKey: 'fake-key',
     });
     expect(adminAppModule.initializeApp).toHaveBeenCalledWith(
       { credential: { serviceAccount: expect.any(Object) } },
@@ -97,5 +97,7 @@ describe('getAdminAuth', () => {
     expect((error as Error).message).toMatch(/FIREBASE_PRIVATE_KEY/);
     expect((error as Error).message).toMatch(/app\/invalid-credential/);
     expect((error as Error).message).not.toContain('fake-key');
+    // The shape hint says what is wrong with the key without quoting it.
+    expect((error as Error).message).toMatch(/-----BEGIN PRIVATE KEY-----/);
   });
 });
