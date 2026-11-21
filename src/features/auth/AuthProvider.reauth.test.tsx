@@ -54,6 +54,19 @@ describe('AuthProvider: back from a redirect started to sign in again before del
     expect(window.sessionStorage.getItem(REDIRECT_FLAG)).toBeNull();
   });
 
+  it('treats a re-authentication flag with an empty uid as a refusal, never as an ordinary sign-in', async () => {
+    window.sessionStorage.setItem(REDIRECT_FLAG, 'reauth:');
+    sdk.getRedirectResult.mockImplementationOnce(async () => {
+      fakeAuth.currentUser = fakeUser('u2');
+      return { user: fakeAuth.currentUser };
+    });
+    renderAuth();
+
+    expect(await screen.findByText(WRONG_ACCOUNT)).toBeInTheDocument();
+    expect(log).toContain('signOut');
+    expect(log.some((e) => e.startsWith('POST session'))).toBe(false);
+  });
+
   it('tells a refused re-authentication (auth/user-mismatch) as signing in with the same account', async () => {
     sdk.getRedirectResult.mockRejectedValueOnce(authError('auth/user-mismatch'));
     await returnFromReauthRedirect();

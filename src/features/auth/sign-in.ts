@@ -45,10 +45,14 @@ export function redirectPending(): boolean {
   return readFlag() !== null;
 }
 
-/** The uid a pending redirect was started to sign in again (before deleting the account), or null. */
+/**
+ * The uid a pending redirect was started to sign in again (before deleting the account), or null when it was an
+ * ordinary sign-in. A re-authentication flag without a uid comes back as `''`, which matches no user: the return trip
+ * refuses it rather than taking it for an ordinary sign-in.
+ */
 export function redirectReauthTarget(): string | null {
   const flag = readFlag();
-  return flag?.startsWith(REAUTH_PREFIX) ? flag.slice(REAUTH_PREFIX.length) || null : null;
+  return flag?.startsWith(REAUTH_PREFIX) ? flag.slice(REAUTH_PREFIX.length) : null;
 }
 
 /** The popup; when it cannot open, the redirect, marked with `flag` (resolves null: the page is leaving). */
