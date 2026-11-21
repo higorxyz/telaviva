@@ -1,5 +1,4 @@
-import AxeBuilder from '@axe-core/playwright';
-import type { Locator, Page } from '@playwright/test';
+import { expectNoViolations, settled } from './axe';
 import { expect, test } from './fixtures';
 import { seedLibrary } from './library-state';
 
@@ -12,16 +11,6 @@ const PAGES = [
   '/generos',
   '/pessoa/287-brad-pitt',
 ];
-
-async function expectNoViolations(page: Page): Promise<void> {
-  const results = await new AxeBuilder({ page }).withTags(['wcag2a', 'wcag2aa']).analyze();
-  expect(results.violations).toEqual([]);
-}
-
-/** Waits for entrance animations to finish, so contrast is measured on the settled colors. */
-async function settled(target: Locator): Promise<void> {
-  await target.evaluate((el) => Promise.all(el.getAnimations({ subtree: true }).map((a) => a.finished)));
-}
 
 for (const path of PAGES) {
   test(`no WCAG A/AA violations on ${path}`, async ({ page }) => {
