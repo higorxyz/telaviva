@@ -23,7 +23,16 @@ type Pending = { command: LibraryCommand; resolve: (answer?: Partial<AppliedComm
 function serverLike(initial: LibraryState) {
   let stored = initial;
   const pending: Pending[] = [];
-  const load = vi.fn(async () => stored);
+  /** When set, the next load answers this (an older read) and only once released: a GET racing a POST. */
+  let stale: { state: LibraryState; gate: Promise<void> } | null = null;
+  const load = vi.fn(async () => {
+    const racing = stale;
+    stale = null;
+    if (!racing) return stored;
+    await racing.gate;
+    return racing.state;
+  });
+  const listeners = new Set<() => void>();
   const repository: LibraryRepository = {
     persistent: true,
     remote: true,
@@ -42,9 +51,24 @@ function serverLike(initial: LibraryState) {
           },
         });
       }),
-    subscribe: () => () => {},
+    subscribe: (onChange) => {
+      listeners.add(onChange);
+      return () => listeners.delete(onChange);
+    },
   };
-  return { repository, pending, load, setStored: (next: LibraryState) => (stored = next) };
+  return {
+    repository,
+    pending,
+    load,
+    setStored: (next: LibraryState) => (stored = next),
+    /** The tab comes back into view (what the account repository reports on `visibilitychange`). */
+    refocus: () => listeners.forEach((l) => l()),
+    staleNextLoad(state: LibraryState) {
+      let release = () => {};
+      stale = { state, gate: new Promise<void>((resolve) => (release = resolve)) };
+      return () => release();
+    },
+  };
 }
 
 function setup(fake: ReturnType<typeof serverLike>) {
@@ -112,6 +136,37 @@ describe('useLibraryActions with the account repository', () => {
     await waitFor(() => expect(fake.pending).toHaveLength(2));
     await act(async () => fake.pending[1]!.resolve());
     await act(async () => fake.pending[0]!.resolve());
+    await waitFor(() => expect(fake.load).toHaveBeenCalledTimes(2));
+  });
+
+  it('never lets a load that read the list before the write land after the answer', async () => {
+    const fake = serverLike(EMPTY_LIBRARY);
+    const { result, client } = setup(fake);
+    await waitFor(() => expect(result.current.entry.ready).toBe(true));
+    act(() => result.current.actions.run(setStatus('want')));
+    await waitFor(() => expect(fake.pending).toHaveLength(1));
+    // Some other path reloads while the POST is out, and that GET read the list before the write.
+    const release = fake.staleNextLoad(EMPTY_LIBRARY);
+    act(() => void client.invalidateQueries({ queryKey: LIBRARY_KEY }));
+    await waitFor(() => expect(fake.load).toHaveBeenCalledTimes(2));
+    await act(async () => fake.pending[0]!.resolve());
+    release();
+    await act(async () => new Promise((r) => setTimeout(r, 30)));
+    expect((client.getQueryData(LIBRARY_KEY) as LibraryState).items).toHaveLength(1);
+    expect(result.current.entry.item?.status).toBe('want');
+  });
+
+  it('does not reload on refocus while a library write is pending', async () => {
+    const fake = serverLike(EMPTY_LIBRARY);
+    const { result } = setup(fake);
+    await waitFor(() => expect(result.current.entry.ready).toBe(true));
+    act(() => result.current.actions.run(setStatus('want')));
+    await waitFor(() => expect(fake.pending).toHaveLength(1));
+    act(() => fake.refocus());
+    await act(async () => new Promise((r) => setTimeout(r, 20)));
+    expect(fake.load).toHaveBeenCalledTimes(1);
+    await act(async () => fake.pending[0]!.resolve());
+    act(() => fake.refocus());
     await waitFor(() => expect(fake.load).toHaveBeenCalledTimes(2));
   });
 });

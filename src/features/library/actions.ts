@@ -130,8 +130,14 @@ export function useLibraryActions(): { run(command: LibraryCommand, opts?: RunOp
       // Only the last pending mutation refreshes the cache (it counts itself).
       if (queryClient.isMutating({ mutationKey: LIBRARY_KEY }) !== 1) return;
       // Signed in, the answer is the whole list as stored after this write: no need to load it again, unless another
-      // mutation overlapped (its write may have landed after this answer was read).
-      const own = context && !isRetired(context.repository) && context.repository.remote && !context.flight.overlapped;
+      // mutation overlapped (its write may have landed after this answer was read) or a load is in flight (it may have
+      // read the list before the write; invalidating cancels it and loads again).
+      const own =
+        context &&
+        !isRetired(context.repository) &&
+        context.repository.remote &&
+        !context.flight.overlapped &&
+        queryClient.isFetching({ queryKey: LIBRARY_KEY }) === 0;
       if (saved && own) queryClient.setQueryData(LIBRARY_KEY, saved.state);
       // Not awaited, so it never extends the pending state.
       else void queryClient.invalidateQueries({ queryKey: LIBRARY_KEY });

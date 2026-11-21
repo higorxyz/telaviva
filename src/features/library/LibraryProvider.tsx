@@ -163,6 +163,8 @@ function IdentityScope({
 
   useEffect(() => {
     return current.subscribe(() => {
+      // A write in flight reloads the list itself when it settles; a load now could read it before the write.
+      if (queryClient.isMutating({ mutationKey: LIBRARY_KEY }) > 0) return;
       void queryClient.invalidateQueries({ queryKey: LIBRARY_KEY });
     });
   }, [current, queryClient]);
