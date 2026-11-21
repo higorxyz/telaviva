@@ -78,6 +78,12 @@ export async function resetLinksSentTo(email: string): Promise<number> {
 
 // ── Through the UI, so the real client flows run (Firebase in the page, session cookie, merge) ──
 
+/**
+ * Landing after a submit chains several hops (the lazy Firebase chunk, the emulator, the session route, the merge, the
+ * next page's data), and six workers share one server: more room than the default 10 s, still no fixed wait.
+ */
+const LANDING = { timeout: 30_000 };
+
 const form = (page: Page) => page.getByRole('tabpanel');
 
 /** Fills the "Entrar" tab of /entrar and submits; the caller asserts where it lands. */
@@ -91,7 +97,7 @@ export async function submitSignIn(page: Page, email: string, password: string):
 /** Signs in on /entrar and waits for the signed-in header (the list, without `?voltar=`). */
 export async function signIn(page: Page, user: { email: string; password: string }): Promise<void> {
   await submitSignIn(page, user.email, user.password);
-  await expect(page).toHaveURL(/\/minha-lista/);
+  await expect(page).toHaveURL(/\/minha-lista/, LANDING);
   await expect(page.getByRole('link', { name: 'Sua conta' })).toBeVisible();
 }
 
@@ -103,7 +109,7 @@ export async function signUp(page: Page, user: { email: string; password: string
   await form(page).getByLabel('E-mail').fill(user.email);
   await form(page).getByLabel('Senha', { exact: true }).fill(user.password);
   await form(page).getByRole('button', { name: 'Criar conta', exact: true }).click();
-  await expect(page).toHaveURL(/\/minha-lista/);
+  await expect(page).toHaveURL(/\/minha-lista/, LANDING);
   await expect(page.getByRole('link', { name: 'Sua conta' })).toBeVisible();
 }
 

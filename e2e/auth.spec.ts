@@ -11,6 +11,7 @@ import {
   uniqueEmail,
 } from './auth-helpers';
 import { expectNoViolations, settled } from './axe';
+import { APP_URL } from './e2e-env';
 import { expect } from './fixtures';
 import { LIBRARY_KEY, savedItemCount } from './library-state';
 
@@ -31,6 +32,7 @@ const WRONG_CREDENTIALS = 'E-mail ou senha incorretos.';
 const RESET_MESSAGE =
   'Se esse e-mail estiver cadastrado e confirmado, você vai receber um link para criar uma nova senha.';
 const preMergeKey = (uid: string) => `${LIBRARY_KEY}:pre-merge:${uid}`;
+const HOME = `${APP_URL}/`;
 
 const libraryPanel = (page: Page) => page.getByRole('tabpanel');
 const fightClub = (page: Page) => libraryPanel(page).getByRole('link', { name: /^Clube da Luta/ });
@@ -104,7 +106,7 @@ test('after signing out the list is empty, and signing in brings it back', async
 
   await page.goto('/conta');
   await page.getByRole('button', { name: 'Sair' }).click();
-  await expect(page).toHaveURL(/localhost:3100\/$/);
+  await expect(page).toHaveURL(HOME);
   await expect(page.getByRole('link', { name: 'Entrar', exact: true })).toBeVisible();
 
   // The merge emptied the visitor's list on this device.
@@ -129,7 +131,9 @@ test('with the session cookie gone, the next action renews it silently and is sa
   expect(await names()).not.toContain('tv_session');
 
   // The first try answers 401; the client mints a new session from Firebase and sends the command again.
+  const refused = page.waitForResponse((r) => isCommand(r.url(), r.request().method()) && r.status() === 401);
   await clickAndSave(page, wantButton(page));
+  await refused;
   await expect(wantButton(page)).toHaveAttribute('aria-pressed', 'true');
   await expect(page.getByText('Salvo em Quero ver')).toBeVisible();
   expect(await names()).toContain('tv_session');
@@ -191,10 +195,11 @@ test('the export holds the list, and a deleted account cannot sign in again', as
   await dialog.getByLabel('Digite EXCLUIR').fill('EXCLUIR');
   await forever.click();
 
-  await expect(page).toHaveURL(/localhost:3100\/$/);
+  await expect(page).toHaveURL(HOME);
   await expect(page.getByText('Conta excluída.')).toBeVisible();
   await expect(page.getByRole('link', { name: 'Entrar', exact: true })).toBeVisible();
   await expect.poll(() => stored(page, preMergeKey(uid))).toBeNull();
+  expect((await page.request.get('/api/auth/me')).status()).toBe(401);
 
   await submitSignIn(page, user.email, user.password);
   await expect(page.getByText(WRONG_CREDENTIALS)).toBeVisible();
@@ -205,9 +210,11 @@ test.describe('accessibility', () => {
   test('no WCAG A/AA violations on /entrar, on both tabs', async ({ page }) => {
     await page.goto('/entrar');
     await expect(page.getByRole('heading', { level: 1 })).toBeVisible();
+    await settled(page.locator('body'));
     await expectNoViolations(page);
     await page.getByRole('tab', { name: 'Criar conta' }).click();
     await expect(page.getByRole('tabpanel').getByLabel('Nome')).toBeVisible();
+    await settled(page.locator('body'));
     await expectNoViolations(page);
   });
 
@@ -217,6 +224,7 @@ test.describe('accessibility', () => {
     await page.goto('/conta');
     await expect(page.getByRole('button', { name: 'Exportar meus dados' })).toBeVisible();
     await expect(page.getByRole('region', { name: 'Confirmação de e-mail' })).toBeVisible();
+    await settled(page.locator('body'));
     await expectNoViolations(page);
 
     await page.getByRole('button', { name: 'Excluir minha conta' }).click();
