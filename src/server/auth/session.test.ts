@@ -23,7 +23,13 @@ const coded = (code: string, message = code) => Object.assign(new Error(message)
 const TRANSIENT = [
   ['a network error', coded('app/network-error')],
   ['an internal error', coded('auth/internal-error')],
-  ['a failed fetch of the public keys', coded('auth/argument-error', 'Error fetching public keys for Google certs: ETIMEDOUT')],
+  // What firebase-admin 14.5.1 says when Google answers the key download with an HTTP error...
+  ['an HTTP error fetching the public keys', coded('auth/argument-error', 'Error fetching public keys for Google certs: 503')],
+  // ...and when the download never gets an answer (api-request.js wraps the network error).
+  [
+    'a timeout fetching the public keys',
+    coded('auth/argument-error', 'Error while making request: connect ETIMEDOUT 142.250.0.1:443. Error code: ETIMEDOUT'),
+  ],
   ['an error without a code', new Error('socket hang up')],
 ] as const;
 

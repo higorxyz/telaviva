@@ -80,14 +80,20 @@ const REFUSALS = new Set([
 ]);
 
 /**
- * True when firebase-admin refused the token. A failed download of the public keys is reported as
- * `auth/argument-error` too, but its message says so ("Error fetching ..."): that one, like a network or internal
- * error, says nothing about the token.
+ * How firebase-admin words a failed download of Google's public keys, which it still reports as
+ * `auth/argument-error`: "Error fetching public keys …" when Google answered with an HTTP error, and "Error while
+ * making request: … Error code: ETIMEDOUT" (or another network code) when no answer came at all.
+ */
+const KEY_DOWNLOAD_FAILURE = /^Error (fetching|while making request)/;
+
+/**
+ * True when firebase-admin refused the token. A failed key download (see `KEY_DOWNLOAD_FAILURE`), like a network or
+ * internal error, says nothing about the token.
  */
 function isRefusal(error: unknown): boolean {
   if (!(error instanceof Error)) return false;
   const code = (error as { code?: unknown }).code;
-  return typeof code === 'string' && REFUSALS.has(code) && !error.message.startsWith('Error fetching');
+  return typeof code === 'string' && REFUSALS.has(code) && !KEY_DOWNLOAD_FAILURE.test(error.message);
 }
 
 const str = (value: unknown) => (typeof value === 'string' && value ? value : null);
