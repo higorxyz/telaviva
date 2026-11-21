@@ -29,11 +29,21 @@ export function authRoutesEnabled(): boolean {
   return serverAuthEnabled();
 }
 
+/** Every answer of these routes is about one person: never kept by a browser or a shared cache. */
+export const NO_STORE_HEADERS = { 'Cache-Control': 'private, no-store' } as const;
+
+/** A JSON answer that is never cached. */
+export function noStoreJson(body: unknown, init: { status?: number } = {}): NextResponse {
+  return NextResponse.json(body, { status: init.status, headers: NO_STORE_HEADERS });
+}
+
+/** An empty answer (204 by default) that is never cached. */
+export function noStoreEmpty(status = 204): NextResponse {
+  return new NextResponse(null, { status, headers: NO_STORE_HEADERS });
+}
+
 export function jsonError(error: string, status: number): NextResponse {
-  return NextResponse.json(
-    { error },
-    { status, headers: { 'Cache-Control': 'private, no-store' } },
-  );
+  return noStoreJson({ error }, { status });
 }
 
 /** 404 when sign-in is off; 403 when a state-changing request lacks a same-origin `Origin`; null to go on. */

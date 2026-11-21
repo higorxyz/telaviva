@@ -1,14 +1,12 @@
-import { NextResponse } from 'next/server';
 import { limitByIp } from '@/lib/api-guard';
 import { describeError } from '@/lib/setup-error';
 import { AccountAuthError, deleteAccount } from '@/server/account';
 import { getAdminAuth } from '@/server/auth/admin';
 import { clearedCookies, withCookies } from '@/server/auth/cookies';
-import { authRateLimiter, expectedUserGate, jsonError, requireUser } from '@/server/auth/guard';
+import { authRateLimiter, expectedUserGate, jsonError, noStoreEmpty, requireUser } from '@/server/auth/guard';
 import { isRecentSignIn } from '@/server/auth/session';
 import { getDb } from '@/server/db/client';
 
-const NO_STORE = { 'Cache-Control': 'private, no-store' };
 
 /**
  * Deletes the signed-in user's account and all of its data (LGPD). The session is checked for revocation, and the
@@ -32,5 +30,5 @@ export async function DELETE(request: Request) {
     console.error(`[api/account] could not delete the account (${firebase ? 'firebase' : 'database'}):`, describeError(cause));
     return jsonError('server_error', firebase ? 502 : 500);
   }
-  return withCookies(new NextResponse(null, { status: 204, headers: NO_STORE }), clearedCookies(request));
+  return withCookies(noStoreEmpty(), clearedCookies(request));
 }

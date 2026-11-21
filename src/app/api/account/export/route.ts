@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server';
 import { limitByIp } from '@/lib/api-guard';
 import { describeError } from '@/lib/setup-error';
 import { exportAccount, exportFilename } from '@/server/account';
-import { expectedUserGate, exportRateLimiter, jsonError, requireUser } from '@/server/auth/guard';
+import { expectedUserGate, exportRateLimiter, jsonError, NO_STORE_HEADERS, requireUser } from '@/server/auth/guard';
 import { getDb } from '@/server/db/client';
 
 /**
@@ -22,7 +22,7 @@ export async function GET(request: Request) {
       headers: {
         'Content-Type': 'application/json; charset=utf-8',
         'Content-Disposition': `attachment; filename="${exportFilename(now)}"`,
-        'Cache-Control': 'private, no-store',
+        ...NO_STORE_HEADERS,
       },
     });
   } catch (error) {

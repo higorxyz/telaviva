@@ -1,14 +1,12 @@
-import { NextResponse } from 'next/server';
 import { parseCommand } from '@/features/library/command-schema';
 import { limitByIp, readJsonBody } from '@/lib/api-guard';
 import { describeError } from '@/lib/setup-error';
 import { requireAccount } from '@/server/auth/account-guard';
-import { jsonError, libraryRateLimiter } from '@/server/auth/guard';
+import { jsonError, libraryRateLimiter, noStoreJson } from '@/server/auth/guard';
 import { getDb } from '@/server/db/client';
 import { LibraryConflictError, LibraryInvalidError, LibraryLimitError } from '@/server/library/errors';
 import { applyLibraryCommand } from '@/server/library/store';
 
-const NO_STORE = { 'Cache-Control': 'private, no-store' };
 const MAX_COMMAND_BYTES = 64 * 1024;
 
 function commandOf(body: unknown): unknown {
@@ -30,7 +28,7 @@ export async function POST(request: Request) {
 
   try {
     const state = await applyLibraryCommand(getDb(), user.id, command, new Date().toISOString());
-    return NextResponse.json(state, { headers: NO_STORE });
+    return noStoreJson(state);
   } catch (error) {
     if (error instanceof LibraryInvalidError) return jsonError('invalid', 400);
     if (error instanceof LibraryConflictError) return jsonError('conflict', 409);

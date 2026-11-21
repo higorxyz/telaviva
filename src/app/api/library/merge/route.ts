@@ -1,15 +1,13 @@
-import { NextResponse } from 'next/server';
 import { normalizeLibraryState, parseLibraryEntries } from '@/features/library/schema';
 import type { LibraryState } from '@/features/library/types';
 import { limitByIp, readJsonBody } from '@/lib/api-guard';
 import { describeError } from '@/lib/setup-error';
 import { requireAccount } from '@/server/auth/account-guard';
-import { jsonError, libraryRateLimiter } from '@/server/auth/guard';
+import { jsonError, libraryRateLimiter, noStoreJson } from '@/server/auth/guard';
 import { getDb } from '@/server/db/client';
 import { LibraryInvalidError, LibraryLimitError } from '@/server/library/errors';
 import { mergeGuestLibrary } from '@/server/library/merge';
 
-const NO_STORE = { 'Cache-Control': 'private, no-store' };
 /** A whole visitor library: far larger than one command (plan, "Limites"). */
 const MAX_MERGE_BYTES = 2 * 1024 * 1024;
 
@@ -45,7 +43,7 @@ export async function POST(request: Request) {
 
   try {
     const state = await mergeGuestLibrary(getDb(), user.id, guest, new Date().toISOString());
-    return NextResponse.json(state, { headers: NO_STORE });
+    return noStoreJson(state);
   } catch (error) {
     if (error instanceof LibraryInvalidError) return jsonError('invalid', 400);
     if (error instanceof LibraryLimitError) return jsonError('limit', 413);

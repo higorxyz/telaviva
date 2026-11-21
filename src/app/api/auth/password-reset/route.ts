@@ -1,6 +1,6 @@
-import { after, NextResponse } from 'next/server';
+import { after } from 'next/server';
 import { limitByIp, readJsonBody } from '@/lib/api-guard';
-import { authGate, authRateLimiter } from '@/server/auth/guard';
+import { authGate, authRateLimiter, noStoreJson } from '@/server/auth/guard';
 import { readResetEmail, RESET_MESSAGE, sendResetIfVerified } from '@/server/auth/password-reset';
 
 const MAX_BODY_BYTES = 4 * 1024;
@@ -18,5 +18,5 @@ export async function POST(request: Request) {
   const email = body.ok ? readResetEmail(body.value) : null;
   if (email) after(() => sendResetIfVerified(email));
 
-  return NextResponse.json({ message: RESET_MESSAGE }, { headers: { 'Cache-Control': 'private, no-store' } });
+  return noStoreJson({ message: RESET_MESSAGE });
 }

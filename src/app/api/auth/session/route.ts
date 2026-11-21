@@ -1,4 +1,3 @@
-import { NextResponse } from 'next/server';
 import { limitByIp, readJsonBody } from '@/lib/api-guard';
 import { describeError } from '@/lib/setup-error';
 import {
@@ -9,10 +8,9 @@ import {
   withCookies,
 } from '@/server/auth/cookies';
 import { getAdminAuth } from '@/server/auth/admin';
-import { authGate, authRateLimiter, jsonError } from '@/server/auth/guard';
+import { authGate, authRateLimiter, jsonError, noStoreEmpty, noStoreJson } from '@/server/auth/guard';
 import { createSession, readSession, SessionError } from '@/server/auth/session';
 
-const NO_STORE = { 'Cache-Control': 'private, no-store' };
 
 function readIdToken(value: unknown): string | null {
   if (typeof value !== 'object' || value === null || Array.isArray(value)) return null;
@@ -35,7 +33,7 @@ export async function POST(request: Request) {
   try {
     const { cookie, user } = await createSession(idToken);
     return withCookies(
-      NextResponse.json({ user }, { headers: NO_STORE }),
+      noStoreJson({ user }),
       sessionCookies(request, cookie),
     );
   } catch (error) {
@@ -59,7 +57,7 @@ export async function DELETE(request: Request) {
     }
   }
   return withCookies(
-    new NextResponse(null, { status: 204, headers: NO_STORE }),
+    noStoreEmpty(),
     clearedCookies(request),
   );
 }
