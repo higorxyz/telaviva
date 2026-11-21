@@ -8,7 +8,24 @@ import { users } from '@/server/db/schema';
 vi.mock('firebase-admin/app', async () => (await import('@/test/admin-auth')).adminAppModule);
 vi.mock('firebase-admin/auth', async () => (await import('@/test/admin-auth')).adminAuthModule);
 
-import { createSession, isRecentSignIn, readSession, SessionError, SESSION_DURATION_MS } from './session';
+import {
+  createSession,
+  isRecentSignIn,
+  readSession,
+  SessionError,
+  SessionUnavailableError,
+  SESSION_DURATION_MS,
+} from './session';
+
+const coded = (code: string, message = code) => Object.assign(new Error(message), { code });
+
+/** Failures that say nothing about the token: Google's keys or Firebase itself could not be reached. */
+const TRANSIENT = [
+  ['a network error', coded('app/network-error')],
+  ['an internal error', coded('auth/internal-error')],
+  ['a failed fetch of the public keys', coded('auth/argument-error', 'Error fetching public keys for Google certs: ETIMEDOUT')],
+  ['an error without a code', new Error('socket hang up')],
+] as const;
 
 let db: Awaited<ReturnType<typeof createTestDb>>;
 beforeAll(async () => {
@@ -159,6 +176,16 @@ describe('createSession', () => {
     expect(adminAuthMock.createSessionCookie).not.toHaveBeenCalled();
   });
 
+  it.each(TRANSIENT)('throws SessionUnavailableError (a 503, not a 401) on %s', async (_name, failure) => {
+    const log = vi.spyOn(console, 'error').mockImplementation(() => {});
+    adminAuthMock.verifyIdToken.mockRejectedValue(failure);
+    const error = await createSession('id-token', { db }).catch((e: unknown) => e);
+    expect(error).toBeInstanceOf(SessionUnavailableError);
+    expect(adminAuthMock.createSessionCookie).not.toHaveBeenCalled();
+    expect(JSON.stringify(log.mock.calls)).not.toContain('id-token');
+    log.mockRestore();
+  });
+
   it('lets a database failure surface as itself (a 500, not a 401)', async () => {
     adminAuthMock.verifyIdToken.mockResolvedValue(decodedToken());
     const broken = {
@@ -217,6 +244,23 @@ describe('readSession', () => {
     );
     expect(await readSession('cookie-value', { checkRevoked: true })).toBeNull();
     expect(log).not.toHaveBeenCalled();
+    log.mockRestore();
+  });
+
+  it.each(['auth/session-cookie-revoked', 'auth/user-disabled', 'auth/user-not-found', 'auth/argument-error'])(
+    'is null when firebase-admin refuses the cookie (%s)',
+    async (code) => {
+      adminAuthMock.verifySessionCookie.mockRejectedValue(coded(code, 'Decoding Firebase session cookie failed.'));
+      expect(await readSession('cookie-value', { checkRevoked: true })).toBeNull();
+    },
+  );
+
+  it.each(TRANSIENT)('throws SessionUnavailableError on %s, logging why but never the cookie', async (_name, failure) => {
+    const log = vi.spyOn(console, 'error').mockImplementation(() => {});
+    adminAuthMock.verifySessionCookie.mockRejectedValue(failure);
+    await expect(readSession('cookie-value')).rejects.toBeInstanceOf(SessionUnavailableError);
+    expect(log).toHaveBeenCalled();
+    expect(JSON.stringify(log.mock.calls)).not.toContain('cookie-value');
     log.mockRestore();
   });
 

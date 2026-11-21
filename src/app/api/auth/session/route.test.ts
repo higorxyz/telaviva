@@ -2,7 +2,7 @@
 import { eq } from 'drizzle-orm';
 import { afterEach, beforeAll, beforeEach, describe, expect, it, vi } from 'vitest';
 import { users } from '@/server/db/schema';
-import { adminAppModule, adminAuthMock, decodedToken, resetAdminAuthMock, stubAuthEnv } from '@/test/admin-auth';
+import { adminAppModule, adminAuthError, adminAuthMock, decodedToken, resetAdminAuthMock, stubAuthEnv } from '@/test/admin-auth';
 import { createTestDb } from '@/test/db';
 
 const holder = vi.hoisted(() => ({ db: undefined as unknown }));
@@ -86,11 +86,21 @@ describe('POST /api/auth/session', () => {
   });
 
   it('401 for an invalid token, without cookies', async () => {
-    adminAuthMock.verifyIdToken.mockRejectedValue(new Error('bad token'));
+    adminAuthMock.verifyIdToken.mockRejectedValue(adminAuthError('auth/argument-error', 'bad token'));
     const res = await post(token);
     expect(res.status).toBe(401);
     expect(await res.json()).toEqual({ error: 'invalid_token' });
     expect(res.headers.getSetCookie()).toEqual([]);
+  });
+
+  it('503 { error: unavailable } when Firebase cannot be reached to check the token, without cookies', async () => {
+    const log = vi.spyOn(console, 'error').mockImplementation(() => {});
+    adminAuthMock.verifyIdToken.mockRejectedValue(adminAuthError('app/network-error'));
+    const res = await post(token);
+    expect(res.status).toBe(503);
+    expect(await res.json()).toEqual({ error: 'unavailable' });
+    expect(res.headers.getSetCookie()).toEqual([]);
+    log.mockRestore();
   });
 
   it('401 for a token whose sign-in and minting are both older than 5 minutes', async () => {
@@ -200,7 +210,7 @@ describe('DELETE /api/auth/session', () => {
   });
 
   it('clears the cookies without revoking when there is no valid session', async () => {
-    adminAuthMock.verifySessionCookie.mockRejectedValue(new Error('expired'));
+    adminAuthMock.verifySessionCookie.mockRejectedValue(adminAuthError('auth/session-cookie-expired'));
     const cases: Record<string, string>[] = [{}, { cookie: 'tv_session=expired' }];
     for (const headers of cases) {
       const res = await del(headers);

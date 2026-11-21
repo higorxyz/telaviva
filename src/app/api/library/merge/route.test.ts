@@ -2,7 +2,7 @@
 import { afterEach, beforeAll, beforeEach, describe, expect, it, vi } from 'vitest';
 import { episodeProgress, libraryItems, ratings, users } from '@/server/db/schema';
 import { loadLibrary } from '@/server/library/store';
-import { adminAuthMock, decodedToken, resetAdminAuthMock, stubAuthEnv } from '@/test/admin-auth';
+import { adminAuthError, adminAuthMock, decodedToken, resetAdminAuthMock, stubAuthEnv } from '@/test/admin-auth';
 import { createTestDb } from '@/test/db';
 
 const holder = vi.hoisted(() => ({ db: undefined as unknown }));
@@ -130,7 +130,7 @@ describe('POST /api/library/merge', () => {
   });
 
   it('401 without a valid session, writing nothing', async () => {
-    adminAuthMock.verifySessionCookie.mockRejectedValue(new Error('expired'));
+    adminAuthMock.verifySessionCookie.mockRejectedValue(adminAuthError('auth/session-cookie-expired'));
     const res = await send(guest);
     expect(res.status).toBe(401);
     expect(await res.json()).toEqual({ error: 'unauthenticated' });

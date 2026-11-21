@@ -4,7 +4,7 @@ import { createRateLimiter } from '@/lib/api-guard';
 import { serverAuthEnabled } from '@/lib/env';
 import { readCookie, SESSION_COOKIE } from './cookies';
 import { isSameOrigin } from './origin';
-import { readSession, type SessionUser } from './session';
+import { readSession, SessionUnavailableError, type SessionUser } from './session';
 
 /**
  * Shared guards for the routes behind sign-in (/api/auth/*, /api/library/*, /api/account/*).
@@ -56,7 +56,8 @@ export function authGate(request: Request): NextResponse | null {
 }
 
 /**
- * The signed-in user, or the response to send instead (404 / 403 / 401 `{ error: 'unauthenticated' }`).
+ * The signed-in user, or the response to send instead (404 / 403 / 401 `{ error: 'unauthenticated' }`, or 503
+ * `{ error: 'unavailable' }` when the cookie could not be checked right now).
  * Pass `checkRevoked` for sensitive operations: it costs a call to Firebase but rejects revoked sessions and
  * disabled accounts at once.
  */
@@ -69,8 +70,13 @@ export async function requireUser(
   const cookie = readCookie(request, SESSION_COOKIE);
   const blocked = authGate(request);
   if (blocked) return blocked;
-  const user = await readSession(cookie, { checkRevoked: opts.checkRevoked });
-  return user ?? jsonError('unauthenticated', 401);
+  try {
+    const user = await readSession(cookie, { checkRevoked: opts.checkRevoked });
+    return user ?? jsonError('unauthenticated', 401);
+  } catch (error) {
+    if (error instanceof SessionUnavailableError) return jsonError('unavailable', 503);
+    throw error;
+  }
 }
 
 /**

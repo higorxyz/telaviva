@@ -55,3 +55,6 @@ export function stubAuthEnv(stubEnv: (name: string, value: string) => unknown) {
   stubEnv('DATABASE_DRIVER', 'pglite');
   stubEnv('DATABASE_URL', '');
 }
+
+/** A firebase-admin refusal (`auth/...`): what it throws for a bad, expired or revoked token or cookie. */
+export const adminAuthError = (code: string, message = code) => Object.assign(new Error(message), { code });

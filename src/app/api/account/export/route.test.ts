@@ -1,7 +1,7 @@
 // @vitest-environment node
 import { afterEach, beforeAll, beforeEach, describe, expect, it, vi } from 'vitest';
 import { libraryItems, users } from '@/server/db/schema';
-import { adminAuthMock, decodedToken, resetAdminAuthMock, stubAuthEnv } from '@/test/admin-auth';
+import { adminAuthError, adminAuthMock, decodedToken, resetAdminAuthMock, stubAuthEnv } from '@/test/admin-auth';
 import { createTestDb } from '@/test/db';
 
 const holder = vi.hoisted(() => ({ db: undefined as unknown }));
@@ -96,7 +96,7 @@ describe('GET /api/account/export', () => {
   });
 
   it('401 for a revoked session', async () => {
-    adminAuthMock.verifySessionCookie.mockRejectedValue(new Error('revoked'));
+    adminAuthMock.verifySessionCookie.mockRejectedValue(adminAuthError('auth/session-cookie-revoked'));
     expect((await get()).status).toBe(401);
   });
 

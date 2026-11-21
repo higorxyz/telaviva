@@ -54,6 +54,41 @@ export class SessionError extends Error {
   }
 }
 
+/**
+ * The token or cookie could not be checked at all (Google's public keys or Firebase out of reach): the caller answers
+ * 503, which the client treats as passing. Answering 401 would sign a perfectly good session out.
+ */
+export class SessionUnavailableError extends Error {
+  constructor(options?: { cause?: unknown }) {
+    super('Could not check the session right now', options);
+    this.name = 'SessionUnavailableError';
+  }
+}
+
+/** firebase-admin's answers about the token itself: bad, expired, revoked, or its user disabled or gone. */
+const REFUSALS = new Set([
+  'auth/argument-error',
+  'auth/invalid-argument',
+  'auth/invalid-id-token',
+  'auth/id-token-expired',
+  'auth/id-token-revoked',
+  'auth/session-cookie-expired',
+  'auth/session-cookie-revoked',
+  'auth/user-disabled',
+  'auth/user-not-found',
+]);
+
+/**
+ * True when firebase-admin refused the token. A failed download of the public keys is reported as
+ * `auth/argument-error` too, but its message says so ("Error fetching ..."): that one, like a network or internal
+ * error, says nothing about the token.
+ */
+function isRefusal(error: unknown): boolean {
+  if (!(error instanceof Error)) return false;
+  const code = (error as { code?: unknown }).code;
+  return typeof code === 'string' && REFUSALS.has(code) && !error.message.startsWith('Error fetching');
+}
+
 const str = (value: unknown) => (typeof value === 'string' && value ? value : null);
 
 function toSessionUser(decoded: DecodedIdToken): SessionUser {
@@ -82,8 +117,10 @@ export async function createSession(
   let decoded: DecodedIdToken;
   try {
     decoded = await auth.verifyIdToken(idToken, true);
-  } catch {
-    throw new SessionError('invalid_token');
+  } catch (error) {
+    if (isRefusal(error)) throw new SessionError('invalid_token');
+    console.error('[auth] could not check the ID token:', describeError(error));
+    throw new SessionUnavailableError({ cause: error });
   }
   if (!isFreshToken(decoded, Date.now() / 1000)) {
     throw new SessionError('stale_login');
@@ -95,7 +132,10 @@ export async function createSession(
   return { cookie, user };
 }
 
-/** The user behind a session cookie; null when it is missing, invalid, expired, revoked or sign-in is off. */
+/**
+ * The user behind a session cookie; null when it is missing, invalid, expired, revoked or sign-in is off. Throws
+ * SessionUnavailableError when the cookie could not be checked at all (see `isRefusal`).
+ */
 export async function readSession(
   cookieValue: string | undefined,
   opts: { checkRevoked?: boolean; auth?: Auth } = {},
@@ -107,7 +147,9 @@ export async function readSession(
   } catch (error) {
     // A bad cookie is routine and stays quiet. A setup error means nobody can sign in: say why (its message holds
     // no secrets). The cookie itself is never logged.
-    if (error instanceof SetupError) console.error('[auth] could not read the session:', describeError(error));
-    return null;
+    if (isRefusal(error)) return null;
+    console.error('[auth] could not read the session:', describeError(error));
+    if (error instanceof SetupError) return null;
+    throw new SessionUnavailableError({ cause: error });
   }
 }

@@ -9,7 +9,7 @@ import {
 } from '@/server/auth/cookies';
 import { getAdminAuth } from '@/server/auth/admin';
 import { authGate, authRateLimiter, jsonError, noStoreEmpty, noStoreJson } from '@/server/auth/guard';
-import { createSession, readSession, SessionError } from '@/server/auth/session';
+import { createSession, readSession, SessionError, SessionUnavailableError } from '@/server/auth/session';
 
 
 function readIdToken(value: unknown): string | null {
@@ -38,6 +38,7 @@ export async function POST(request: Request) {
     );
   } catch (error) {
     if (error instanceof SessionError) return jsonError(error.code, 401);
+    if (error instanceof SessionUnavailableError) return jsonError('unavailable', 503);
     console.error('[api/auth/session] could not create the session:', describeError(error));
     return jsonError('server_error', 500);
   }

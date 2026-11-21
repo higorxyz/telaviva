@@ -1,6 +1,6 @@
 // @vitest-environment node
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { adminAuthMock, decodedToken, resetAdminAuthMock, stubAuthEnv } from '@/test/admin-auth';
+import { adminAuthError, adminAuthMock, decodedToken, resetAdminAuthMock, stubAuthEnv } from '@/test/admin-auth';
 
 vi.mock('firebase-admin/app', async () => (await import('@/test/admin-auth')).adminAppModule);
 vi.mock('firebase-admin/auth', async () => (await import('@/test/admin-auth')).adminAuthModule);
@@ -58,9 +58,18 @@ describe('requireUser', () => {
     expect((missing as Response).status).toBe(401);
     expect(await (missing as Response).json()).toEqual({ error: 'unauthenticated' });
 
-    adminAuthMock.verifySessionCookie.mockRejectedValue(new Error('revoked'));
+    adminAuthMock.verifySessionCookie.mockRejectedValue(adminAuthError('auth/session-cookie-revoked'));
     const rejected = await requireUser(req('GET', { cookie: 'tv_session=x' }));
     expect((rejected as Response).status).toBe(401);
+  });
+
+  it('503 { error: "unavailable" } when the cookie cannot be checked right now', async () => {
+    const log = vi.spyOn(console, 'error').mockImplementation(() => {});
+    adminAuthMock.verifySessionCookie.mockRejectedValue(adminAuthError('app/network-error'));
+    const res = await requireUser(req('GET', { cookie: 'tv_session=x' }));
+    expect((res as Response).status).toBe(503);
+    expect(await (res as Response).json()).toEqual({ error: 'unavailable' });
+    log.mockRestore();
   });
 
   it('403 before reading the session when a state-changing request comes from another origin', async () => {

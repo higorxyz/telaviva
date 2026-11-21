@@ -1,6 +1,6 @@
 // @vitest-environment node
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { adminAuthMock, decodedToken, resetAdminAuthMock, stubAuthEnv } from '@/test/admin-auth';
+import { adminAuthError, adminAuthMock, decodedToken, resetAdminAuthMock, stubAuthEnv } from '@/test/admin-auth';
 
 vi.mock('firebase-admin/app', async () => (await import('@/test/admin-auth')).adminAppModule);
 vi.mock('firebase-admin/auth', async () => (await import('@/test/admin-auth')).adminAuthModule);
@@ -39,6 +39,16 @@ describe('GET /api/auth/me', () => {
     expect(res.headers.get('cache-control')).toBe('private, no-store');
   });
 
+  it('503 { error: unavailable } when the cookie cannot be checked (Firebase unreachable): not a sign-out', async () => {
+    const log = vi.spyOn(console, 'error').mockImplementation(() => {});
+    adminAuthMock.verifySessionCookie.mockRejectedValue(adminAuthError('auth/internal-error'));
+    const res = await get({ cookie: 'tv_session=abc' });
+    expect(res.status).toBe(503);
+    expect(await res.json()).toEqual({ error: 'unavailable' });
+    expect(res.headers.get('cache-control')).toBe('private, no-store');
+    log.mockRestore();
+  });
+
   it('401 without a cookie', async () => {
     const res = await get();
     expect(res.status).toBe(401);
@@ -51,7 +61,7 @@ describe('GET /api/auth/me', () => {
   });
 
   it('401 for an invalid or expired cookie', async () => {
-    adminAuthMock.verifySessionCookie.mockRejectedValue(new Error('expired'));
+    adminAuthMock.verifySessionCookie.mockRejectedValue(adminAuthError('auth/session-cookie-expired'));
     expect((await get({ cookie: 'tv_session=expired' })).status).toBe(401);
   });
 
