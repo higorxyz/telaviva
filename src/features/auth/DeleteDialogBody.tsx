@@ -1,7 +1,7 @@
 'use client';
 
 import { LoaderCircle } from 'lucide-react';
-import { useEffect, useId, useRef, useState, type FormEvent } from 'react';
+import { useId, useState, type FormEvent } from 'react';
 import { cn } from '@/lib/cn';
 import { buttonClasses } from '@/ui/Button';
 import { requestAccountDeletion } from './account-client';
@@ -12,15 +12,14 @@ import {
   DELETE_FOREVER,
   DELETE_TEXT,
   PASSWORD_MISSING,
-  REAUTH_TEXT,
   STALE_ACCOUNT,
   WRONG_ACCOUNT,
 } from './account-copy';
 import type { ReauthOutcome } from './auth-flows';
 import { authErrorCode, authErrorMessage, OFFLINE } from './errors';
-import { Field, FormError, PasswordField } from './form-ui';
-import { GoogleMark } from './GoogleMark';
+import { Field, FormError } from './form-ui';
 import { ReauthMismatchError } from './reauth';
+import { ReauthStep } from './ReauthStep';
 import type { SessionUser } from './session-client';
 import { useAuth } from './useAuth';
 
@@ -57,14 +56,9 @@ export function DeleteDialogBody(props: Props) {
   const [phase, setPhase] = useState<'confirm' | 'reauth'>('confirm');
   const [password, setPassword] = useState('');
   const [error, setError] = useState<{ message: string; key: number } | null>(null);
-  const reauthControl = useRef<HTMLButtonElement & HTMLInputElement>(null);
-  const ids = { form: useId(), field: useId(), reauth: useId(), password: useId() };
+  const ids = { form: useId(), field: useId() };
   // Surrounding spaces are forgiven (phone keyboards often add one after a word), but the case must match.
   const ready = word.trim() === CONFIRM_WORD;
-
-  useEffect(() => {
-    if (phase === 'reauth') reauthControl.current?.focus();
-  }, [phase]);
 
   function fail(message: string | null) {
     setBusy(false);
@@ -137,43 +131,13 @@ export function DeleteDialogBody(props: Props) {
       </form>
 
       {phase === 'reauth' ? (
-        <div className="mt-6 border-t border-ink-700 pt-5">
-          <p id={ids.reauth} className="font-sans text-sm text-ivory">
-            {REAUTH_TEXT}
-          </p>
-          {provider === 'password' ? (
-            <form onSubmit={signInAgain} className="mt-3 flex flex-col gap-3">
-              <PasswordField
-                id={ids.password}
-                label="Senha"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                autoComplete="current-password"
-                aria-describedby={ids.reauth}
-                inputRef={reauthControl}
-              />
-              <button
-                type="submit"
-                aria-disabled={busy || undefined}
-                className={cn(buttonClasses({ variant: 'ghost' }), 'self-start')}
-              >
-                Entrar de novo
-              </button>
-            </form>
-          ) : (
-            <button
-              ref={reauthControl}
-              type="button"
-              onClick={() => void signInAgain()}
-              aria-describedby={ids.reauth}
-              aria-disabled={busy || undefined}
-              className={cn(buttonClasses({ variant: 'ghost' }), 'mt-3 gap-3 bg-ink-950')}
-            >
-              <GoogleMark className="size-5" />
-              Continuar com Google
-            </button>
-          )}
-        </div>
+        <ReauthStep
+          provider={provider}
+          password={password}
+          setPassword={setPassword}
+          busy={busy}
+          onSubmit={(event) => void signInAgain(event)}
+        />
       ) : null}
 
       {error ? (
