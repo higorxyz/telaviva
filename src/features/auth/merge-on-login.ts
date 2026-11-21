@@ -1,8 +1,9 @@
 import { normalizeLibraryState, parseLibraryEntries } from '@/features/library/schema';
+import { GUEST_LIBRARY_KEY } from '@/features/library/storage-key';
 import type { LibraryState } from '@/features/library/types';
 import { chunkLibrary, holdsEveryKey } from './merge-chunks';
 
-const KEY = 'telaviva:library:v1';
+const KEY = GUEST_LIBRARY_KEY;
 
 /** Copy of the visitor's library taken before its first merge into `uid`. Never removed automatically. */
 export const preMergeKey = (uid: string) => `${KEY}:pre-merge:${uid}`;

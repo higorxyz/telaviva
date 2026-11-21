@@ -2,11 +2,12 @@ import { applyCommand, type LibraryCommand } from './commands';
 import type { LibraryNotice, LibraryRepository } from './repository';
 import { isValidLibraryState, normalizeLibraryState, parseLibraryEntries } from './schema';
 import { EMPTY_LIBRARY, type LibraryState } from './types';
+import { GUEST_LIBRARY_KEY } from './storage-key';
 import { importV1 } from './v1-import';
 
-const KEY = 'telaviva:library:v1';
+const KEY = GUEST_LIBRARY_KEY;
 const BACKUP_PREFIX = `${KEY}:corrupt:`;
-const IMPORT_DONE_KEY = 'telaviva:library:v1-import-done';
+const IMPORT_DONE_KEY = `${KEY}-import-done`;
 
 export class LibraryStorageError extends Error {
   constructor(message: string, options?: { cause?: unknown }) {

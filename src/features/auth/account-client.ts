@@ -1,7 +1,6 @@
+import { GUEST_LIBRARY_KEY } from '@/features/library/storage-key';
 import { confirmedKey, preMergeKey } from './merge-on-login';
 
-/** The visitor's library (local-repository.ts), merged into the account at sign-in. */
-const LIBRARY_KEY = 'telaviva:library:v1';
 const EXPORT_FALLBACK_NAME = 'telaviva-meus-dados.json';
 
 const init: RequestInit = { credentials: 'same-origin', cache: 'no-store' };
@@ -83,6 +82,6 @@ function removeFrom(store: () => Storage, keys: string[]) {
  * when the uid is not known any more.
  */
 export function clearLocalAccountData(uid: string | null): void {
-  removeFrom(() => window.localStorage, uid ? [LIBRARY_KEY, preMergeKey(uid), confirmedKey(uid)] : [LIBRARY_KEY]);
+  removeFrom(() => window.localStorage, uid ? [GUEST_LIBRARY_KEY, preMergeKey(uid), confirmedKey(uid)] : [GUEST_LIBRARY_KEY]);
   if (uid) removeFrom(() => window.sessionStorage, [confirmedKey(uid)]);
 }
