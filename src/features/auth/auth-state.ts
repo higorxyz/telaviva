@@ -1,7 +1,7 @@
 import type { User } from 'firebase/auth';
 import type { ToastInput } from '@/ui/toast/useToast';
 import type { AuthStatus } from './auth-context';
-import type { SessionUser } from './session-client';
+import { createSession, deleteSession, type SessionUser } from './session-client';
 
 export type AuthSnapshot = { status: AuthStatus; user: SessionUser | null };
 
@@ -27,6 +27,8 @@ export const quietly = async (work: () => Promise<unknown>) => {
  */
 export function createAuthState(deps: AuthDeps) {
   const notices: ToastInput[] = [];
+  /** Session mints still waiting for the server (renewal, verified re-mint, re-authentication). */
+  const minting = new Set<Promise<unknown>>();
   const state = {
     uid: null as string | null,
     email: null as string | null,
@@ -41,6 +43,28 @@ export function createAuthState(deps: AuthDeps) {
     },
 
     takeNotices: (): ToastInput[] => notices.splice(0),
+
+    /**
+     * Mints a session from a fresh ID token of the user already signed in here (renewal, verified re-mint,
+     * re-authentication). Its answer sets the cookies whenever it lands, so a sign-out that happened meanwhile would be
+     * undone, and with nothing revoked the next full load would sign the person back in: `leave` waits for these, and
+     * a mint that still lands after a sign-out clears the cookies again.
+     */
+    async mint(user: User): Promise<SessionUser> {
+      const started = state.generation;
+      const request = user.getIdToken(true).then(createSession);
+      minting.add(request);
+      try {
+        const sessionUser = await request;
+        if (started !== state.generation && state.uid === null) await deleteSession();
+        return sessionUser;
+      } finally {
+        minting.delete(request);
+      }
+    },
+
+    /** Resolves once every mint in flight has its answer (whatever it was). */
+    mintsSettled: () => Promise.allSettled([...minting]),
 
     signedIn(user: SessionUser) {
       state.uid = user.id;

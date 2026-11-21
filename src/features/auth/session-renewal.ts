@@ -2,7 +2,7 @@ import type { User } from 'firebase/auth';
 import { quietly, type AuthState } from './auth-state';
 import { endsSession } from './errors';
 import { isFirebaseLoaded, loadFirebase } from './firebase-client';
-import { clearAuthHint, createSession, deleteSession, fetchMe, type MeResult } from './session-client';
+import { clearAuthHint, deleteSession, fetchMe, type MeResult } from './session-client';
 
 export const SESSION_EXPIRED = 'Sua sessão expirou. Entre de novo para sincronizar.';
 
@@ -39,7 +39,7 @@ export function createSessionRenewal(state: AuthState) {
         const { auth } = await loadFirebase();
         const user = auth.currentUser;
         if (user) {
-          const sessionUser = await createSession(await user.getIdToken(true));
+          const sessionUser = await state.mint(user);
           if (started !== state.generation) return false;
           state.adopt(user, sessionUser);
           return sessionUser.id === before;
@@ -67,7 +67,7 @@ export function createSessionRenewal(state: AuthState) {
   async function remintVerified(user: User | null, started: number): Promise<boolean> {
     if (!user?.emailVerified || user.uid !== state.uid || state.sessionVerified) return false;
     try {
-      const sessionUser = await createSession(await user.getIdToken(true));
+      const sessionUser = await state.mint(user);
       if (started !== state.generation || sessionUser.id !== state.uid) return false;
       state.adopt(user, sessionUser);
       return true;

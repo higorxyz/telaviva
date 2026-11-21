@@ -71,6 +71,8 @@ export function createAuthFlows(deps: AuthDeps) {
   async function leave(endSession: boolean, notice?: string) {
     state.generation += 1;
     state.uid = null; // A 401 from here on is the sign-out itself, not a session to renew.
+    // A mint still in flight would set the cookies again after the DELETE: let it land first.
+    await state.mintsSettled();
     if (endSession) await deleteSession();
     clearAuthHint();
     await quietly(async () => {
@@ -131,7 +133,7 @@ export function createAuthFlows(deps: AuthDeps) {
       const user = await reauthFirebase(await loadFirebase(), { id: target, email: state.email }, password);
       if (!user) return 'leaving';
       if (state.uid !== target) return 'aborted';
-      const sessionUser = await createSession(await user.getIdToken(true));
+      const sessionUser = await state.mint(user);
       if (state.uid !== target || sessionUser.id !== target) {
         await quietly(() => flows.refresh());
         return 'aborted';
