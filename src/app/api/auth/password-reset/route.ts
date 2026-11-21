@@ -1,6 +1,6 @@
 import { after } from 'next/server';
 import { limitByIp, readJsonBody } from '@/lib/api-guard';
-import { authGate, authRateLimiter, noStoreJson } from '@/server/auth/guard';
+import { authGate, noStoreJson, resetRateLimiter } from '@/server/auth/guard';
 import { readResetEmail, RESET_MESSAGE, sendResetIfVerified } from '@/server/auth/password-reset';
 
 const MAX_BODY_BYTES = 4 * 1024;
@@ -11,7 +11,7 @@ const MAX_BODY_BYTES = 4 * 1024;
  * sent, so the response time cannot tell an existing, verified account from any other address either.
  */
 export async function POST(request: Request) {
-  const blocked = authGate(request) ?? limitByIp(request, authRateLimiter);
+  const blocked = authGate(request) ?? limitByIp(request, resetRateLimiter);
   if (blocked) return blocked;
 
   const body = await readJsonBody(request, MAX_BODY_BYTES);

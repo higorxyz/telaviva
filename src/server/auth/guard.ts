@@ -14,6 +14,12 @@ import { readSession, SessionUnavailableError, type SessionUser } from './sessio
 /** Per-IP budget for minting sessions, separate from the TMDb routes' budget so browsing never blocks sign-in. */
 export const authRateLimiter = createRateLimiter({ limit: 30, windowMs: 60_000 });
 
+/**
+ * Per-IP budget for password resets, apart from the sign-in one: asking for resets never blocks signing in, and
+ * signing in never uses up the resets. Each reset may send an e-mail, so it is the smaller of the two.
+ */
+export const resetRateLimiter = createRateLimiter({ limit: 10, windowMs: 60_000 });
+
 /** Per-IP budget for /api/library/*: generous, since marking episodes one by one sends a command per click. */
 export const libraryRateLimiter = createRateLimiter({ limit: 120, windowMs: 60_000 });
 

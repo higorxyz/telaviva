@@ -22,6 +22,7 @@ vi.mock('@/lib/auth-config', () => ({
   authEmulatorHost: null,
 }));
 
+import { authRateLimiter } from '@/server/auth/guard';
 import { POST } from './route';
 
 const MESSAGE = 'Se esse e-mail estiver cadastrado e confirmado, você vai receber um link para criar uma nova senha.';
@@ -167,11 +168,19 @@ describe('POST /api/auth/password-reset', () => {
     expect(adminAuthMock.getUserByEmail).not.toHaveBeenCalled();
   });
 
-  it('429 once an IP spends the sign-in budget', async () => {
+  it('429 once an IP spends its own reset budget (10 a minute)', async () => {
     adminAuthMock.getUserByEmail.mockRejectedValue(notFound());
     const headers = { 'x-forwarded-for': '203.0.113.77' };
-    let last: Response | null = null;
-    for (let i = 0; i < 31; i += 1) last = await post(JSON.stringify({ email: 'x@example.com' }), headers);
-    expect(last?.status).toBe(429);
+    for (let i = 0; i < 10; i += 1) {
+      expect((await post(JSON.stringify({ email: 'x@example.com' }), headers)).status).toBe(200);
+    }
+    expect((await post(JSON.stringify({ email: 'x@example.com' }), headers)).status).toBe(429);
+  });
+
+  it('does not share the sign-in budget: an IP that spent it can still ask for a reset', async () => {
+    adminAuthMock.getUserByEmail.mockRejectedValue(notFound());
+    const ip = '203.0.113.78';
+    for (let i = 0; i < 31; i += 1) authRateLimiter.check(ip);
+    expect((await post(JSON.stringify({ email: 'x@example.com' }), { 'x-forwarded-for': ip })).status).toBe(200);
   });
 });
