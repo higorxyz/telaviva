@@ -1,13 +1,14 @@
 'use client';
 
-import { CircleAlert, CircleCheck, Download, LoaderCircle, LogOut } from 'lucide-react';
+import { Download, LoaderCircle, LogOut } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { useState } from 'react';
 import { Button, ButtonLink } from '@/ui/Button';
 import { Skeleton } from '@/ui/Skeleton';
 import { useToast } from '@/ui/toast/useToast';
 import { downloadAccountExport, WrongAccountError } from './account-client';
-import { EXPORT_ERROR, PROVIDER_LABEL, STALE_ACCOUNT } from './account-copy';
+import { EXPORT_ERROR, STALE_ACCOUNT } from './account-copy';
+import { AccountDetails } from './AccountDetails';
 import { initialOf } from './AccountButton';
 import { DeleteAccount } from './DeleteAccount';
 import type { SessionUser } from './session-client';
@@ -58,36 +59,9 @@ function Avatar({ user }: { user: SessionUser }) {
   );
 }
 
-function Details({ user }: { user: SessionUser }) {
-  return (
-    <dl className={`mt-8 grid grid-cols-[auto_1fr] gap-x-8 gap-y-3 font-sans text-sm ${SECTION}`}>
-      {user.provider ? (
-        <>
-          <dt className="text-ivory-muted">Acesso</dt>
-          <dd className="text-ivory">{PROVIDER_LABEL[user.provider]}</dd>
-        </>
-      ) : null}
-      <dt className="text-ivory-muted">Verificação</dt>
-      <dd>
-        {user.emailVerified ? (
-          <span className="inline-flex items-center gap-1.5 text-ivory">
-            <CircleCheck aria-hidden="true" className="size-4 text-ivory-muted" />
-            E-mail confirmado
-          </span>
-        ) : (
-          <span className="inline-flex items-center gap-1.5 text-ivory">
-            <CircleAlert aria-hidden="true" className="size-4 text-amber" />
-            E-mail não confirmado
-          </span>
-        )}
-      </dd>
-    </dl>
-  );
-}
-
 /**
  * The /conta screen (Operate mode: sober, everything findable at a glance): who is signed in, how, and whether the
- * e-mail is confirmed (the header's banner offers the resend); "Sair", "Exportar meus dados" and, set apart in the
+ * e-mail is confirmed (with "Reenviar e-mail" beside it when not); "Sair", "Exportar meus dados" and, set apart in the
  * wine accent, "Excluir minha conta".
  */
 export function AccountView() {
@@ -151,7 +125,7 @@ export function AccountView() {
         </Button>
       </div>
 
-      <Details user={user} />
+      <AccountDetails user={user} className={`mt-8 ${SECTION}`} />
 
       <section aria-labelledby="conta-dados" className={`mt-10 ${SECTION}`}>
         <h2 id="conta-dados" className="font-sans text-base font-medium text-ivory">

@@ -1,4 +1,4 @@
-import { render, screen, waitFor } from '@testing-library/react';
+import { render, screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { http, HttpResponse } from 'msw';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
@@ -67,6 +67,21 @@ describe('AccountView', () => {
     for (const name of ['Sair', 'Exportar meus dados', 'Excluir minha conta']) {
       expect(screen.getByRole('button', { name })).toBeInTheDocument();
     }
+  });
+
+  it('offers "Reenviar e-mail" right next to an unconfirmed e-mail, and says when it went', async () => {
+    as('signed-in', ana({ provider: 'password' }));
+    show();
+    const details = screen.getByText('E-mail não confirmado').closest('dd')!;
+    await userEvent.click(within(details).getByRole('button', { name: 'Reenviar e-mail' }));
+    expect(auth.current.sendVerification).toHaveBeenCalledTimes(1);
+    expect(await within(details).findByRole('status')).toHaveTextContent('E-mail enviado.');
+  });
+
+  it('offers no resend once the e-mail is confirmed', () => {
+    as('signed-in', ana({ emailVerified: true }));
+    show();
+    expect(screen.queryByRole('button', { name: 'Reenviar e-mail' })).toBeNull();
   });
 
   it('shows the photo and Google for a confirmed Google account', () => {

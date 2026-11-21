@@ -18,6 +18,16 @@ export interface ToastApi {
 
 export const ToastContext = createContext<ToastApi | null>(null);
 
+/**
+ * The lowest slot of the toast stack, for a notice that stays until dismissed (the e-mail confirmation): portal it
+ * here and the toasts pile up above it, never on top of it. Null until the stack is on screen.
+ */
+export const ToastDockContext = createContext<HTMLElement | null>(null);
+
+export function useToastDock(): HTMLElement | null {
+  return useContext(ToastDockContext);
+}
+
 export function useToast(): ToastApi {
   const api = useContext(ToastContext);
   if (!api) throw new Error('useToast must be used inside ToastProvider');

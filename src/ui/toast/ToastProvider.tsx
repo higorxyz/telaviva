@@ -2,12 +2,13 @@
 
 import { useCallback, useMemo, useRef, useState, type ReactNode } from 'react';
 import { Toaster, type ToastEntry } from './Toaster';
-import { ToastContext, type ToastApi, type ToastInput } from './useToast';
+import { ToastContext, ToastDockContext, type ToastApi, type ToastInput } from './useToast';
 
 const MAX_VISIBLE = 3;
 
 export function ToastProvider({ children }: { children: ReactNode }) {
   const [toasts, setToasts] = useState<ToastEntry[]>([]);
+  const [dock, setDock] = useState<HTMLElement | null>(null);
   const nextId = useRef(0);
 
   const show = useCallback((toast: ToastInput) => {
@@ -27,8 +28,10 @@ export function ToastProvider({ children }: { children: ReactNode }) {
 
   return (
     <ToastContext.Provider value={api}>
-      {children}
-      <Toaster toasts={toasts} onDismiss={dismiss} />
+      <ToastDockContext.Provider value={dock}>
+        {children}
+        <Toaster toasts={toasts} onDismiss={dismiss} dockRef={setDock} />
+      </ToastDockContext.Provider>
     </ToastContext.Provider>
   );
 }

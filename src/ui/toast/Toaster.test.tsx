@@ -1,7 +1,8 @@
 import { act, fireEvent, render, screen } from '@testing-library/react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { ToastProvider } from './ToastProvider';
-import { useToast } from './useToast';
+import { createPortal } from 'react-dom';
+import { useToast, useToastDock } from './useToast';
 
 type ShowArg = Parameters<ReturnType<typeof useToast>['show']>[0];
 
@@ -148,6 +149,25 @@ describe('Toaster', () => {
     fireEvent.click(screen.getByRole('button', { name: 'limpar' }));
     expect(screen.queryByText('Desfazível')).not.toBeInTheDocument();
     expect(screen.getByText('Sessão')).toBeInTheDocument();
+  });
+
+  it('keeps a slot below the toasts for a pinned notice, outside the live region', () => {
+    function Pinned() {
+      const dock = useToastDock();
+      return dock ? createPortal(<p>Aviso fixo</p>, dock) : null;
+    }
+    render(
+      <ToastProvider>
+        <Pinned />
+        <Trigger toast={{ message: 'Salvo em Quero ver' }} />
+      </ToastProvider>,
+    );
+    fireEvent.click(screen.getByRole('button', { name: 'abrir' }));
+    const pinned = screen.getByText('Aviso fixo');
+    const toast = screen.getByText('Salvo em Quero ver');
+    expect(toast.compareDocumentPosition(pinned) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+    expect(screen.getByRole('status')).not.toContainElement(pinned);
+    expect(pinned.closest('[data-toast-stack]')).toBe(toast.closest('[data-toast-stack]'));
   });
 
   it('marks the error tone', () => {

@@ -73,17 +73,31 @@ function ToastItem({ toast, onDismiss }: { toast: ToastEntry; onDismiss: (id: nu
   );
 }
 
-/** Sits above the mobile TabBar (h-14 + safe area) and in the bottom corner on desktop. */
-export function Toaster({ toasts, onDismiss }: { toasts: ToastEntry[]; onDismiss: (id: number) => void }) {
+type ToasterProps = {
+  toasts: ToastEntry[];
+  onDismiss: (id: number) => void;
+  /** Receives the stack's lowest slot (see `useToastDock`). */
+  dockRef?: (element: HTMLElement | null) => void;
+};
+
+/**
+ * Sits above the mobile TabBar (h-14 + safe area) and in the bottom corner on desktop. One fixed column: the toasts
+ * (a polite live region) and, under them, the dock for a notice that stays. Fixed, so nothing in the page moves.
+ */
+export function Toaster({ toasts, onDismiss, dockRef }: ToasterProps) {
+  const column = 'flex w-full flex-col items-center gap-2 md:items-end';
   return (
     <div
-      role="status"
-      aria-live="polite"
+      data-toast-stack=""
       className="pointer-events-none fixed inset-x-0 bottom-[calc(4rem+env(safe-area-inset-bottom))] z-60 flex flex-col items-center gap-2 px-4 md:inset-x-auto md:right-6 md:bottom-6 md:items-end md:px-0"
     >
-      {toasts.map((toast) => (
-        <ToastItem key={toast.id} toast={toast} onDismiss={onDismiss} />
-      ))}
+      {/* Never hidden, even empty: a live region must already be in the tree when a message arrives. */}
+      <div role="status" aria-live="polite" className={column}>
+        {toasts.map((toast) => (
+          <ToastItem key={toast.id} toast={toast} onDismiss={onDismiss} />
+        ))}
+      </div>
+      <div ref={dockRef} className={cn(column, 'empty:hidden')} />
     </div>
   );
 }
