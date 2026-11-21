@@ -33,6 +33,8 @@ export interface LibraryBinding {
   mode: LibraryMode;
   /** Idempotent: concurrent calls share one renewal. Resolves true when renewed for the same user. */
   onUnauthenticated(): Promise<boolean>;
+  /** The library's session turned out to be another account's (409 `wrong_account`): look again at who is in. */
+  onWrongAccount(): void;
 }
 
 export const AuthContext = createContext<AuthApi | null>(null);

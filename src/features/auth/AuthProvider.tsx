@@ -52,7 +52,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const uid = snapshot.status === 'signed-in' ? (snapshot.user?.id ?? null) : null;
 
   // Right after switching to an account (and on each start while one is signed in), fold in what the visitor saved
-  // here. A failed merge keeps the local copy, so the next start tries again.
+  // here. A failed merge keeps the local copy, so the next start tries again. When the session turned out to be
+  // another account's (another tab switched), nothing was merged: look again at who is in.
   const merging = useRef(new Set<string>());
   useEffect(() => {
     if (!uid || merging.current.has(uid)) return;
@@ -60,6 +61,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     running.add(uid);
     void mergeOnLogin(uid)
       .then((outcome) => {
+        if (outcome === 'wrong_account') {
+          if (flows.currentUid() === uid) void flows.refresh();
+          return;
+        }
         if (outcome === 'empty' || outcome === 'unchanged') return;
         void queryClient.invalidateQueries({ queryKey: LIBRARY_KEY });
         if (outcome === 'merged' && flows.currentUid() === uid) toast.show({ message: LIST_SAVED });
@@ -93,6 +98,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     () => ({
       mode: uid ? { kind: 'account', uid } : snapshot.status === 'loading' ? PENDING : GUEST,
       onUnauthenticated: flows.onUnauthenticated,
+      onWrongAccount: () => void flows.refresh(),
     }),
     [uid, snapshot.status, flows],
   );

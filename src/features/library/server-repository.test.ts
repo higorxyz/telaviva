@@ -7,6 +7,7 @@ import {
   LibraryLimitError,
   LibraryRemoteError,
   LibrarySessionError,
+  LibraryWrongAccountError,
   type LibraryNotice,
 } from './repository';
 import { createServerRepository } from './server-repository';
@@ -18,10 +19,11 @@ const saved = applyCommand(EMPTY_LIBRARY, want(1), NOW);
 
 function setup() {
   const onUnauthenticated = vi.fn();
-  const repository = createServerRepository({ onUnauthenticated });
+  const onWrongAccount = vi.fn();
+  const repository = createServerRepository({ uid: 'ana', onUnauthenticated, onWrongAccount });
   const notices: LibraryNotice[] = [];
   repository.onNotice?.((n) => notices.push(n));
-  return { repository, onUnauthenticated, notices };
+  return { repository, onUnauthenticated, onWrongAccount, notices };
 }
 
 afterEach(() => {
@@ -81,7 +83,7 @@ describe('createServerRepository', () => {
       }),
     );
     const onUnauthenticated = vi.fn(async () => true);
-    const repository = createServerRepository({ onUnauthenticated });
+    const repository = createServerRepository({ uid: 'ana', onUnauthenticated });
     expect(await repository.apply(want(1))).toEqual(saved);
     expect(calls).toBe(2);
     expect(onUnauthenticated).toHaveBeenCalledTimes(1);
@@ -96,10 +98,10 @@ describe('createServerRepository', () => {
       }),
     );
     const failed = vi.fn(async () => false);
-    await expect(createServerRepository({ onUnauthenticated: failed }).load()).rejects.toBeInstanceOf(LibrarySessionError);
+    await expect(createServerRepository({ uid: 'ana', onUnauthenticated: failed }).load()).rejects.toBeInstanceOf(LibrarySessionError);
     expect(calls).toBe(1);
     const renewed = vi.fn(async () => true);
-    await expect(createServerRepository({ onUnauthenticated: renewed }).load()).rejects.toBeInstanceOf(LibrarySessionError);
+    await expect(createServerRepository({ uid: 'ana', onUnauthenticated: renewed }).load()).rejects.toBeInstanceOf(LibrarySessionError);
     expect(calls).toBe(3);
     expect(renewed).toHaveBeenCalledTimes(1);
   });
@@ -109,6 +111,35 @@ describe('createServerRepository', () => {
     const { repository, notices } = setup();
     await expect(repository.apply(want(1))).rejects.toBeInstanceOf(LibraryConflictError);
     expect(notices).toEqual(['conflict']);
+  });
+
+  it('names the account it belongs to in X-Expected-User on every load and apply', async () => {
+    const seen: (string | null)[] = [];
+    server.use(
+      http.get(url('/api/library'), ({ request }) => {
+        seen.push(request.headers.get('x-expected-user'));
+        return HttpResponse.json(saved);
+      }),
+      http.post(url('/api/library/commands'), ({ request }) => {
+        seen.push(request.headers.get('x-expected-user'));
+        return HttpResponse.json(saved);
+      }),
+    );
+    const { repository } = setup();
+    await repository.load();
+    await repository.apply(want(1));
+    expect(seen).toEqual(['ana', 'ana']);
+  });
+
+  it('on 409 wrong_account (another tab switched accounts): asks sign-in to catch up, without a conflict notice', async () => {
+    server.use(http.post(url('/api/library/commands'), () => HttpResponse.json({ error: 'wrong_account' }, { status: 409 })));
+    const { repository, notices, onWrongAccount } = setup();
+    await expect(repository.apply(want(1))).rejects.toBeInstanceOf(LibraryWrongAccountError);
+    expect(onWrongAccount).toHaveBeenCalledTimes(1);
+    expect(notices).toEqual([]);
+    server.use(http.get(url('/api/library'), () => HttpResponse.json({ error: 'wrong_account' }, { status: 409 })));
+    await expect(repository.load()).rejects.toBeInstanceOf(LibraryWrongAccountError);
+    expect(onWrongAccount).toHaveBeenCalledTimes(2);
   });
 
   it('emits the limit notice and rejects with LibraryLimitError on 413 limit', async () => {
@@ -131,7 +162,7 @@ describe('createServerRepository', () => {
 
   it('delivers a notice raised before anyone listened to the first listener', async () => {
     server.use(http.post(url('/api/library/commands'), () => HttpResponse.json({ error: 'conflict' }, { status: 409 })));
-    const repository = createServerRepository({ onUnauthenticated: () => {} });
+    const repository = createServerRepository({ uid: 'ana', onUnauthenticated: () => {} });
     await expect(repository.apply(want(1))).rejects.toBeInstanceOf(LibraryConflictError);
     const heard: LibraryNotice[] = [];
     repository.onNotice?.((n) => heard.push(n));

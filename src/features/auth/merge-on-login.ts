@@ -21,8 +21,9 @@ const BACKOFF_MS = [500, 1500];
 /**
  * `empty`: nothing to merge. `merged`: the account confirmed every guest key (announce it). `unchanged`: this exact
  * copy was confirmed before and is kept only for lack of room (nothing sent). `kept`: it failed; the copy stays.
+ * `wrong_account`: the session belongs to another account now (another tab switched): it stopped, the copy stays.
  */
-export type MergeOutcome = 'empty' | 'merged' | 'unchanged' | 'kept';
+export type MergeOutcome = 'empty' | 'merged' | 'unchanged' | 'kept' | 'wrong_account';
 
 type Options = {
   storage?: Storage | null;
@@ -101,8 +102,21 @@ function backUp(storage: Storage, uid: string, raw: string): boolean {
   }
 }
 
-/** One merge request. A network error is retried (3 tries in all); any answer but 200 gives up at once. */
-async function send(chunk: LibraryState, sleep: (ms: number) => Promise<void>): Promise<LibraryState | null> {
+async function isWrongAccount(response: Response): Promise<boolean> {
+  if (response.status !== 409) return false;
+  const body = (await response.json().catch(() => null)) as { error?: unknown } | null;
+  return body?.error === 'wrong_account';
+}
+
+/**
+ * One merge request for `uid` (named in `X-Expected-User`, so the server never folds this copy into another account
+ * that signed in from another tab). A network error is retried (3 tries in all); any answer but 200 gives up at once.
+ */
+async function send(
+  uid: string,
+  chunk: LibraryState,
+  sleep: (ms: number) => Promise<void>,
+): Promise<LibraryState | null | 'wrong_account'> {
   for (let attempt = 0; ; attempt++) {
     let response: Response;
     try {
@@ -110,7 +124,7 @@ async function send(chunk: LibraryState, sleep: (ms: number) => Promise<void>): 
         method: 'POST',
         credentials: 'same-origin',
         cache: 'no-store',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 'Content-Type': 'application/json', 'X-Expected-User': uid },
         body: JSON.stringify({ library: chunk }),
       });
     } catch {
@@ -118,6 +132,7 @@ async function send(chunk: LibraryState, sleep: (ms: number) => Promise<void>): 
       await sleep(BACKOFF_MS[attempt]);
       continue;
     }
+    if (await isWrongAccount(response)) return 'wrong_account';
     if (!response.ok) return null;
     const parsed = parseLibraryEntries(await response.json().catch(() => null));
     return parsed ? normalizeLibraryState(parsed.state) : null;
@@ -150,8 +165,10 @@ export async function mergeOnLogin(uid: string, opts: Options = {}): Promise<Mer
   const backedUp = backUp(storage, uid, raw);
   let answer: LibraryState | null = null;
   for (const chunk of chunkLibrary(guest, opts.chunkBytes ?? MERGE_CHUNK_BYTES)) {
-    answer = await send(chunk, opts.sleep ?? wait);
-    if (!answer) return 'kept';
+    const sent = await send(uid, chunk, opts.sleep ?? wait);
+    if (sent === 'wrong_account') return 'wrong_account';
+    if (!sent) return 'kept';
+    answer = sent;
   }
   if (!answer || !holdsEveryKey(answer, guest)) return 'kept';
 

@@ -5,6 +5,7 @@ import {
   LibraryLimitError,
   LibraryRemoteError,
   LibrarySessionError,
+  LibraryWrongAccountError,
   type LibraryNotice,
   type LibraryRepository,
 } from './repository';
@@ -52,8 +53,20 @@ async function renewed(onUnauthenticated: OnUnauthenticated): Promise<boolean> {
   }
 }
 
-/** The signed-in user's library, kept on the server. `onUnauthenticated` runs when the session is gone (401). */
-export function createServerRepository(opts: { onUnauthenticated: OnUnauthenticated }): LibraryRepository {
+type Options = {
+  /** The account this library belongs to, sent as `X-Expected-User` with every request. */
+  uid: string;
+  onUnauthenticated: OnUnauthenticated;
+  /** The session belongs to someone else now (409 `wrong_account`): sign-in should look again at who is in. */
+  onWrongAccount?: () => void;
+};
+
+/**
+ * The signed-in user's library, kept on the server. Every request names the account it is for: the session cookie is
+ * shared by all tabs, so another tab may have switched accounts, and the server then refuses (409 `wrong_account`)
+ * instead of loading or writing someone else's list. `onUnauthenticated` runs when the session is gone (401).
+ */
+export function createServerRepository(opts: Options): LibraryRepository {
   const listeners = new Set<(notice: LibraryNotice) => void>();
   let pending: LibraryNotice | null = null;
 
@@ -62,10 +75,17 @@ export function createServerRepository(opts: { onUnauthenticated: OnUnauthentica
     else listeners.forEach((listener) => listener(notice));
   }
 
-  async function request(path: string, init: RequestInit, retried = false): Promise<Response> {
+  type Init = Omit<RequestInit, 'headers'> & { headers?: Record<string, string> };
+
+  async function request(path: string, init: Init, retried = false): Promise<Response> {
     let response: Response;
     try {
-      response = await fetch(path, { credentials: 'same-origin', cache: 'no-store', ...init });
+      response = await fetch(path, {
+        credentials: 'same-origin',
+        cache: 'no-store',
+        ...init,
+        headers: { ...init.headers, 'X-Expected-User': opts.uid },
+      });
     } catch (cause) {
       throw new LibraryRemoteError('Could not reach the library service', { cause });
     }
@@ -76,6 +96,10 @@ export function createServerRepository(opts: { onUnauthenticated: OnUnauthentica
       throw new LibrarySessionError();
     }
     if (response.status === 409) {
+      if ((await readError(response)) === 'wrong_account') {
+        opts.onWrongAccount?.();
+        throw new LibraryWrongAccountError();
+      }
       notify('conflict');
       throw new LibraryConflictError();
     }

@@ -50,12 +50,18 @@ export function isRetired(repository: LibraryRepository): boolean {
   return retired.has(repository);
 }
 
-/** The repository of every identity mode; the account one ignores a 401 once its identity is gone. */
-function createFor(mode: LibraryMode, onUnauthenticated: OnUnauthenticated): LibraryRepository {
+type Callbacks = { onUnauthenticated: OnUnauthenticated; onWrongAccount: () => void };
+
+/** The repository of every identity mode; the account one ignores a 401 or a 409 once its identity is gone. */
+function createFor(mode: LibraryMode, callbacks: Callbacks): LibraryRepository {
   if (mode.kind === 'pending') return createPendingRepository();
   if (mode.kind === 'guest') return createLocalRepository();
   const repository = createServerRepository({
-    onUnauthenticated: () => (retired.has(repository) ? Promise.resolve(false) : onUnauthenticated()),
+    uid: mode.uid,
+    onUnauthenticated: () => (retired.has(repository) ? Promise.resolve(false) : callbacks.onUnauthenticated()),
+    onWrongAccount: () => {
+      if (!retired.has(repository)) callbacks.onWrongAccount();
+    },
   });
   return repository;
 }
@@ -81,6 +87,8 @@ type ProviderProps = {
   mode?: LibraryMode;
   /** Runs the session renewal; resolving `true` (renewed for the same user) lets the request be retried once. */
   onUnauthenticated?: OnUnauthenticated;
+  /** The session turned out to be another account's (another tab switched): sign-in looks again at who is in. */
+  onWrongAccount?: () => void;
 };
 
 /**
@@ -123,18 +131,21 @@ function IdentityScope({
   mode = { kind: 'guest' },
   identity,
   onUnauthenticated = noop,
+  onWrongAccount = noop,
 }: ProviderProps & { identity: string }) {
   const queryClient = useQueryClient();
   const toast = useToast();
   const handleUnauthenticated = useLatestCallback(onUnauthenticated);
+  const handleWrongAccount = useLatestCallback(onWrongAccount);
+  const callbacks = { onUnauthenticated: handleUnauthenticated, onWrongAccount: handleWrongAccount };
   const [held, setHeld] = useState(() => ({
     identity,
-    repository: repository ?? createFor(mode, handleUnauthenticated),
+    repository: repository ?? createFor(mode, callbacks),
   }));
   let current = held.repository;
   // Only on leaving `pending` (any other change remounts this scope): swap the repository, keep the tree.
   if (held.identity !== identity && !repository) {
-    current = createFor(mode, handleUnauthenticated);
+    current = createFor(mode, callbacks);
     setHeld({ identity, repository: current });
   }
   const warned = useRef(false);

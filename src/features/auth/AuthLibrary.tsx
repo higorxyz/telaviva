@@ -9,9 +9,9 @@ import { useAuthLibraryBinding } from './auth-context';
  * it, while the sign-in state (and any sign-in still running) lives above and survives.
  */
 export function AuthLibrary({ children }: { children: ReactNode }) {
-  const { mode, onUnauthenticated } = useAuthLibraryBinding();
+  const { mode, onUnauthenticated, onWrongAccount } = useAuthLibraryBinding();
   return (
-    <LibraryProvider mode={mode} onUnauthenticated={onUnauthenticated}>
+    <LibraryProvider mode={mode} onUnauthenticated={onUnauthenticated} onWrongAccount={onWrongAccount}>
       {children}
     </LibraryProvider>
   );

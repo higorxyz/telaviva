@@ -11,14 +11,19 @@ import {
   LibraryConflictError,
   LibraryLimitError,
   LibrarySessionError,
+  LibraryWrongAccountError,
   type LibraryRepository,
 } from './repository';
 import type { EpisodeMark, LibraryItem, LibraryState, LibraryStatus, Rating, TitleRef } from './types';
 
 const NO_MARKS: EpisodeMark[] = [];
 
-/** A lost session will not come back by asking again: retrying would also call `onUnauthenticated` repeatedly. */
-const retryLibrary = (failures: number, error: Error) => !(error instanceof LibrarySessionError) && failures < 3;
+/**
+ * A lost session, or one that now belongs to another account, will not come back by asking again: retrying would
+ * also call `onUnauthenticated` (or `onWrongAccount`) repeatedly.
+ */
+const retryLibrary = (failures: number, error: Error) =>
+  !(error instanceof LibrarySessionError || error instanceof LibraryWrongAccountError) && failures < 3;
 
 const noopSubscribe = () => () => {};
 
@@ -142,9 +147,11 @@ export function useLibraryActions(): { run(command: LibraryCommand, opts?: RunOp
       // The identity changed while this ran: its cache is gone, and neither rollback nor toast belongs to the new one.
       if (context && isRetired(context.repository)) return;
       if (context?.previous) queryClient.setQueryData(LIBRARY_KEY, context.previous);
-      // These have their own message: the auth flow (session), or the repository's notice toast (conflict, limit).
+      // These have their own message: the auth flow (session, wrong account: the identity switches), or the
+      // repository's notice toast (conflict, limit).
       if (
         error instanceof LibrarySessionError ||
+        error instanceof LibraryWrongAccountError ||
         error instanceof LibraryConflictError ||
         error instanceof LibraryLimitError
       ) {

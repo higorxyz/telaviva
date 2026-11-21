@@ -24,6 +24,17 @@ export class LibraryConflictError extends Error {
   }
 }
 
+/**
+ * The session now belongs to another account than this library's (another tab switched accounts): nothing was read
+ * or written, and sign-in is asked to catch up, which moves this tab to the other identity.
+ */
+export class LibraryWrongAccountError extends Error {
+  constructor() {
+    super('The session belongs to another account');
+    this.name = 'LibraryWrongAccountError';
+  }
+}
+
 /** The account reached a size limit. */
 export class LibraryLimitError extends Error {
   constructor() {
