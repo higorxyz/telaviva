@@ -11,7 +11,7 @@ export async function GET(request: Request) {
   if (user instanceof Response) return user;
 
   try {
-    return noStoreJson(await loadAccountLibrary(getDb(), user.id));
+    return noStoreJson(await loadAccountLibrary(await getDb(), user.id));
   } catch (error) {
     if (error instanceof LibraryAccountMissingError) return jsonError('unauthenticated', 401);
     console.error('[api/library] could not load the library:', describeError(error));

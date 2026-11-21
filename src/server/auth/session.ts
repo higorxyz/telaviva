@@ -129,7 +129,7 @@ export async function createSession(
 
   const cookie = await auth.createSessionCookie(idToken, { expiresIn: SESSION_DURATION_MS });
   const user = toSessionUser(decoded);
-  await upsertUser(deps.db ?? getDb(), user);
+  await upsertUser(deps.db ?? (await getDb()), user);
   return { cookie, user };
 }
 

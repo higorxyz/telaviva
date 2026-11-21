@@ -17,7 +17,7 @@ export async function GET(request: Request) {
 
   const now = new Date();
   try {
-    const data = await exportAccount(getDb(), user, now);
+    const data = await exportAccount(await getDb(), user, now);
     return new NextResponse(JSON.stringify(data, null, 2), {
       headers: {
         'Content-Type': 'application/json; charset=utf-8',

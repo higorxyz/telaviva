@@ -22,7 +22,7 @@ export async function DELETE(request: Request) {
   if (!isRecentSignIn(user.authTime)) return jsonError('reauth', 401);
 
   try {
-    await deleteAccount(getDb(), getAdminAuth(), user.id);
+    await deleteAccount(await getDb(), getAdminAuth(), user.id);
   } catch (error) {
     // The data is gone when Firebase fails: 502, and a retry finishes the job.
     const firebase = error instanceof AccountAuthError;

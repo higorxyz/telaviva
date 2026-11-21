@@ -28,7 +28,7 @@ export async function POST(request: Request) {
   if (!command) return jsonError('invalid', 400);
 
   try {
-    const { state, previous } = await applyLibraryCommand(getDb(), user.id, command, new Date().toISOString());
+    const { state, previous } = await applyLibraryCommand(await getDb(), user.id, command, new Date().toISOString());
     return noStoreJson({ library: state, previous });
   } catch (error) {
     if (error instanceof LibraryAccountMissingError) return jsonError('unauthenticated', 401);

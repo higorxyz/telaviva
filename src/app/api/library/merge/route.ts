@@ -40,7 +40,7 @@ export async function POST(request: Request) {
   if (!guest) return jsonError('invalid', 400);
 
   try {
-    const state = await mergeGuestLibrary(getDb(), user.id, guest, new Date().toISOString());
+    const state = await mergeGuestLibrary(await getDb(), user.id, guest, new Date().toISOString());
     return noStoreJson(state);
   } catch (error) {
     if (error instanceof LibraryAccountMissingError) return jsonError('unauthenticated', 401);
