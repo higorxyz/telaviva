@@ -61,3 +61,37 @@ describe('emulator host guard', () => {
     expect(emulatorAllowedHere()).toBe(true);
   });
 });
+
+describe('effectiveAuthDomain', () => {
+  it('maps machine-local domains to the Firebase-hosted handler', async () => {
+    const { effectiveAuthDomain } = await load({});
+    for (const host of ['localhost:3000', 'localhost', '127.0.0.1:3100', '[::1]:3000', 'http://localhost:3000']) {
+      expect(effectiveAuthDomain(host, 'my-proj')).toBe('my-proj.firebaseapp.com');
+    }
+  });
+
+  it('keeps any other domain, so Vercel keeps the same-site proxy', async () => {
+    const { effectiveAuthDomain } = await load({});
+    for (const host of ['telaviva.vercel.app', 'my-proj.firebaseapp.com', 'localhost.evil.com', '192.168.0.10:3000']) {
+      expect(effectiveAuthDomain(host, 'my-proj')).toBe(host);
+    }
+  });
+
+  it('handles empty and invalid values without throwing', async () => {
+    const { effectiveAuthDomain } = await load({});
+    expect(effectiveAuthDomain(undefined, 'p')).toBe('');
+    expect(effectiveAuthDomain('  ', 'p')).toBe('');
+    expect(effectiveAuthDomain('http://', 'p')).toBe('http://');
+    expect(effectiveAuthDomain('localhost:3000', undefined)).toBe('localhost:3000');
+  });
+
+  it('applies the mapping to the public config', async () => {
+    const mod = await load({
+      NEXT_PUBLIC_FIREBASE_API_KEY: 'k',
+      NEXT_PUBLIC_FIREBASE_PROJECT_ID: 'p',
+      NEXT_PUBLIC_FIREBASE_APP_ID: 'a',
+      NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN: 'localhost:3000',
+    });
+    expect(mod.publicFirebaseConfig?.authDomain).toBe('p.firebaseapp.com');
+  });
+});

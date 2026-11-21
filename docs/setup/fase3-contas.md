@@ -60,14 +60,15 @@ Esses três valores são públicos por natureza (vão no JavaScript do navegador
 
 O TelaViva faz o login do Google pelo próprio host (via `/__/auth`, veja o passo 3). Confira:
 
-Como `authDomain` é o host do próprio site, o navegador envia ao Google `redirect_uri=https://<host>/__/auth/handler`. Se esse endereço não estiver cadastrado, o login com Google falha com "redirect_uri_mismatch".
+Localmente (`http://localhost:3000`) não é preciso cadastrar nada: o login usa o handler hospedado pelo Firebase (`https://<ID-DO-PROJETO>.firebaseapp.com/__/auth/handler`), que já vem cadastrado. O URI `http://localhost:3000/__/auth/handler` **não** é necessário.
+
+Nos hosts da Vercel, como `authDomain` é o host do próprio site, o navegador envia ao Google `redirect_uri=https://<host>/__/auth/handler`. Se esse endereço não estiver cadastrado, o login com Google falha com "redirect_uri_mismatch".
 
 1. Abra <https://console.cloud.google.com> com a mesma conta e selecione o projeto do Firebase no seletor no topo.
 2. No menu, procure por **Credenciais** (em **APIs e serviços**). Em "IDs do cliente OAuth 2.0", procure por **Web client (auto created by Google Service)**, o cliente criado automaticamente pelo Firebase, e abra-o. Se ele não aparecer, volte ao passo 1.2 e ative o provedor Google no Firebase primeiro: é isso que cria o cliente.
 3. Em **URIs de redirecionamento autorizados** (procure por esse título), adicione, **obrigatoriamente um para cada host do site**:
    - `https://telaviva.vercel.app/__/auth/handler`
    - `https://telaviva-git-v2-higorxyz-projects.vercel.app/__/auth/handler`
-   - `http://localhost:3000/__/auth/handler`
 4. Mantenha o que já existe (`https://<ID-DO-PROJETO>.firebaseapp.com/__/auth/handler`) e clique em **Salvar**. A alteração pode levar alguns minutos para valer.
 
 ## 2. Neon (banco Postgres) pela Vercel
@@ -110,14 +111,14 @@ NEXT_PUBLIC_SITE_URL=http://localhost:3000
 NEXT_PUBLIC_FIREBASE_API_KEY=
 NEXT_PUBLIC_FIREBASE_PROJECT_ID=
 NEXT_PUBLIC_FIREBASE_APP_ID=
-NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN=localhost:3000
+NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN=<ID-DO-PROJETO>.firebaseapp.com
 FIREBASE_PROJECT_ID=
 FIREBASE_CLIENT_EMAIL=
 FIREBASE_PRIVATE_KEY=
 DATABASE_URL=
 ```
 
-Atenção ao local: `NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN` é `localhost:3000`. O `FIREBASE_PRIVATE_KEY` também vai com os `\n` literais, numa linha só.
+Atenção ao local: use `<ID-DO-PROJETO>.firebaseapp.com` em `NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN`, porque o SDK do Firebase sempre abre `https://<authDomain>/__/auth/handler` e o servidor local roda em `http`. Se você deixar `localhost:3000` (ou `127.0.0.1`), o site troca automaticamente por `<ID-DO-PROJETO>.firebaseapp.com`. O `FIREBASE_PRIVATE_KEY` também vai com os `\n` literais, numa linha só.
 
 **Login por `http://` só funciona em `localhost`.** Os cookies de sessão levam `Secure` em qualquer outro endereço, e o navegador descarta cookie `Secure` recebido por `http`. Por isso, abrir o servidor local pelo celular na rede (`http://192.168.x.x:3000`) mostra o site, mas o login não "pega": a sessão some no próximo pedido. Para testar o login no celular, use o preview da Vercel (que é `https`).
 

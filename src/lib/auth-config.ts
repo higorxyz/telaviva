@@ -13,19 +13,39 @@ export type PublicFirebaseConfig = {
   appId: string;
 };
 
-export const publicFirebaseConfig: PublicFirebaseConfig | null =
-  apiKey && authDomain && projectId && appId ? { apiKey, authDomain, projectId, appId } : null;
-
-export const authEnabled: boolean = publicFirebaseConfig !== null;
-
-export const authEmulatorHost: string | null = emulatorHost || null;
-
 const LOCAL_HOSTNAMES = new Set(['localhost', '127.0.0.1', '[::1]', '::1']);
 
 /** `localhost`, `127.0.0.1` or `::1`: the machine itself (local dev and E2E). */
 export function isLocalHostname(hostname: string): boolean {
   return LOCAL_HOSTNAMES.has(hostname.toLowerCase());
 }
+
+/**
+ * The `authDomain` the Firebase SDK should use. The SDK always opens `https://<authDomain>/__/auth/handler`, which a
+ * local `http` server can never serve, so a machine-local domain maps to Firebase's own `<projectId>.firebaseapp.com`
+ * (its redirect URI is registered by default). Any other value (the same-site proxy on Vercel) is kept as configured,
+ * as is anything unparseable or a local domain without a project id to map to.
+ */
+export function effectiveAuthDomain(configured: string | undefined, projectId: string | undefined): string {
+  const value = (configured ?? '').trim();
+  if (!value || !projectId) return value;
+  let hostname: string;
+  try {
+    hostname = new URL(/^[a-z][a-z0-9+.-]*:\/\//i.test(value) ? value : `https://${value}`).hostname;
+  } catch {
+    return value;
+  }
+  return isLocalHostname(hostname) ? `${projectId}.firebaseapp.com` : value;
+}
+
+export const publicFirebaseConfig: PublicFirebaseConfig | null =
+  apiKey && authDomain && projectId && appId
+    ? { apiKey, authDomain: effectiveAuthDomain(authDomain, projectId), projectId, appId }
+    : null;
+
+export const authEnabled: boolean = publicFirebaseConfig !== null;
+
+export const authEmulatorHost: string | null = emulatorHost || null;
 
 /**
  * True when this page may talk to the Auth emulator: only on the machine itself. The emulator signs nothing, so a
