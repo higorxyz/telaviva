@@ -130,4 +130,26 @@ describe('AuthProvider: "Sair" while a session is being minted', () => {
     expectClearedLast();
     expect(probe()).toMatch(/^guest/);
   });
+
+  it('waits at most 5 s for a mint that never answers before signing out', async () => {
+    await signedIn();
+    slowMint(); // Never released: the POST stalls.
+    act(() => void auth().renewSession());
+    await waitFor(() => expect(log).toContain('POST session:sent'));
+    vi.useFakeTimers({ toFake: ['setTimeout', 'clearTimeout'] });
+    try {
+      let left = false;
+      act(() => void auth().signOut().then(() => (left = true)));
+      await act(() => vi.advanceTimersByTimeAsync(4_900));
+      expect(log).not.toContain('DELETE session');
+      await act(() => vi.advanceTimersByTimeAsync(200));
+      vi.useRealTimers();
+      await waitFor(() => expect(left).toBe(true));
+      expect(log).toContain('DELETE session');
+      expect(probe()).toMatch(/^guest/);
+    } finally {
+      vi.useRealTimers();
+    }
+  });
 });
+

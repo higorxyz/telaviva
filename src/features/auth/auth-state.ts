@@ -12,6 +12,9 @@ export type AuthDeps = {
   onNotice(): void;
 };
 
+/** The longest a sign-out waits for a session mint still in flight. */
+export const MINT_WAIT_MS = 5000;
+
 export const quietly = async (work: () => Promise<unknown>) => {
   try {
     await work();
@@ -56,15 +59,25 @@ export function createAuthState(deps: AuthDeps) {
       minting.add(request);
       try {
         const sessionUser = await request;
-        if (started !== state.generation && state.uid === null) await deleteSession();
+        // Quietly: a failed re-clear must not turn the caller's answer (`aborted`, say) into a throw.
+        if (started !== state.generation && state.uid === null) await quietly(() => deleteSession());
         return sessionUser;
       } finally {
         minting.delete(request);
       }
     },
 
-    /** Resolves once every mint in flight has its answer (whatever it was). */
-    mintsSettled: () => Promise.allSettled([...minting]),
+    /**
+     * Resolves once every mint in flight has its answer, or after `MINT_WAIT_MS` at most, so a stalled request never
+     * holds up "Sair" or the deletion. A mint landing later still clears the cookies again (see `mint`).
+     */
+    async mintsSettled(): Promise<void> {
+      if (minting.size === 0) return;
+      let timer: ReturnType<typeof setTimeout> | undefined;
+      const timeout = new Promise<void>((resolve) => (timer = setTimeout(resolve, MINT_WAIT_MS)));
+      await Promise.race([Promise.allSettled([...minting]), timeout]);
+      clearTimeout(timer);
+    },
 
     signedIn(user: SessionUser) {
       state.uid = user.id;
