@@ -193,30 +193,24 @@ describe('DELETE /api/auth/session', () => {
     'tv_auth=; Path=/; Max-Age=0; SameSite=Lax',
   ];
 
-  it('revokes the refresh tokens of a valid session, clears both cookies and answers 204', async () => {
+  it('signs out this device only: clears both cookies and answers 204, revoking nothing', async () => {
     adminAuthMock.verifySessionCookie.mockResolvedValue(decodedToken());
     const res = await del({ cookie: 'tv_session=abc; tv_auth=1' });
     expect(res.status).toBe(204);
     expect(res.headers.getSetCookie()).toEqual(cleared);
-    expect(adminAuthMock.revokeRefreshTokens).toHaveBeenCalledWith('user-1');
+    expect(res.headers.get('cache-control')).toBe('private, no-store');
+    // Revoking would sign every other device out too (a new sign-in everywhere): only account deletion ends them.
+    expect(adminAuthMock.revokeRefreshTokens).not.toHaveBeenCalled();
   });
 
-  it('still logs out when revoking fails', async () => {
-    adminAuthMock.verifySessionCookie.mockResolvedValue(decodedToken());
-    adminAuthMock.revokeRefreshTokens.mockRejectedValue(new Error('network'));
-    const res = await del({ cookie: 'tv_session=abc' });
-    expect(res.status).toBe(204);
-    expect(res.headers.getSetCookie()).toEqual(cleared);
-  });
-
-  it('clears the cookies without revoking when there is no valid session', async () => {
-    adminAuthMock.verifySessionCookie.mockRejectedValue(adminAuthError('auth/session-cookie-expired'));
+  it('clears the cookies whatever the session, without asking Firebase', async () => {
     const cases: Record<string, string>[] = [{}, { cookie: 'tv_session=expired' }];
     for (const headers of cases) {
       const res = await del(headers);
       expect(res.status).toBe(204);
       expect(res.headers.getSetCookie()).toEqual(cleared);
     }
+    expect(adminAuthMock.verifySessionCookie).not.toHaveBeenCalled();
     expect(adminAuthMock.revokeRefreshTokens).not.toHaveBeenCalled();
   });
 

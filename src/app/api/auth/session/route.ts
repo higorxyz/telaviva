@@ -1,15 +1,8 @@
 import { limitByIp, readJsonBody } from '@/lib/api-guard';
 import { describeError } from '@/lib/setup-error';
-import {
-  clearedCookies,
-  readCookie,
-  SESSION_COOKIE,
-  sessionCookies,
-  withCookies,
-} from '@/server/auth/cookies';
-import { getAdminAuth } from '@/server/auth/admin';
+import { clearedCookies, sessionCookies, withCookies } from '@/server/auth/cookies';
 import { authGate, authRateLimiter, jsonError, noStoreEmpty, noStoreJson } from '@/server/auth/guard';
-import { createSession, readSession, SessionError, SessionUnavailableError } from '@/server/auth/session';
+import { createSession, SessionError, SessionUnavailableError } from '@/server/auth/session';
 
 
 function readIdToken(value: unknown): string | null {
@@ -44,21 +37,14 @@ export async function POST(request: Request) {
   }
 }
 
-/** Signs out: revokes the user's refresh tokens when the session is valid, and always clears both cookies. */
+/**
+ * Signs out THIS device: clears both cookies (the client signs Firebase out on its side). The user's refresh tokens
+ * are deliberately not revoked: revoking ends the sessions of every device at once, and people expect "Sair" on the
+ * phone to leave the computer signed in. Only deleting the account ends them all (Firebase's `deleteUser` invalidates
+ * every token of the user).
+ */
 export async function DELETE(request: Request) {
   const blocked = authGate(request);
   if (blocked) return blocked;
-
-  const user = await readSession(readCookie(request, SESSION_COOKIE));
-  if (user) {
-    try {
-      await getAdminAuth().revokeRefreshTokens(user.id);
-    } catch (error) {
-      console.error('[api/auth/session] could not revoke refresh tokens:', describeError(error));
-    }
-  }
-  return withCookies(
-    noStoreEmpty(),
-    clearedCookies(request),
-  );
+  return withCookies(noStoreEmpty(), clearedCookies(request));
 }

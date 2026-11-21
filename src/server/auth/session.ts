@@ -32,9 +32,10 @@ const CLOCK_SKEW_SECONDS = 60;
 /**
  * A session may be minted from a token whose sign-in (`auth_time`) is recent, or whose minting (`iat`) is: the client
  * renews a lost or expired session in silence with `getIdToken(true)`, which mints a new token but keeps the original
- * `auth_time`. A token minted before a sign-out still fails, because `verifyIdToken(token, true)` rejects revoked
- * tokens, and an old leaked token fails on both ages. The new cookie carries the original `auth_time`, so a renewed
- * session never counts as a recent sign-in (`isRecentSignIn`).
+ * `auth_time`. An old leaked token fails on both ages, and `verifyIdToken(token, true)` rejects the tokens of a deleted
+ * or disabled account. (Signing out ends one device and revokes nothing: that device's Firebase client signs out
+ * too, so it holds no token to renew with.) The new cookie carries the original `auth_time`, so a renewed session
+ * never counts as a recent sign-in (`isRecentSignIn`).
  */
 function isFreshToken(decoded: DecodedIdToken, nowSeconds: number): boolean {
   const limit = RECENT_SECONDS + CLOCK_SKEW_SECONDS;
