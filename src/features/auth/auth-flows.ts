@@ -163,7 +163,7 @@ export function createAuthFlows(deps: Deps) {
     guest(notice);
   }
 
-  return {
+  const flows = {
     currentUid: () => uid,
     takeNotices: (): ToastInput[] => notices.splice(0),
 
@@ -204,8 +204,9 @@ export function createAuthFlows(deps: Deps) {
 
     /**
      * Signs the current user in again (see `reauthFirebase`) and mints a session from a refreshed ID token, so its
-     * `auth_time` is recent enough to delete the account. `aborted` when the identity here changed meanwhile: then
-     * nothing is minted.
+     * `auth_time` is recent enough to delete the account. `aborted` when the identity here changed meanwhile: before
+     * the minting, nothing is minted; after it, the cookie may now name someone else than this tab shows, so it looks
+     * again at who is in (`refresh`).
      */
     async reauthenticate(password?: string): Promise<ReauthOutcome> {
       const target = uid;
@@ -214,7 +215,10 @@ export function createAuthFlows(deps: Deps) {
       if (!user) return 'leaving';
       if (uid !== target) return 'aborted';
       const sessionUser = await createSession(await user.getIdToken(true));
-      if (uid !== target || sessionUser.id !== target) return 'aborted';
+      if (uid !== target || sessionUser.id !== target) {
+        await quietly(() => flows.refresh());
+        return 'aborted';
+      }
       adopt(user, sessionUser);
       return 'renewed';
     },
@@ -235,6 +239,7 @@ export function createAuthFlows(deps: Deps) {
       else if (me.kind === 'unauthenticated') await renew();
     },
   };
+  return flows;
 }
 
 export type AuthFlows = ReturnType<typeof createAuthFlows>;
