@@ -118,7 +118,7 @@ export const fakeAuthModule = sdk;
 export const fakeAppModule = app;
 
 /** Mutable stand-in for `@/lib/auth-config` (its values are build-time constants in the app). */
-export const authConfig = { enabled: true, emulatorHost: null as string | null };
+export const authConfig = { enabled: true, emulatorHost: null as string | null, local: true };
 
 export const fakeAuthConfigModule = {
   get authEnabled() {
@@ -130,4 +130,5 @@ export const fakeAuthConfigModule = {
   get authEmulatorHost() {
     return authConfig.emulatorHost;
   },
+  emulatorAllowedHere: () => authConfig.local,
 };

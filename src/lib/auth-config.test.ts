@@ -45,3 +45,19 @@ describe('auth-config', () => {
     expect(mod.authEmulatorHost).toBe('127.0.0.1:9099');
   });
 });
+
+describe('emulator host guard', () => {
+  it('counts only the machine itself as local', async () => {
+    const { isLocalHostname } = await load({});
+    for (const host of ['localhost', 'LOCALHOST', '127.0.0.1', '[::1]', '::1']) expect(isLocalHostname(host)).toBe(true);
+    for (const host of ['telaviva.vercel.app', '192.168.0.10', 'localhost.evil.com', '127.0.0.2', '']) {
+      expect(isLocalHostname(host)).toBe(false);
+    }
+  });
+
+  it('allows the emulator on a page served from localhost (the test page is)', async () => {
+    const { emulatorAllowedHere } = await load({});
+    expect(window.location.hostname).toBe('localhost');
+    expect(emulatorAllowedHere()).toBe(true);
+  });
+});

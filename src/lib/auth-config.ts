@@ -19,3 +19,19 @@ export const publicFirebaseConfig: PublicFirebaseConfig | null =
 export const authEnabled: boolean = publicFirebaseConfig !== null;
 
 export const authEmulatorHost: string | null = emulatorHost || null;
+
+const LOCAL_HOSTNAMES = new Set(['localhost', '127.0.0.1', '[::1]', '::1']);
+
+/** `localhost`, `127.0.0.1` or `::1`: the machine itself (local dev and E2E). */
+export function isLocalHostname(hostname: string): boolean {
+  return LOCAL_HOSTNAMES.has(hostname.toLowerCase());
+}
+
+/**
+ * True when this page may talk to the Auth emulator: only on the machine itself. The emulator signs nothing, so a
+ * build that inlined an emulator host by mistake (an E2E build deployed, say) must refuse to sign in anywhere else
+ * rather than send people's passwords to a local port.
+ */
+export function emulatorAllowedHere(): boolean {
+  return typeof window !== 'undefined' && isLocalHostname(window.location.hostname);
+}

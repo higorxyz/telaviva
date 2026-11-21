@@ -1,5 +1,5 @@
 import type { Auth } from 'firebase/auth';
-import { authEmulatorHost, publicFirebaseConfig } from '@/lib/auth-config';
+import { authEmulatorHost, emulatorAllowedHere, publicFirebaseConfig } from '@/lib/auth-config';
 
 /**
  * The Firebase SDK, loaded on demand. This is the only module that imports `firebase/*`, and only through `import()`,
@@ -16,6 +16,10 @@ let created: Auth | null = null;
 
 async function init(): Promise<FirebaseClient> {
   if (!publicFirebaseConfig) throw new Error('Sign-in is not configured');
+  // Checked before anything loads: such a build signs no one in, here or against the real project.
+  if (authEmulatorHost && !emulatorAllowedHere()) {
+    throw new Error('Sign-in is set up for the Auth emulator, which only works on localhost');
+  }
   const [{ getApps, initializeApp }, sdk] = await Promise.all([import('firebase/app'), import('firebase/auth')]);
   const app = getApps()[0] ?? initializeApp(publicFirebaseConfig);
   // initializeAuth instead of getAuth: only the persistence and resolver used here end up in the chunk.
