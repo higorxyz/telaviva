@@ -88,6 +88,46 @@ describe('AuthProvider: resilience', () => {
     expect(log).not.toContain('DELETE session');
   });
 
+  it('asks /api/auth/me again after a passing failure (503, offline) while still loading, then signs in', async () => {
+    signedInOnServer('u1');
+    let calls = 0;
+    server.use(
+      http.get(url('/api/auth/me'), () => {
+        calls++;
+        if (calls === 1) return HttpResponse.json({ error: 'unavailable' }, { status: 503 });
+        if (calls === 2) return HttpResponse.error();
+        return HttpResponse.json({ user: sessionUser('u1') });
+      }),
+    );
+    const seen = new Set<string>();
+    renderAuth();
+    await waitFor(
+      () => {
+        seen.add(probe()?.split('|')[0] ?? '');
+        expect(probe()).toMatch(/^signed-in\|u1/);
+      },
+      { timeout: 4000 },
+    );
+    expect(calls).toBe(3);
+    expect(seen.has('guest')).toBe(false);
+  });
+
+  it('goes guest quietly, keeping the hint, once /api/auth/me keeps failing', async () => {
+    setHint();
+    let calls = 0;
+    server.use(
+      http.get(url('/api/auth/me'), () => {
+        calls++;
+        return HttpResponse.json({ error: 'unavailable' }, { status: 503 });
+      }),
+    );
+    renderAuth();
+    await waitFor(() => expect(probe()).toBe('guest|-|0'), { timeout: 4000 });
+    expect(calls).toBe(3);
+    expect(hasHint()).toBe(true);
+    expect(screen.queryByText(EXPIRED)).toBeNull();
+  });
+
   it('expires on a definitive Firebase answer to the token refresh', async () => {
     setHint();
     fakeAuth.currentUser = fakeUser('u1');
