@@ -118,7 +118,9 @@ DATABASE_URL=
 
 Atenção ao local: `NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN` é `localhost:3000`. O `FIREBASE_PRIVATE_KEY` também vai com os `\n` literais, numa linha só.
 
-Para desenvolver sem usar a conta real, existe o emulador do Firebase Auth: `npm run emulators` (porta 9099). Ele não precisa de chave nenhuma. Os testes automatizados usam o emulador e um Postgres em memória, nunca as contas reais.
+**Login por `http://` só funciona em `localhost`.** Os cookies de sessão levam `Secure` em qualquer outro endereço, e o navegador descarta cookie `Secure` recebido por `http`. Por isso, abrir o servidor local pelo celular na rede (`http://192.168.x.x:3000`) mostra o site, mas o login não "pega": a sessão some no próximo pedido. Para testar o login no celular, use o preview da Vercel (que é `https`).
+
+Para desenvolver sem usar a conta real, existe o emulador do Firebase Auth: `npm run emulators` (porta 9099). Ele não precisa de chave nenhuma. Os testes automatizados (`npm run e2e`) sobem o emulador sozinhos e usam um PGlite (Postgres dentro do processo, em `.e2e/pglite`), nunca as contas reais.
 
 ## 5. Migrações do banco
 
