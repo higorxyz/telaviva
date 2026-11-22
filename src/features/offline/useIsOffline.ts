@@ -13,6 +13,18 @@ function subscribe(onChange: () => void) {
 }
 
 /**
+ * True while the browser itself reports no connection (`navigator.onLine === false`): the one signal under which the
+ * offline queue never sends (queue-flusher.ts). False on the server and while hydrating.
+ */
+export function useBrowserOffline(): boolean {
+  return useSyncExternalStore(
+    subscribe,
+    () => navigator.onLine === false,
+    () => false,
+  );
+}
+
+/**
  * True while the app is offline. `useOffline` (next/offline) is the reliable signal, but it only turns on after an
  * `offline` event or a failed router fetch, so an app opened already offline would say nothing until a prefetch
  * fails. The browser's own `navigator.onLine === false` (a sure "offline"; `true` proves nothing) covers that cold
@@ -20,10 +32,6 @@ function subscribe(onChange: () => void) {
  */
 export function useIsOffline(): boolean {
   const routerOffline = useOffline();
-  const browserOffline = useSyncExternalStore(
-    subscribe,
-    () => navigator.onLine === false,
-    () => false,
-  );
+  const browserOffline = useBrowserOffline();
   return routerOffline || browserOffline;
 }

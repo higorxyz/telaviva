@@ -1,7 +1,7 @@
 'use client';
 
 import { CloudCheck, CloudUpload, WifiOff, type LucideIcon } from 'lucide-react';
-import { useIsOffline } from './useIsOffline';
+import { useBrowserOffline, useIsOffline } from './useIsOffline';
 import { useEffect, useState, type ReactNode } from 'react';
 import { createPortal } from 'react-dom';
 import { cn } from '@/lib/cn';
@@ -21,7 +21,10 @@ const FOCUS = 'focus-visible:outline-2 focus-visible:outline-offset-2 focus-visi
 
 /**
  * True for a while after the queue empties with the connection up: "Tudo sincronizado." once per emptying, for as long
- * as a toast stays. An emptying seen offline (which cannot have been a sync) says nothing.
+ * as a toast stays. An emptying while the browser reports no connection (when the queue never sends, so it cannot have
+ * been a sync: an undo) says nothing. `offline` is the browser's own report, not `useOffline`: after the `online`
+ * event, Next keeps saying offline until its connectivity check answers, and a queue sent before that answer would
+ * otherwise never be confirmed.
  */
 function useSyncedNotice(queued: number, offline: boolean): boolean {
   const [last, setLast] = useState(queued);
@@ -100,7 +103,8 @@ function Message({ offline, pending, queued, synced }: MessageProps) {
 export function ConnectionStatus({ queued = 0 }: { queued?: number }) {
   const offline = useIsOffline();
   const pending = usePendingNavigation();
-  const synced = useSyncedNotice(queued, offline);
+  const browserOffline = useBrowserOffline();
+  const synced = useSyncedNotice(queued, browserOffline);
   const slot = useToastStatusSlot();
   if (!slot) return null;
   const visible = offline || queued > 0 || synced;

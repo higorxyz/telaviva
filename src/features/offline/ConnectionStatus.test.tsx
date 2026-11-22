@@ -106,12 +106,30 @@ describe('ConnectionStatus', () => {
     expect(region()).toBeEmptyDOMElement();
   });
 
-  it('does not claim a sync that happened while offline', () => {
+  it('does not claim a sync while the browser reports no connection (the queue never sends then: an undo)', () => {
     const { rerender } = setup(1);
+    vi.spyOn(navigator, 'onLine', 'get').mockReturnValue(false);
+    act(() => void window.dispatchEvent(new Event('offline')));
     setOffline(true);
     rerender(0);
     expect(region()).not.toHaveTextContent(SYNCED);
     expect(region()).toHaveTextContent(OFFLINE);
+  });
+
+  it('confirms a queue sent right after the browser is back online, before Next’s connectivity check answers', () => {
+    const online = vi.spyOn(navigator, 'onLine', 'get').mockReturnValue(false);
+    const { rerender } = setup(1);
+    act(() => void window.dispatchEvent(new Event('offline')));
+    setOffline(true);
+    online.mockReturnValue(true);
+    act(() => void window.dispatchEvent(new Event('online')));
+    // `useOffline` still says offline: its HEAD check has not answered yet.
+    rerender(0);
+    expect(region()).toHaveTextContent(SYNCED);
+    setOffline(false);
+    expect(region()).toHaveTextContent(SYNCED);
+    act(() => vi.advanceTimersByTime(5100));
+    expect(region()).toBeEmptyDOMElement();
   });
 
   it('after 1.5 s of an in-app navigation stuck offline, says the page opens later and links to the list', () => {
