@@ -5,9 +5,12 @@ import { refOfCommand, titlePreImage, type TitlePreImage } from '@/features/libr
 import { isValidLibraryState, normalizeLibraryState, parseLibraryEntries } from '@/features/library/schema';
 import { EMPTY_LIBRARY, type LibraryState } from '@/features/library/types';
 import type { Database } from '@/server/db/client';
+import { appliedStatement, forgetOldCommands, isDuplicateCommand } from './applied';
 import { writeAtomically } from './atomic';
+import { actionTime } from './clamp';
 import { diffStates, isEmptyDiff } from './diff';
 import { LibraryAccountMissingError, LibraryConflictError, LibraryInvalidError, LibraryLimitError } from './errors';
+import { forgetOldRemovals, isEmptyPlan, loadRemovals, planRemovals, removalStatements } from './removals';
 import { assertExpected, clampRestore, expectedGuard, isGuardAbort } from './restore';
 import { hasAccount, selectLibrary, toRawLibrary } from './rows';
 import { diffStatements } from './write';
@@ -17,8 +20,9 @@ import { diffStatements } from './write';
  * visitor's local library uses: load, apply, then write just the rows that changed.
  *
  * Concurrency: load → apply → write is not serialized across requests. Writes are per-row upserts and deletes, so
- * two devices changing different rows never clobber each other; on the same row the newer `updatedAt` wins (see
- * `diffStatements`), and a delete wins over anything written before it.
+ * two devices changing different rows never clobber each other; on the same row the newer change wins (see
+ * `diffStatements`): an upsert never replaces a newer row, a delete never removes a row changed after it, and a
+ * removal marker keeps a late write from bringing back a row removed after it (see removals.ts).
  */
 
 /** Validates the rows read from the database. A row the schema cannot read is left out, never rewritten. */
@@ -73,38 +77,59 @@ function reduce(before: LibraryState, command: LibraryCommand, now: string): Lib
 /** What a command leaves: the library as stored, and the title as it was before (what an undo puts back). */
 export type AppliedCommand = { state: LibraryState; previous: TitlePreImage };
 
+/** From the offline queue: when the action was done on the device, and the id that makes a resend a no-op. */
+export type CommandOptions = { at?: string; commandId?: string };
+
 /**
  * Applies one command for the user and resolves to the library as stored afterwards, with the title's pre-image taken
  * from the state loaded for the command (so the undo a client builds from it never reverts another device's change).
- * The changed rows and a fresh read of the library go in one transaction, so the answer shows what was really kept (a
- * guarded upsert may have kept a newer row) and nothing is written when any statement fails.
+ * The changed rows, the removal markers, the command id and a fresh read of the library go in one transaction, so
+ * the answer shows what was really kept (a guarded write may have kept a newer row) and nothing is written when any
+ * statement fails.
+ *
+ * The command is written with the time of the action (`at`, never later than `now`; LibraryStaleError past 30 days),
+ * or `now` without one. A restore always uses `now`: its fingerprint guards it, not a time. A `commandId` already
+ * applied answers the library as stored, writing nothing, even when a copy of the request races this one.
  */
 export async function applyLibraryCommand(
   db: Database,
   userId: string,
   command: LibraryCommand,
   now: string,
+  options: CommandOptions = {},
 ): Promise<AppliedCommand> {
-  const before = await loadAccountLibrary(db, userId);
+  const time = actionTime(options.at, now);
+  const at = command.type === 'restore' ? now : time;
+  const { commandId } = options;
+  const [before, stored] = await Promise.all([loadAccountLibrary(db, userId), loadRemovals(db, userId, commandId)]);
   const previous = titlePreImage(before, refOfCommand(command));
+  if (stored.applied) return { state: before, previous };
+
   const applied = command.type === 'restore' ? clampRestore(command, now) : command;
   if (applied.type === 'restore') assertExpected(before, applied);
-  const after = reduce(before, applied, now);
+  const after = reduce(before, applied, at);
   assertWithinLimits(before, after);
 
   const diff = diffStates(before, after);
-  if (isEmptyDiff(diff)) return { state: after, previous };
+  const plan = planRemovals(applied, diff, stored.removals);
+  if (isEmptyPlan(plan) && !commandId) return { state: isEmptyDiff(diff) ? after : before, previous };
   // A restore re-checks its fingerprint inside the transaction, so a write landing after the load aborts it.
   const guard = applied.type === 'restore' && applied.expected ? { ref: applied.ref, expected: applied.expected } : null;
   try {
     const results = await writeAtomically(db, (q) => [
       ...(guard ? [expectedGuard(q, userId, guard.ref, guard.expected)] : []),
-      ...diffStatements(q, userId, diff, applied.type !== 'restore'),
+      ...(commandId ? [appliedStatement(q, userId, commandId, now)] : []),
+      forgetOldRemovals(q, userId, now),
+      forgetOldCommands(q, userId, now),
+      ...diffStatements(q, userId, plan.diff, applied.type === 'restore' ? null : at),
+      ...removalStatements(q, userId, plan, at),
       selectLibrary(q, userId),
     ]);
     return { state: fromResult(results.at(-1)), previous };
   } catch (error) {
     if (isGuardAbort(error)) throw new LibraryConflictError();
+    // Another copy of this command committed first: nothing of this one was written.
+    if (isDuplicateCommand(error)) return { state: await loadLibrary(db, userId), previous };
     throw error;
   }
 }

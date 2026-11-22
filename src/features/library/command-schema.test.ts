@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { parseCommand } from './command-schema';
+import { parseCommand, parseEnvelope } from './command-schema';
 import { LIBRARY_LIMITS } from './limits';
 
 const NOW = '2026-11-20T12:00:00.000Z';
@@ -136,5 +136,40 @@ describe('parseCommand', () => {
   it('refuses an invalid restored row', () => {
     expect(parseCommand(restore({ item: { ...item, updatedAt: 'ontem' } }))).toBeNull();
     expect(parseCommand(restore({ rating: { ...rating, score: 0 } }))).toBeNull();
+  });
+});
+
+describe('parseEnvelope', () => {
+  const command = { type: 'remove', ref: movie };
+  const commandId = '0b6f3a8e-4a2c-4d1e-9f7b-2c3d4e5f6a7b';
+
+  it('reads the command alone, as before: no time and no id', () => {
+    expect(parseEnvelope({ command })).toEqual({ command });
+  });
+
+  it('keeps the time of the action and the command id when they are valid', () => {
+    expect(parseEnvelope({ command, at: NOW, commandId })).toEqual({ command, at: NOW, commandId });
+    expect(parseEnvelope({ command, at: '2026-11-20T09:00:00.000-03:00' })).toMatchObject({ at: '2026-11-20T09:00:00.000-03:00' });
+  });
+
+  it('strips unknown fields of the envelope', () => {
+    expect(parseEnvelope({ command, userId: 'someone-else' })).toEqual({ command });
+  });
+
+  it.each([
+    ['not an object', 'remove'],
+    ['an array', [command]],
+    ['null', null],
+    ['no command', { at: NOW }],
+    ['an invalid command', { command: { type: 'wipe' } }],
+    ['a time that is not ISO 8601', { command, at: 'ontem' }],
+    ['a time without an offset', { command, at: '2026-11-20T12:00:00' }],
+    ['a time that is not a string', { command, at: 1_795_000_000_000 }],
+    ['a time too long to be one', { command, at: `2026-11-20T12:00:00.${'0'.repeat(60)}Z` }],
+    ['an id that is not a uuid', { command, commandId: 'abc' }],
+    ['an id with extra text', { command, commandId: `${commandId}x` }],
+    ['an id that is not a string', { command, commandId: 42 }],
+  ])('refuses %s', (_label, raw) => {
+    expect(parseEnvelope(raw)).toBeNull();
   });
 });

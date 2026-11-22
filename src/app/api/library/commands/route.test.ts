@@ -1,6 +1,6 @@
 // @vitest-environment node
 import { afterEach, beforeAll, beforeEach, describe, expect, it, vi } from 'vitest';
-import { libraryItems, users } from '@/server/db/schema';
+import { appliedCommands, libraryItems, libraryRemovals, users } from '@/server/db/schema';
 import { loadLibrary } from '@/server/library/store';
 import { adminAuthError, adminAuthMock, decodedToken, resetAdminAuthMock, stubAuthEnv } from '@/test/admin-auth';
 import { createTestDb } from '@/test/db';
@@ -25,6 +25,8 @@ beforeEach(async () => {
   stubAuthEnv(vi.stubEnv);
   adminAuthMock.verifySessionCookie.mockResolvedValue(decodedToken());
   await db.delete(libraryItems);
+  await db.delete(libraryRemovals);
+  await db.delete(appliedCommands);
 });
 afterEach(() => {
   vi.unstubAllEnvs();
@@ -189,5 +191,54 @@ describe('POST /api/library/commands', () => {
     } finally {
       holder.db = db;
     }
+  });
+});
+
+describe('POST /api/library/commands: a command from the offline queue', () => {
+  const minutesAgo = (n: number) => new Date(Date.now() - n * 60_000).toISOString();
+  const commandId = '9a7d2c1b-5e4f-4a3b-8c2d-1e0f9a8b7c6d';
+
+  it('writes with the time the action was done on the device', async () => {
+    const at = minutesAgo(5);
+    const res = await post(JSON.stringify({ command: setStatus('want'), at, commandId }));
+    expect(res.status).toBe(200);
+    expect((await res.json()).library.items[0]).toMatchObject({ addedAt: at, updatedAt: at });
+  });
+
+  it('400 { error: stale } for an action older than 30 days, writing nothing and never cached', async () => {
+    const at = new Date(Date.now() - 31 * 24 * 60 * 60 * 1000).toISOString();
+    const res = await post(JSON.stringify({ command: setStatus('want'), at }));
+    expect(res.status).toBe(400);
+    expect(await res.json()).toEqual({ error: 'stale' });
+    expect(res.headers.get('cache-control')).toBe('private, no-store');
+    expect((await loadLibrary(db, 'user-1')).items).toEqual([]);
+  });
+
+  it.each([
+    ['a time that is not ISO 8601', { at: 'ontem' }],
+    ['an id that is not a uuid', { commandId: 'not-a-uuid' }],
+  ])('400 { error: invalid } for %s', async (_label, extra) => {
+    const res = await post(JSON.stringify({ command: setStatus('want'), ...extra }));
+    expect(res.status).toBe(400);
+    expect(await res.json()).toEqual({ error: 'invalid' });
+    expect((await loadLibrary(db, 'user-1')).items).toEqual([]);
+  });
+
+  it('a command id already applied is never applied again: the answer is the library as stored', async () => {
+    await post(JSON.stringify({ command: setStatus('want'), at: minutesAgo(10), commandId }));
+    // Whatever a retry carries, the id was applied: nothing is written.
+    const res = await post(JSON.stringify({ command: setStatus('watched'), at: minutesAgo(1), commandId }));
+    expect(res.status).toBe(200);
+    const { library } = await res.json();
+    expect(library.items[0]).toMatchObject({ status: 'want' });
+    expect(await loadLibrary(db, 'user-1')).toEqual(library);
+  });
+
+  it('a late write never brings back a title removed after it', async () => {
+    await send(setStatus('want'));
+    await send({ type: 'remove', ref: movie });
+    const res = await post(JSON.stringify({ command: setStatus('watched'), at: minutesAgo(60) }));
+    expect(res.status).toBe(200);
+    expect((await res.json()).library.items).toEqual([]);
   });
 });

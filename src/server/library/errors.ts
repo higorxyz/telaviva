@@ -32,3 +32,11 @@ export class LibraryAccountMissingError extends Error {
     this.name = 'LibraryAccountMissingError';
   }
 }
+
+/** An action from the offline queue older than the queue may keep (30 days): 400 `{ error: 'stale' }`. */
+export class LibraryStaleError extends Error {
+  constructor() {
+    super('the action is older than the queue may keep');
+    this.name = 'LibraryStaleError';
+  }
+}

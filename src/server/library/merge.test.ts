@@ -179,6 +179,27 @@ describe('mergeGuestLibrary', () => {
     expect((await loadLibrary(db, userId)).items).toMatchObject([{ status: 'want', updatedAt: T2 }]);
   });
 
+  it('never brings back a row the account removed after the guest wrote it; a newer guest row still counts', async () => {
+    await applyLibraryCommand(db, userId, setStatus(movie, 'want'), T0);
+    await applyLibraryCommand(db, userId, { type: 'rate', ref: tv, score: 6, snapshot }, T0);
+    await applyLibraryCommand(db, userId, { type: 'setEpisodes', tvId: tv.tmdbId, marks: [{ seasonNumber: 1, episodeNumber: 1 }], watched: true, snapshot, progress: { tvId: tv.tmdbId, ended: false, seasons: [{ seasonNumber: 1, episodeCount: 5 }], lastAired: { seasonNumber: 1, episodeNumber: 5 }, nextToAir: null } }, T0);
+    await applyLibraryCommand(db, userId, { type: 'remove', ref: movie }, T2);
+    await applyLibraryCommand(db, userId, { type: 'unrate', ref: tv }, T2);
+    await applyLibraryCommand(db, userId, { type: 'remove', ref: tv }, T2);
+    const older = state({
+      items: [item(movie, { updatedAt: T1 }), item(tv, { status: 'watching', updatedAt: T1 })],
+      ratings: [{ ...tv, score: 9, ratedAt: T1, updatedAt: T1 }],
+      episodes: [mark(1, T1)],
+    });
+    expect(await merge(older)).toEqual(EMPTY_LIBRARY);
+    expect(await loadLibrary(db, userId)).toEqual(EMPTY_LIBRARY);
+
+    const newer = state({ items: [item(movie, { updatedAt: T3 })], ratings: [{ ...tv, score: 9, ratedAt: T3, updatedAt: T3 }] });
+    const merged = await merge(newer, T3);
+    expect(merged.items).toMatchObject([{ ...movie, updatedAt: T3 }]);
+    expect(merged.ratings).toMatchObject([{ ...tv, score: 9 }]);
+  });
+
   it("never touches another user's rows", async () => {
     const other = `${userId}-other`;
     await db.insert(users).values({ id: other });

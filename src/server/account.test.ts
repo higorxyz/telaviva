@@ -1,7 +1,7 @@
 // @vitest-environment node
 import { count, eq } from 'drizzle-orm';
 import { afterAll, beforeAll, beforeEach, describe, expect, it, vi } from 'vitest';
-import { episodeProgress, libraryItems, ratings, users } from '@/server/db/schema';
+import { appliedCommands, episodeProgress, libraryItems, libraryRemovals, ratings, users } from '@/server/db/schema';
 import { createTestDb } from '@/test/db';
 import { AccountAuthError, deleteAccount, exportAccount, exportFilename } from './account';
 
@@ -123,6 +123,45 @@ describe('exportAccount', () => {
       user: { id: 'nobody', email: 'outro@exemplo.com', name: null, photoUrl: null, createdAt: null },
       library: { version: 1, items: [], episodes: [], ratings: [] },
     });
+  });
+});
+
+describe('removal markers and applied commands (offline queue)', () => {
+  const session = { id: 'user-1', email: null, name: null, photoUrl: null };
+
+  async function seedOffline(userId: string) {
+    await db.insert(libraryRemovals).values([
+      { userId, kind: 'item', mediaType: 'movie', tmdbId: 77, removedAt: T0 },
+      { userId, kind: 'mark', mediaType: 'tv', tmdbId: 1398, seasonNumber: 1, episodeNumber: 2, removedAt: T0 },
+    ]);
+    await db.insert(appliedCommands).values({ userId, commandId: `${userId}-cmd`, appliedAt: T0 });
+  }
+
+  async function offlineRowsOf(userId: string) {
+    const [m] = await db.select({ n: count() }).from(libraryRemovals).where(eq(libraryRemovals.userId, userId));
+    const [a] = await db.select({ n: count() }).from(appliedCommands).where(eq(appliedCommands.userId, userId));
+    return m.n + a.n;
+  }
+
+  it('never appear in the export', async () => {
+    await seedOffline('user-1');
+    const data = await exportAccount(db, session, new Date(T0));
+    expect(Object.keys(data)).toEqual(['exportedAt', 'user', 'library']);
+    expect(Object.keys(data.library).sort()).toEqual(['episodes', 'items', 'ratings', 'version']);
+    expect(data.library.items.map((i) => i.tmdbId)).toEqual([550]);
+    expect(data.library.episodes).toHaveLength(1);
+    const text = JSON.stringify(data);
+    expect(text).not.toContain('user-1-cmd');
+    expect(text).not.toContain('removed');
+    expect(text).not.toContain('"tmdbId":77');
+  });
+
+  it("go with the account when it is deleted, and another user's stay", async () => {
+    await seedOffline('user-1');
+    await seedOffline('user-2');
+    await deleteAccount(db, { deleteUser: vi.fn() }, 'user-1');
+    expect(await offlineRowsOf('user-1')).toBe(0);
+    expect(await offlineRowsOf('user-2')).toBe(3);
   });
 });
 

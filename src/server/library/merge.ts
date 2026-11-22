@@ -7,6 +7,7 @@ import { writeAtomically } from './atomic';
 import { clampState } from './clamp';
 import { diffStates, isEmptyDiff, type LibraryDiff } from './diff';
 import { LibraryInvalidError } from './errors';
+import { dropRemoved, loadRemovals } from './removals';
 import { selectLibrary } from './rows';
 import { assertWithinLimits, fromResult, loadAccountLibrary } from './store';
 import { diffStatements } from './write';
@@ -24,6 +25,7 @@ const upsertsOnly = (diff: LibraryDiff): LibraryDiff => ({ ...diff, deleteItems:
  * - Only the rows that change are written, with the newer-wins guard: each one is the newest of the account and
  *   the guest, and a newer row another device wrote after the load is kept. The rows and a fresh read of the
  *   library go in one transaction, so the answer shows what was really kept.
+ * - A row the account removed after the guest wrote it (a removal marker newer than the guest row) stays removed.
  * - Idempotent: the same guest again merges into an identical state, writes nothing and answers the account.
  * - Past a per-user limit it throws LibraryLimitError and writes nothing.
  */
@@ -33,13 +35,13 @@ export async function mergeGuestLibrary(
   guest: LibraryState,
   now: string,
 ): Promise<LibraryState> {
-  const account = await loadAccountLibrary(db, userId);
+  const [account, { removals }] = await Promise.all([loadAccountLibrary(db, userId), loadRemovals(db, userId)]);
   const merged = mergeLibraries(account, clampState(guest, now));
   if (!isValidLibraryState(merged)) throw new LibraryInvalidError();
   assertWithinLimits(account, merged);
 
-  const diff = upsertsOnly(diffStates(account, merged));
-  if (isEmptyDiff(diff)) return merged;
-  const results = await writeAtomically(db, (q) => [...diffStatements(q, userId, diff, true), selectLibrary(q, userId)]);
+  const diff = dropRemoved(upsertsOnly(diffStates(account, merged)), removals);
+  if (isEmptyDiff(diff)) return account;
+  const results = await writeAtomically(db, (q) => [...diffStatements(q, userId, diff, now), selectLibrary(q, userId)]);
   return fromResult(results.at(-1));
 }

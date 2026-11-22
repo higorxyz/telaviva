@@ -98,3 +98,27 @@ export function parseCommand(raw: unknown): LibraryCommand | null {
   if (!result.success || !consistent(result.data)) return null;
   return result.data satisfies LibraryCommand;
 }
+
+/**
+ * What POST /api/library/commands receives: `{ command, at?, commandId? }`. A command from the offline queue carries
+ * the time the action was done on the device (`at`) and the id the queue gave it (`commandId`, a uuid), so a resent
+ * command never applies twice. Without them it is a command as before.
+ */
+export type CommandEnvelope = { command: LibraryCommand; at?: string; commandId?: string };
+
+const envelopeSchema = z.object({
+  command: z.unknown(),
+  // ISO 8601 with an offset; 40 characters hold any real one, fractions included.
+  at: z.string().max(40).pipe(isoDate).optional(),
+  commandId: z.uuid().optional(),
+});
+
+/** The envelope when the command and both optional fields are valid, or null. */
+export function parseEnvelope(raw: unknown): CommandEnvelope | null {
+  const result = envelopeSchema.safeParse(raw);
+  if (!result.success) return null;
+  const command = parseCommand(result.data.command);
+  if (!command) return null;
+  const { at, commandId } = result.data;
+  return { command, ...(at === undefined ? {} : { at }), ...(commandId === undefined ? {} : { commandId }) };
+}

@@ -8,7 +8,7 @@ import type { LibraryDiff } from './diff';
 /** Rows per statement: far below Postgres' 65,535 bind parameters (items have 11 columns). */
 const CHUNK = 1_000;
 
-function chunks<T>(rows: T[]): T[][] {
+export function chunks<T>(rows: T[]): T[][] {
   const out: T[][] = [];
   for (let i = 0; i < rows.length; i += CHUNK) out.push(rows.slice(i, i + CHUNK));
   return out;
@@ -25,27 +25,37 @@ const excluded = (column: string) => sql.raw(`excluded."${column}"`);
 /**
  * Statements that apply `diff` to the user's rows: deletes, then upserts.
  *
- * With `guarded` (every command but restore), an upsert only replaces a row that is not newer than the incoming one
- * (`updated_at`, or `watched_at` for marks): a request that reached the server earlier but writes later can never
- * overwrite a newer change from another device. Restore puts older rows back on purpose; it is checked against
- * the title's expected fingerprint instead (see restore.ts), and its timestamps are never later than `now`.
+ * With `at` (the time of the command; every command but restore), both are guarded newer-wins, by `updated_at`, or
+ * `watched_at` for marks:
+ * - an upsert only replaces a row that is not newer than the incoming one: a request that reached the server
+ *   earlier but writes later can never overwrite a newer change from another device;
+ * - a delete only removes a row not changed after `at`: a removal done offline and arriving late never deletes
+ *   what another device changed after it.
+ *
+ * Restore (`at` null) puts older rows back on purpose; it is checked against the title's expected fingerprint
+ * instead (see restore.ts), and its timestamps are never later than `now`.
  */
-export function diffStatements(q: Database, userId: string, diff: LibraryDiff, guarded: boolean): Statement[] {
+export function diffStatements(q: Database, userId: string, diff: LibraryDiff, at: string | null): Statement[] {
   const out: Statement[] = [];
-  const guard = (sqlText: SQL) => (guarded ? { setWhere: sqlText } : {});
+  const guard = (sqlText: SQL) => (at === null ? {} : { setWhere: sqlText });
+  // Timestamps are read at millisecond precision (rows.ts); a row stamped by Postgres may carry microseconds.
+  const notAfter = (column: SQL) => (at === null ? [] : [sql`date_trunc('milliseconds', ${column}) <= ${at}::timestamptz`]);
 
   for (const keys of chunks(diff.deleteItems)) {
     const where = keyIn([sql`${libraryItems.mediaType}`, sql`${libraryItems.tmdbId}`], keys.map((k) => [k.mediaType, k.tmdbId]));
-    out.push(q.delete(libraryItems).where(and(eq(libraryItems.userId, userId), where)));
+    const fresh = notAfter(sql`${libraryItems.updatedAt}`);
+    out.push(q.delete(libraryItems).where(and(eq(libraryItems.userId, userId), where, ...fresh)));
   }
   for (const keys of chunks(diff.deleteRatings)) {
     const where = keyIn([sql`${ratings.mediaType}`, sql`${ratings.tmdbId}`], keys.map((k) => [k.mediaType, k.tmdbId]));
-    out.push(q.delete(ratings).where(and(eq(ratings.userId, userId), where)));
+    const fresh = notAfter(sql`${ratings.updatedAt}`);
+    out.push(q.delete(ratings).where(and(eq(ratings.userId, userId), where, ...fresh)));
   }
   for (const keys of chunks(diff.deleteMarks)) {
     const columns = [sql`${episodeProgress.tvId}`, sql`${episodeProgress.seasonNumber}`, sql`${episodeProgress.episodeNumber}`];
     const where = keyIn(columns, keys.map((k) => [k.tvId, k.seasonNumber, k.episodeNumber]));
-    out.push(q.delete(episodeProgress).where(and(eq(episodeProgress.userId, userId), where)));
+    const fresh = notAfter(sql`${episodeProgress.watchedAt}`);
+    out.push(q.delete(episodeProgress).where(and(eq(episodeProgress.userId, userId), where, ...fresh)));
   }
 
   for (const rows of chunks(diff.upsertItems)) {

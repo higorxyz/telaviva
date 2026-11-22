@@ -6,6 +6,7 @@ import {
   index,
   integer,
   pgTable,
+  primaryKey,
   text,
   timestamp,
   unique,
@@ -93,4 +94,41 @@ export const ratings = pgTable(
   ],
 );
 
+/**
+ * Removal markers (Phase 4): when a row is removed, its key and the time of the removal stay here for 60 days, so a
+ * write done earlier on an offline device and arriving later never brings the row back. Items and ratings leave
+ * the season and episode empty; a mark (`kind = 'mark'`) is a TV episode with both filled in. Never read as library.
+ */
+export const libraryRemovals = pgTable(
+  'library_removals',
+  {
+    userId: text('user_id')
+      .notNull()
+      .references(() => users.id, { onDelete: 'cascade' }),
+    kind: text('kind').notNull(),
+    mediaType: text('media_type').notNull(),
+    tmdbId: integer('tmdb_id').notNull(),
+    seasonNumber: integer('season_number'),
+    episodeNumber: integer('episode_number'),
+    removedAt: ts('removed_at').notNull(),
+  },
+  (t) => [
+    unique('library_removals_key_unique')
+      .on(t.userId, t.kind, t.mediaType, t.tmdbId, t.seasonNumber, t.episodeNumber)
+      .nullsNotDistinct(),
+    check('library_removals_kind_check', sql`${t.kind} in ('item', 'rating', 'mark')`),
+  ],
+);
 
+/** Commands already applied, by the id the offline queue gives each one, so a resent command never applies twice. */
+export const appliedCommands = pgTable(
+  'applied_commands',
+  {
+    userId: text('user_id')
+      .notNull()
+      .references(() => users.id, { onDelete: 'cascade' }),
+    commandId: text('command_id').notNull(),
+    appliedAt: ts('applied_at').notNull(),
+  },
+  (t) => [primaryKey({ name: 'applied_commands_pkey', columns: [t.userId, t.commandId] })],
+);
