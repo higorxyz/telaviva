@@ -4,6 +4,7 @@ import { act, renderHook, waitFor } from '@testing-library/react';
 import { http, HttpResponse } from 'msw';
 import type { ReactNode } from 'react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import { clearLeaving, markLeaving } from '@/features/offline/leaving';
 import type { OfflineStore } from '@/features/offline/store-types';
 import { server } from '@/test/server';
 import { ToastProvider } from '@/ui/toast/ToastProvider';
@@ -72,6 +73,7 @@ beforeEach(async () => {
   store = await freshStore();
 });
 afterEach(() => {
+  clearLeaving('ana');
   onlineManager.setOnline(true);
   vi.unstubAllGlobals();
 });
@@ -133,6 +135,27 @@ describe('useTvProgress on the device', () => {
     noNetwork();
     const offline = renderProgress({ kind: 'guest' }, [1, 2]);
     await waitFor(() => expect(offline.result.current).toEqual({ 1: info(1), 2: info(2, 7) }));
+  });
+
+  it('keeps nothing of an answer that lands after "Sair" started and wiped the account', async () => {
+    let release = () => {};
+    let asked = false;
+    server.use(
+      http.get(PROGRESS, async () => {
+        asked = true;
+        await new Promise<void>((r) => (release = r));
+        return HttpResponse.json({ 1: info(1) });
+      }),
+    );
+    const { result } = renderProgress(account('ana'), [1]);
+    await waitFor(() => expect(asked).toBe(true));
+    // What leave() does, in order: mark the account as leaving, then wipe it.
+    markLeaving('ana');
+    await store.wipeAccount('ana');
+    release();
+    await waitFor(() => expect(result.current).toEqual({ 1: info(1) }));
+    await settle();
+    expect(await store.getMeta('progress:ana')).toBeUndefined();
   });
 
   it('keeps nothing while the identity is still unknown', async () => {

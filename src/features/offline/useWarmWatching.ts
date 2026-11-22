@@ -6,6 +6,7 @@ import { useLibraryIdentity } from '../library/LibraryProvider';
 import type { LibraryItem } from '../library/types';
 import { useTvProgress } from '../library/view/useTvProgress';
 import { readDeviceMeta, writeDeviceMeta } from './device-meta';
+import { isLeaving, onLeavingChange } from './leaving';
 import {
   keepWarmEntries,
   parseLastWarm,
@@ -100,8 +101,12 @@ export function useWarmWatching(): void {
   });
 
   useEffect(() => {
-    if (warmUpDisabled() || identity === PENDING || signature === '') return;
+    if (warmUpDisabled() || identity === PENDING || signature === '' || isLeaving(identity)) return;
     const controller = new AbortController();
+    // "Sair" (here or in another tab) stops a warm-up at once: its device data is being wiped.
+    const stopLeaving = onLeavingChange(() => {
+      if (isLeaving(identity)) controller.abort();
+    });
     let running = false;
     const attempt = () => {
       if (running || controller.signal.aborted || !canWarmNow()) return;
@@ -118,6 +123,7 @@ export function useWarmWatching(): void {
     navigator.serviceWorker?.addEventListener('controllerchange', attempt);
     return () => {
       controller.abort();
+      stopLeaving();
       document.removeEventListener('visibilitychange', attempt);
       window.removeEventListener('online', attempt);
       navigator.serviceWorker?.removeEventListener('controllerchange', attempt);

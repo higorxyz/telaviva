@@ -1,4 +1,5 @@
 import type { User } from 'firebase/auth';
+import { clearLeaving, markLeaving } from '@/features/offline/leaving';
 import { createAuthState, quietly, type AuthDeps } from './auth-state';
 import { createDeviceSession } from './device-session';
 import { authErrorMessage } from './errors';
@@ -31,6 +32,7 @@ export function createAuthFlows(deps: AuthDeps) {
     // Every sign-in is the identity to open offline with; an account signed in over another drops that one's copy.
     onSignedIn(user, previous) {
       if (previous && previous !== user.id) void device.dropCopy(previous);
+      clearLeaving(user.id);
       void device.remember(user);
     },
   });
@@ -91,6 +93,8 @@ export function createAuthFlows(deps: AuthDeps) {
     const uid = state.uid;
     state.generation += 1;
     state.uid = null; // A 401 from here on is the sign-out itself, not a session to renew.
+    // Before the wipe: progress or a warm-up landing during the DELETE (here or in another tab) keeps nothing of it.
+    if (uid) markLeaving(uid);
     // A mint still in flight would set the cookies again after the DELETE: let it land first.
     await state.mintsSettled();
     if (uid) await device.wipe(uid);

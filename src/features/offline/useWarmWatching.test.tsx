@@ -12,6 +12,7 @@ import type { LibraryState } from '@/features/library/types';
 import { entry, mark, stateOf } from '@/features/library/view/test-state';
 import { server } from '@/test/server';
 import { ToastProvider } from '@/ui/toast/ToastProvider';
+import { clearLeaving, markLeaving } from './leaving';
 import type { OfflineStore } from './store-types';
 import { WarmWatching } from './useWarmWatching';
 
@@ -76,6 +77,7 @@ beforeEach(async () => {
   });
 });
 afterEach(() => {
+  clearLeaving('ana');
   vi.unstubAllGlobals();
   vi.unstubAllEnvs();
   vi.restoreAllMocks();
@@ -182,6 +184,26 @@ describe('useWarmWatching', () => {
     Object.defineProperty(navigator.serviceWorker, 'controller', { configurable: true, value: {} });
     act(() => swListeners.get('controllerchange')?.());
     await waitFor(() => expect(warmed).toHaveLength(3));
+  });
+
+  it('stops at once and keeps nothing when "Sair" starts while a series is being saved', async () => {
+    let release = () => {};
+    server.use(
+      http.get(`${ORIGIN}/serie/:slug`, async ({ request }) => {
+        warmed.push(seen(request));
+        await new Promise<void>((r) => (release = r));
+        return new HttpResponse('<!doctype html><title>x</title>', { headers: { 'Content-Type': 'text/html' } });
+      }),
+    );
+    setup();
+    await waitFor(() => expect(warmed).toEqual([PAGE]));
+    // What leave() does, in order: mark the account as leaving, then wipe it.
+    act(() => markLeaving('ana'));
+    await store.wipeAccount('ana');
+    release();
+    await act(() => new Promise((r) => setTimeout(r, 150)));
+    expect(warmed).toEqual([PAGE]);
+    expect(await store.getMeta('warm:ana')).toBeUndefined();
   });
 
   it('fetches nothing while the identity is still unknown', async () => {

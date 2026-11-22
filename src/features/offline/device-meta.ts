@@ -1,3 +1,4 @@
+import { isLeavingKey } from './leaving';
 import { openOfflineStore } from './store';
 import type { OfflineStore } from './store-types';
 
@@ -35,9 +36,16 @@ export async function readDeviceMeta(key: string): Promise<unknown> {
   }
 }
 
+/**
+ * Writes `key` unless it belongs to an identity signing out (leaving.ts): checked again right before the write, so a
+ * sign-out that starts while the store opens still wins, its wipe running after this write.
+ */
 export async function writeDeviceMeta(key: string, value: unknown): Promise<void> {
+  if (isLeavingKey(key)) return;
   try {
-    await (await deviceStore())?.setMeta(key, value);
+    const store = await deviceStore();
+    if (!store || isLeavingKey(key)) return;
+    await store.setMeta(key, value);
   } catch {
     forget();
   }
