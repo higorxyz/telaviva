@@ -1,35 +1,25 @@
-import { readFileSync } from 'node:fs';
-import path from 'node:path';
-import type { Page } from '@playwright/test';
 import { expectNoViolations } from './axe';
-import { expect, test } from './fixtures';
+import { expect, stubExternalHosts, test } from './fixtures';
+import {
+  cachedUrls,
+  OFFLINE_TEXT,
+  pickSeriesStatus,
+  privateCachedUrls,
+  progressCard,
+  SERIES_PAGE,
+  SERIES_SEASON_1,
+  markButton,
+  stubImagesForWorker,
+  waitForWarmUp,
+  waitForWorkerControl,
+} from './offline-helpers';
 
-// The one spec that runs the service worker (playwright.config.ts blocks it everywhere else; the last test blocks it too).
+// The specs that run the service worker (playwright.config.ts blocks it everywhere else; the last test blocks it too).
+// e2e/offline-account.spec.ts covers the account side.
 test.use({ serviceWorkers: 'allow' });
 
-const poster = readFileSync(path.join(process.cwd(), 'e2e', 'assets', 'poster.jpg'));
-
-/** Every URL in every cache the page's origin holds. */
-const cachedUrls = (page: Page) =>
-  page.evaluate(async () => {
-    const urls: string[] = [];
-    for (const name of await caches.keys()) {
-      for (const request of await (await caches.open(name)).keys()) urls.push(request.url);
-    }
-    return urls;
-  });
-
 test.beforeEach(async ({ context }) => {
-  // The worker fetches TMDb images itself, in CORS mode: the stub sits on the context (page routes miss the worker's
-  // requests) and answers with the CDN's CORS header.
-  await context.route(/^https:\/\/(image\.tmdb\.org|i\.ytimg\.com)\//, (route) =>
-    route.fulfill({
-      status: 200,
-      contentType: 'image/jpeg',
-      headers: { 'Access-Control-Allow-Origin': '*' },
-      body: poster,
-    }),
-  );
+  await stubImagesForWorker(context);
 });
 
 test('visited pages and the saved ones open offline; any other page shows "Sem conexão"', async ({ page, context }) => {
@@ -108,7 +98,7 @@ test('offline the indicator shows; a link to a page not saved waits, says so aft
   page,
   context,
 }) => {
-  const offlineText = page.getByText('Sem conexão. Suas ações serão enviadas quando a internet voltar.');
+  const offlineText = page.getByText(OFFLINE_TEXT);
   const pendingText = page.getByText('Esta página abre quando a internet voltar.');
   await page.goto('/filmes');
   await page.evaluate(() => navigator.serviceWorker.ready.then(() => undefined));
@@ -135,6 +125,48 @@ test('offline the indicator shows; a link to a page not saved waits, says so aft
   await expect(page.getByRole('heading', { level: 1 })).toBeVisible();
   await expect(offlineText).toHaveCount(0);
   await expect(pendingText).toHaveCount(0);
+});
+
+test('the subway case: a series being watched is saved in the background, opens offline from the list and takes the next mark', async ({
+  page,
+  context,
+}) => {
+  // Another tab of this browser starts watching the series (T1E1 seen); this tab never opens the series page online.
+  const setup = await context.newPage();
+  await stubExternalHosts(setup);
+  await setup.goto(SERIES_SEASON_1);
+  await pickSeriesStatus(setup, 'Assistindo');
+  await markButton(setup, 1).click();
+  await expect(progressCard(setup)).toContainText('Próximo: T1E2');
+  await setup.close();
+
+  await page.goto('/minha-lista');
+  const series = page.getByRole('tabpanel').getByRole('link', { name: /^Game of Thrones/ });
+  await expect(series).toBeVisible();
+  // Warm-ups need a controlling worker; then the page, season 1 (of T1E2) and the one after it get saved.
+  await waitForWorkerControl(page);
+  await waitForWarmUp(page, [1, 2]);
+
+  await context.setOffline(true);
+  await page.reload();
+  await expect(page.getByRole('heading', { level: 1, name: 'Minha lista' })).toBeVisible();
+  await expect(page.getByText(OFFLINE_TEXT)).toBeVisible();
+
+  // Tapped inside the app: the RSC request fails offline, the worker answers with the saved document and Next loads
+  // the page in full from it.
+  await series.click();
+  await expect(page).toHaveURL(SERIES_PAGE);
+  await expect(page.getByRole('heading', { level: 1, name: 'Game of Thrones' })).toBeVisible();
+  const card = progressCard(page);
+  // The episode name comes from the saved season.
+  await expect(card).toContainText('Próximo: T1E2 · A Estrada Real');
+  await card.getByRole('button', { name: 'Marcar como visto' }).click();
+  await expect(card).toContainText('Próximo: T1E3');
+
+  await page.reload();
+  await expect(page.getByRole('heading', { level: 1, name: 'Game of Thrones' })).toBeVisible();
+  await expect(card).toContainText('Próximo: T1E3 · Lorde Snow');
+  expect(await privateCachedUrls(page)).toEqual([]);
 });
 
 test.describe('with the worker blocked', () => {
