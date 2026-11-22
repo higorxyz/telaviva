@@ -291,6 +291,15 @@ describe('the same command twice (commandId)', () => {
     expect(itemOf(state, movie)).toMatchObject({ status: 'watched' });
   });
 
+  it('a retry of an applied command answers the stored state even once its time is past 30 days (never stale)', async () => {
+    const later = new Date(Date.parse(T12) + 2 * DAY).toISOString();
+    await queued(rate(tv, 6), daysBefore(T12, 29), T12, ID);
+    await online(rate(tv, 9), T13);
+    const again = await applyLibraryCommand(db, userId, rate(tv, 6), later, { at: daysBefore(T12, 29), commandId: ID });
+    expect(ratingOf(again.state, tv)).toMatchObject({ score: 9, updatedAt: T13 });
+    expect(await appliedCount()).toBe(1);
+  });
+
   it('is recorded even when the command changes nothing, so a later retry stays a no-op', async () => {
     await queued(unrate(movie), T10, T11, ID);
     expect(await appliedCount()).toBe(1);

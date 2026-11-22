@@ -89,7 +89,8 @@ export type CommandOptions = { at?: string; commandId?: string };
  *
  * The command is written with the time of the action (`at`, never later than `now`; LibraryStaleError past 30 days),
  * or `now` without one. A restore always uses `now`: its fingerprint guards it, not a time. A `commandId` already
- * applied answers the library as stored, writing nothing, even when a copy of the request races this one.
+ * applied answers the library as stored, writing nothing (whatever its age), even when a copy of the request races
+ * this one.
  */
 export async function applyLibraryCommand(
   db: Database,
@@ -98,12 +99,13 @@ export async function applyLibraryCommand(
   now: string,
   options: CommandOptions = {},
 ): Promise<AppliedCommand> {
-  const time = actionTime(options.at, now);
-  const at = command.type === 'restore' ? now : time;
   const { commandId } = options;
   const [before, stored] = await Promise.all([loadAccountLibrary(db, userId), loadRemovals(db, userId, commandId)]);
   const previous = titlePreImage(before, refOfCommand(command));
+  // Before the age check: a retry of a command already applied answers the stored state, never 400 stale.
   if (stored.applied) return { state: before, previous };
+  const time = actionTime(options.at, now);
+  const at = command.type === 'restore' ? now : time;
 
   const applied = command.type === 'restore' ? clampRestore(command, now) : command;
   if (applied.type === 'restore') assertExpected(before, applied);
