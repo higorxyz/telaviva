@@ -63,6 +63,18 @@ async function renewed(onUnauthenticated: OnUnauthenticated): Promise<boolean> {
   }
 }
 
+/**
+ * What the offline queue adds to a command: `at`, when it was done on the device (the server writes it with that
+ * time, so a late write never undoes a newer change), and `commandId`, which makes a resend a no-op.
+ */
+export type CommandEnvelope = { at?: string; commandId?: string };
+
+/** The account repository: its writes also take the queue's envelope. */
+export interface ServerLibraryRepository extends LibraryRepository {
+  apply(command: LibraryCommand, envelope?: CommandEnvelope): Promise<LibraryState>;
+  applyWithPreImage(command: LibraryCommand, envelope?: CommandEnvelope): Promise<AppliedCommand>;
+}
+
 type Options = {
   /** The account this library belongs to, sent as `X-Expected-User` with every request. */
   uid: string;
@@ -76,7 +88,7 @@ type Options = {
  * shared by all tabs, so another tab may have switched accounts, and the server then refuses (409 `wrong_account`)
  * instead of loading or writing someone else's list. `onUnauthenticated` runs when the session is gone (401).
  */
-export function createServerRepository(opts: Options): LibraryRepository {
+export function createServerRepository(opts: Options): ServerLibraryRepository {
   const listeners = new Set<(notice: LibraryNotice) => void>();
   let pending: LibraryNotice | null = null;
 
@@ -97,7 +109,7 @@ export function createServerRepository(opts: Options): LibraryRepository {
         headers: { ...init.headers, 'X-Expected-User': opts.uid },
       });
     } catch (cause) {
-      throw new LibraryRemoteError('Could not reach the library service', { cause });
+      throw new LibraryRemoteError('Could not reach the library service', { cause, network: true });
     }
     if (response.ok) return response;
     if (response.status === 401) {
@@ -105,26 +117,31 @@ export function createServerRepository(opts: Options): LibraryRepository {
       if (!retried && (await renewed(opts.onUnauthenticated))) return request(path, init, true);
       throw new LibrarySessionError();
     }
+    const code = await readError(response);
     if (response.status === 409) {
-      if ((await readError(response)) === 'wrong_account') {
+      if (code === 'wrong_account') {
         opts.onWrongAccount?.();
         throw new LibraryWrongAccountError();
       }
       notify('conflict');
       throw new LibraryConflictError();
     }
-    if (response.status === 413 && (await readError(response)) === 'limit') {
+    if (response.status === 413 && code === 'limit') {
       notify('limit');
       throw new LibraryLimitError();
     }
-    throw new LibraryRemoteError(`The library service answered ${response.status}`);
+    throw new LibraryRemoteError(`The library service answered ${response.status}`, {
+      status: response.status,
+      ...(code ? { code } : {}),
+    });
   }
 
-  async function applyWithPreImage(command: LibraryCommand): Promise<AppliedCommand> {
+  async function applyWithPreImage(command: LibraryCommand, envelope: CommandEnvelope = {}): Promise<AppliedCommand> {
+    const { at, commandId } = envelope;
     const response = await request('/api/library/commands', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ command }),
+      body: JSON.stringify({ command, ...(at ? { at } : {}), ...(commandId ? { commandId } : {}) }),
     });
     return toApplied(await readJson(response));
   }
@@ -138,8 +155,8 @@ export function createServerRepository(opts: Options): LibraryRepository {
       return toState(await readJson(await request('/api/library', {})));
     },
 
-    async apply(command: LibraryCommand) {
-      return (await applyWithPreImage(command)).state;
+    async apply(command: LibraryCommand, envelope?: CommandEnvelope) {
+      return (await applyWithPreImage(command, envelope)).state;
     },
 
     applyWithPreImage,

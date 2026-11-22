@@ -5,6 +5,7 @@ import { useState, type ReactNode } from 'react';
 import { NavigationTracker } from '@/features/detail/NavigationTracker';
 import { AuthLibrary } from '@/features/auth/AuthLibrary';
 import { AuthProvider } from '@/features/auth/AuthProvider';
+import { LibraryConnectionStatus } from '@/features/library/LibraryConnectionStatus';
 import { ServiceWorker } from '@/features/offline/ServiceWorker';
 import { ToastProvider } from '@/ui/toast/ToastProvider';
 
@@ -25,6 +26,8 @@ export function Providers({ children }: { children: ReactNode }) {
           <AuthProvider>
             <AuthLibrary>
               <NavigationTracker />
+              {/* Inside the library, for its queue count; it renders into the toast stack, not here. */}
+              <LibraryConnectionStatus />
               {children}
             </AuthLibrary>
           </AuthProvider>

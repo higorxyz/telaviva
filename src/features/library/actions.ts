@@ -35,10 +35,15 @@ interface Variables {
   /** The repository the command was issued against: it must survive an identity change while it runs. */
   repository: LibraryRepository;
   undoable?: { message: string };
+  /** An undo of an action from the offline queue: it leaves the queue, or, already sent, `command` puts it back. */
+  unqueue?: string;
 }
 
-/** What a mutation resolves to. `previous` undefined: the repository does not know it (the cache is used). */
-type Saved = { state: LibraryState; previous?: TitlePreImage | null };
+/**
+ * What a mutation resolves to. `previous` undefined: the repository does not know it (the cache is used). `queued`:
+ * the action waits in the offline queue (see AppliedCommand).
+ */
+type Saved = { state: LibraryState; previous?: TitlePreImage | null; queued?: { id: string; previous: TitlePreImage } };
 
 /** Whether another library mutation ran at some point while this one did. */
 type Flight = { overlapped: boolean };
@@ -66,6 +71,12 @@ function apply(target: LibraryRepository, command: LibraryCommand): Promise<Save
   return target.apply(command).then((state) => ({ state }));
 }
 
+/** An undo of a queued action: out of the queue, nothing sent; if it went out meanwhile, the restore is sent. */
+async function undoQueued(target: LibraryRepository, id: string, restore: LibraryCommand): Promise<Saved> {
+  const state = await target.queue?.unqueue(id);
+  return state ? { state } : apply(target, restore);
+}
+
 export function useLibraryActions(): { run(command: LibraryCommand, opts?: RunOptions): void } {
   const repository = useLibraryRepository();
   const queryClient = useQueryClient();
@@ -73,7 +84,8 @@ export function useLibraryActions(): { run(command: LibraryCommand, opts?: RunOp
 
   const mutation = useMutation<Saved, Error, Variables, Context>({
     mutationKey: LIBRARY_KEY,
-    mutationFn: ({ command, repository: target }) => apply(target, command),
+    mutationFn: ({ command, repository: target, unqueue }) =>
+      unqueue ? undoQueued(target, unqueue, command) : apply(target, command),
     onMutate: async ({ command, repository: target }) => {
       const flight = takeOff(queryClient);
       await queryClient.cancelQueries({ queryKey: LIBRARY_KEY });
@@ -109,9 +121,11 @@ export function useLibraryActions(): { run(command: LibraryCommand, opts?: RunOp
       // No cache write here: the optimistic value already holds, and an older response could revert it.
       if (isRetired(context.repository) || !undoable) return;
       const ref = refOfCommand(command);
-      // Signed in, the title as the server saw it right before the command; as a visitor, the cache's copy.
-      const before =
-        saved.previous !== undefined ? saved.previous : context.previous ? titlePreImage(context.previous, ref) : null;
+      // Signed in, the title as the server saw it right before the command (queued: as this device saw it); as a
+      // visitor, the cache's copy.
+      let before = context.previous ? titlePreImage(context.previous, ref) : null;
+      if (saved.queued) before = saved.queued.previous;
+      else if (saved.previous !== undefined) before = saved.previous;
       if (!before) return;
       const inverse = inverseOf(before, saved.state, ref);
       toast.show({
@@ -120,7 +134,8 @@ export function useLibraryActions(): { run(command: LibraryCommand, opts?: RunOp
         action: {
           label: UNDO_LABEL,
           onClick: () => {
-            if (!isRetired(context.repository)) mutation.mutate({ command: inverse, repository: context.repository });
+            if (isRetired(context.repository)) return;
+            mutation.mutate({ command: inverse, repository: context.repository, unqueue: saved.queued?.id });
           },
         },
       });

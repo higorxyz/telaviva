@@ -8,6 +8,7 @@ import {
   LibraryRemoteError,
   LibrarySessionError,
   LibraryWrongAccountError,
+  isNetworkError,
   type LibraryNotice,
 } from './repository';
 import { createServerRepository } from './server-repository';
@@ -177,6 +178,36 @@ describe('createServerRepository', () => {
     server.use(http.post(url('/api/library/commands'), () => HttpResponse.error()));
     await expect(repository.apply(want(1))).rejects.toBeInstanceOf(LibraryRemoteError);
     expect(notices).toEqual([]);
+  });
+
+  it('tells a network failure (network: true) from an answered error (its status and code)', async () => {
+    const { repository } = setup();
+    server.use(http.post(url('/api/library/commands'), () => HttpResponse.error()));
+    const offline = await repository.apply(want(1)).catch((e: unknown) => e);
+    expect(offline).toMatchObject({ network: true, status: null });
+    expect(isNetworkError(offline)).toBe(true);
+    server.use(http.post(url('/api/library/commands'), () => HttpResponse.json({ error: 'stale' }, { status: 400 })));
+    const stale = await repository.apply(want(1)).catch((e: unknown) => e);
+    expect(stale).toMatchObject({ network: false, status: 400, code: 'stale' });
+    expect(isNetworkError(stale)).toBe(false);
+    server.use(http.post(url('/api/library/commands'), () => new HttpResponse(null, { status: 503 })));
+    expect(await repository.apply(want(1)).catch((e: unknown) => e)).toMatchObject({ network: false, status: 503, code: null });
+  });
+
+  it('sends the time of the action and the command id when given, and only the command otherwise', async () => {
+    const bodies: unknown[] = [];
+    server.use(
+      http.post(url('/api/library/commands'), async ({ request }) => {
+        bodies.push(await request.json());
+        return HttpResponse.json(answered);
+      }),
+    );
+    const { repository } = setup();
+    const id = '6c1f0c1e-3d0b-4c5e-8a5f-1b2c3d4e5f60';
+    await repository.applyWithPreImage(want(1), { at: NOW, commandId: id });
+    await repository.apply(want(2), { commandId: id });
+    await repository.applyWithPreImage(want(3));
+    expect(bodies).toEqual([{ command: want(1), at: NOW, commandId: id }, { command: want(2), commandId: id }, { command: want(3) }]);
   });
 
   it('delivers a notice raised before anyone listened to the first listener', async () => {

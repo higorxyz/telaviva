@@ -1,7 +1,6 @@
 import type { Metadata, Viewport } from 'next';
 import { Instrument_Serif, Inter_Tight } from 'next/font/google';
 import { VerifyEmailBanner } from '@/features/auth/VerifyEmailBanner';
-import { ConnectionStatus } from '@/features/offline/ConnectionStatus';
 import { env } from '@/lib/env';
 import { Footer } from '@/features/shell/Footer';
 import { Header } from '@/features/shell/Header';
@@ -52,7 +51,6 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           <Grain />
           <Header />
           <VerifyEmailBanner />
-          <ConnectionStatus />
           <main id="conteudo">
             {children}
           </main>

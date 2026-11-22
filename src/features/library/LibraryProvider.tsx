@@ -4,10 +4,11 @@ import { useQueryClient } from '@tanstack/react-query';
 import { createContext, useCallback, useContext, useEffect, useLayoutEffect, useRef, useState, type ReactNode } from 'react';
 import { useToast } from '@/ui/toast/useToast';
 import { NOTICE } from './copy';
+import { createFor, isRetired, setRetired, type LibraryMode } from './mode-repository';
 import type { LibraryNotice, LibraryRepository } from './repository';
-import { createLocalRepository } from './local-repository';
-import { createPendingRepository } from './pending-repository';
-import { createServerRepository, type OnUnauthenticated } from './server-repository';
+import type { OnUnauthenticated } from './server-repository';
+
+export { isRetired, type LibraryMode };
 
 export const LIBRARY_KEY = ['library'] as const;
 
@@ -19,13 +20,15 @@ export function useLibraryRepository(): LibraryRepository {
   return repository;
 }
 
-/** True when a LibraryProvider is above; lets optional UI (poster cards) render nothing without one. */
-export function useHasLibrary(): boolean {
-  return useContext(RepositoryContext) !== null;
+/** The repository when a LibraryProvider is above, or null; for UI that also renders without one. */
+export function useOptionalLibraryRepository(): LibraryRepository | null {
+  return useContext(RepositoryContext);
 }
 
-/** `pending`: sign-in is still resolving; nothing loads and actions do nothing until an identity is known. */
-export type LibraryMode = { kind: 'pending' } | { kind: 'guest' } | { kind: 'account'; uid: string };
+/** True when a LibraryProvider is above; lets optional UI (poster cards) render nothing without one. */
+export function useHasLibrary(): boolean {
+  return useOptionalLibraryRepository() !== null;
+}
 
 const IdentityContext = createContext('guest');
 
@@ -39,32 +42,6 @@ const identityOf = (mode: LibraryMode) => (mode.kind === 'account' ? mode.uid : 
 
 /** Data of one identity must never show up in the other. */
 const IDENTITY_QUERIES = [['library'], ['recommendations'], ['tv-progress']] as const;
-
-const retired = new WeakSet<LibraryRepository>();
-
-/**
- * True once the identity that owned `repository` is gone. A mutation started under it may still settle, and
- * its callbacks must then touch neither the new identity's cache nor its toasts.
- */
-export function isRetired(repository: LibraryRepository): boolean {
-  return retired.has(repository);
-}
-
-type Callbacks = { onUnauthenticated: OnUnauthenticated; onWrongAccount: () => void };
-
-/** The repository of every identity mode; the account one ignores a 401 or a 409 once its identity is gone. */
-function createFor(mode: LibraryMode, callbacks: Callbacks): LibraryRepository {
-  if (mode.kind === 'pending') return createPendingRepository();
-  if (mode.kind === 'guest') return createLocalRepository();
-  const repository = createServerRepository({
-    uid: mode.uid,
-    onUnauthenticated: () => (retired.has(repository) ? Promise.resolve(false) : callbacks.onUnauthenticated()),
-    onWrongAccount: () => {
-      if (!retired.has(repository)) callbacks.onWrongAccount();
-    },
-  });
-  return repository;
-}
 
 /** Tag of the toasts that belong to one identity (undo actions): they are closed when the identity changes. */
 export const LIBRARY_TOAST_TAG = 'library';
@@ -155,11 +132,12 @@ function IdentityScope({
   // A mutation still running for this identity must not touch the next one (its undo toasts are closed by the
   // outer provider, on a real identity change only: StrictMode's simulated unmount must not close them).
   useEffect(() => {
-    retired.delete(current);
-    return () => {
-      retired.add(current);
-    };
+    setRetired(current, false);
+    return () => setRetired(current, true);
   }, [current]);
+
+  // Sends the offline queue while this identity is on screen.
+  useEffect(() => current.queue?.start(), [current]);
 
   useEffect(() => {
     return current.subscribe(() => {
@@ -181,7 +159,11 @@ function IdentityScope({
         if (last !== undefined && now - last < NOTICE_REPEAT_MS) return;
         lastShown.current.set(notice, now);
       }
-      toast.show({ message: NOTICE[notice] });
+      // A queue notice replaces the one already up instead of stacking (a sync may refuse several actions).
+      const queued = notice === 'queueRejected' || notice === 'queueExpired';
+      const tag = queued ? `${LIBRARY_TOAST_TAG}:${notice}` : undefined;
+      if (tag) toast.dismissTag(tag);
+      toast.show({ message: NOTICE[notice], tag });
     });
   }, [current, toast]);
 

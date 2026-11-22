@@ -25,6 +25,8 @@ export const NOTICE = {
   conflict: 'A lista mudou em outro aparelho.',
   limit: 'Sua lista chegou ao limite de itens.',
   recovered: 'Recuperamos sua lista, mas alguns itens estavam corrompidos.',
+  queueRejected: 'Uma ação feita sem internet não pôde ser salva.',
+  queueExpired: 'Algumas ações feitas sem internet há mais de 30 dias foram descartadas.',
 } as const;
 
 /** Messages of the undoable toasts (passed to `run(command, { undoable })`). */
