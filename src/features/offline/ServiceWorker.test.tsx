@@ -80,4 +80,24 @@ describe('ServiceWorker', () => {
     expect(options).toMatchObject({ scope: '/' });
     expect(deleted).toEqual([]);
   });
+
+  it('handles a failed registration: no unhandled rejection, the app keeps working', async () => {
+    vi.stubEnv('NODE_ENV', 'production');
+    const { serviceWorker } = fakeBrowser([]);
+    serviceWorker.register.mockImplementation(async () => {
+      throw new TypeError('registration blocked');
+    });
+    const unhandled = vi.fn();
+    process.on('unhandledRejection', unhandled);
+    try {
+      const { getByText } = render(<ServiceWorker>app</ServiceWorker>);
+      await waitFor(() => expect(serviceWorker.register).toHaveBeenCalledTimes(1));
+      // Unhandled rejections are reported after the microtask queue drains.
+      await new Promise((resolve) => setTimeout(resolve, 20));
+      expect(unhandled).not.toHaveBeenCalled();
+      expect(getByText('app')).toBeInTheDocument();
+    } finally {
+      process.off('unhandledRejection', unhandled);
+    }
+  });
 });

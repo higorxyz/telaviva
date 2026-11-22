@@ -1,4 +1,5 @@
 import type { SerwistPlugin } from 'serwist';
+import { isPrecachedPagePath } from './precached-pages';
 
 /** Next's cache-busting param on RSC requests (a hash of the router headers). */
 const RSC_PARAM = '_rsc';
@@ -32,23 +33,45 @@ export function documentUrlForRsc(request: Request): string | null {
   return isRscRequest(request) ? withoutRscParam(request.url) : null;
 }
 
+type FindDocument = (url: string) => Promise<Response | undefined>;
+
 /**
- * When an RSC request fails on the network and `tv-pages` has no payload for it, answers with the cached document of
+ * When an RSC request fails on the network and `tv-pages` has no payload for it, answers with the saved document of
  * the same page. Next treats a non-RSC answer as "load this page in full", and that full load is then served from the
- * cache: a soft navigation to a page visited only by full loads still works offline. Without a cached document the
+ * cache: a soft navigation to a page visited only by full loads still works offline. Without a saved document the
  * failure goes through. Only `handlerDidError`: a response that arrived, of any status, is never touched.
  */
-export function rscDocumentFallback(cacheName: string): SerwistPlugin {
+export function rscDocumentFallback(findDocument: FindDocument): SerwistPlugin {
   return {
     handlerDidError: async ({ request }) => {
       const documentUrl = documentUrlForRsc(request);
       if (!documentUrl) return undefined;
-      const cache = await caches.open(cacheName);
-      const document = await cache.match(documentUrl);
+      const document = await findDocument(documentUrl);
       if (!document?.headers.get('Content-Type')?.startsWith('text/html')) return undefined;
       return document;
     },
   };
+}
+
+/**
+ * The saved document of a page: the copy in `pagesCache`, else, for `/` and `/minha-lista`, the precached one (looked up
+ * by path: the precache holds each page once, whatever the query).
+ */
+export function savedDocument(pagesCache: string, matchPrecache: FindDocument): FindDocument {
+  return async (url) => {
+    const saved = await (await caches.open(pagesCache)).match(url);
+    if (saved) return saved;
+    const { pathname } = new URL(url);
+    return isPrecachedPagePath(pathname) ? matchPrecache(pathname) : undefined;
+  };
+}
+
+/**
+ * For the network-first route of the precached pages: when both the network and `tv-pages` fail, the precached copy,
+ * which nothing evicts. Their latest online copy (in `tv-pages`) still wins while it lasts.
+ */
+export function precachedPageFallback(matchPrecache: FindDocument): SerwistPlugin {
+  return { handlerDidError: async ({ request }) => matchPrecache(new URL(request.url).pathname) };
 }
 
 /**

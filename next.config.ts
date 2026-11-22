@@ -28,6 +28,9 @@ const nextConfig: NextConfig = {
     tmdbHot: { stale: 300, revalidate: 3600, expire: 86400 },
     tmdbDetail: { stale: 3600, revalidate: 86400, expire: 604800 },
     tmdbStatic: { stale: 86400, revalidate: 604800, expire: 2592000 },
+    // The service worker (src/app/serwist/[path]/route.ts) is built once per deploy: regenerating it later would run
+    // in a function without its source or the build files. Infinity = never.
+    serwist: { revalidate: Infinity, expire: Infinity },
   },
   turbopack: {
     rules: {

@@ -1,5 +1,6 @@
 import { CacheFirst, ExpirationPlugin, NetworkFirst, type RouteMatchCallback, type RuntimeCaching } from 'serwist';
 import { corsImageRequest, documentCacheKey } from './plugins';
+import { isPrecachedPagePath } from './precached-pages';
 
 export const CACHE_NAMES = {
   pages: 'tv-pages',
@@ -14,9 +15,6 @@ export const STATIC_RESERVE_LIMITS = { maxEntries: 400, maxAgeSeconds: 30 * DAY 
 
 /** Header of a page warm-up: a plain fetch (no RSC header) that `tv-pages` stores like a visit. */
 export const WARM_HEADER = 'X-TelaViva-Warm';
-
-/** Pages stored in `tv-pages` when the worker installs, so they open offline even before a first visit. */
-export const INSTALL_PAGES = ['/', '/minha-lista'];
 
 /** Personal data, the sign-in proxy and the worker itself: never cached, never even answered by the worker. */
 const PRIVATE_PREFIXES = ['/api/library', '/api/account', '/api/auth', '/__/auth/', '/serwist/'];
@@ -49,17 +47,44 @@ const isTmdbImage: RouteMatchCallback = ({ url }) => url.origin === 'https://ima
 
 const NOT_PAGES = ['/api', '/_next', '/serwist'];
 
-/** A page of the site: a navigation, an RSC payload or a warm-up fetch. */
+const isWarmUp = (request: Request) => request.headers.get(WARM_HEADER) === '1';
+
+/**
+ * A page of the site: a navigation, the RSC payload of a navigation or a warm-up fetch. RSC prefetches are left out:
+ * every link on screen prefetches, and they would push the pages actually visited out of the cache.
+ */
 const isPage: RouteMatchCallback = ({ url, request, sameOrigin }) =>
   sameOrigin &&
   !NOT_PAGES.some((base) => isUnder(url.pathname, base)) &&
-  (request.mode === 'navigate' || request.headers.get('RSC') === '1' || request.headers.get(WARM_HEADER) === '1');
+  (request.mode === 'navigate' ||
+    (request.headers.get('RSC') === '1' && request.headers.get('Next-Router-Prefetch') !== '1') ||
+    isWarmUp(request));
+
+/** A navigation or warm-up of a precached page (`/`, `/minha-lista`), whatever the query. */
+export const isPrecachedPageRequest: RouteMatchCallback = ({ url, request, sameOrigin }) =>
+  sameOrigin &&
+  request.method === 'GET' &&
+  isPrecachedPagePath(url.pathname) &&
+  (request.mode === 'navigate' || isWarmUp(request));
+
+const pagePlugins = [documentCacheKey, new ExpirationPlugin({ maxEntries: 80, maxAgeSeconds: 14 * DAY })];
 
 /** Documents and RSC payloads of visited pages. The worker adds the RSC → document fallback to it (sw.ts). */
 export const pagesStrategy = new NetworkFirst({
   cacheName: CACHE_NAMES.pages,
   networkTimeoutSeconds: 3,
-  plugins: [documentCacheKey, new ExpirationPlugin({ maxEntries: 80, maxAgeSeconds: 14 * DAY })],
+  plugins: [...pagePlugins],
+});
+
+/**
+ * The precached pages, network first like any page (fresh while online, their latest copy kept in `tv-pages`). The
+ * worker adds the fallback to their precached copy and routes them ahead of the precache, which would answer cache
+ * first (sw.ts).
+ */
+export const precachedPagesStrategy = new NetworkFirst({
+  cacheName: CACHE_NAMES.pages,
+  networkTimeoutSeconds: 3,
+  plugins: [...pagePlugins],
 });
 
 /**

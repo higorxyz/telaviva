@@ -1,6 +1,7 @@
-import { Serwist, type PrecacheEntry, type SerwistGlobalConfig } from 'serwist';
-import { rscDocumentFallback } from './plugins';
-import { CACHE_NAMES, INSTALL_PAGES, WARM_HEADER, pagesStrategy, runtimeCaching } from './rules';
+import { Route, Serwist, type PrecacheEntry, type SerwistGlobalConfig } from 'serwist';
+import { precachedPageFallback, rscDocumentFallback, savedDocument } from './plugins';
+import { OFFLINE_URL } from './precached-pages';
+import { CACHE_NAMES, isPrecachedPageRequest, pagesStrategy, precachedPagesStrategy, runtimeCaching } from './rules';
 import { keepPreviousBuildFiles } from './static-reserve';
 
 declare global {
@@ -11,9 +12,8 @@ declare global {
 
 declare const self: ServiceWorkerGlobalScope;
 
-/** Precached by the route (src/app/serwist/[path]/route.ts), shown when a page that was never saved opens offline. */
-const OFFLINE_URL = '/~offline';
-
+// The precache list (self.__SW_MANIFEST) holds the build files, the offline page, `/` and `/minha-lista`
+// (src/app/serwist/[path]/route.ts).
 const serwist = new Serwist({
   precacheEntries: self.__SW_MANIFEST,
   // A new version takes over at once; the next navigation fetches fresh HTML (network first), and the static
@@ -27,23 +27,23 @@ const serwist = new Serwist({
   },
 });
 
+const matchPrecache = (url: string) => serwist.matchPrecache(url);
+
 // After the constructor on purpose: Serwist only attaches the offline-page fallback above to strategies without a
 // `handlerDidError` plugin. The two never overlap: one answers documents, the other RSC requests.
-pagesStrategy.plugins.push(rscDocumentFallback(CACHE_NAMES.pages));
+pagesStrategy.plugins.push(rscDocumentFallback(savedDocument(CACHE_NAMES.pages, matchPrecache)));
+precachedPagesStrategy.plugins.push(precachedPageFallback(matchPrecache));
 
-/** Stores the install pages through the pages strategy, as a visit would. Best effort: a failure leaves them out. */
-function warmInstallPages(event: ExtendableEvent): Promise<unknown> {
-  return Promise.allSettled(
-    INSTALL_PAGES.map((path) => {
-      const request = new Request(path, { headers: { [WARM_HEADER]: '1', Accept: 'text/html' } });
-      return Promise.all(pagesStrategy.handleAll({ event, request }));
-    }),
-  );
-}
+// Navigations to the precached pages go network first, ahead of the precache route (the constructor registers it
+// first, and it would always answer from the precache). Routes are tried in order, so this one moves to the front.
+serwist.registerRoute(new Route(isPrecachedPageRequest, precachedPagesStrategy, 'GET'));
+const getRoutes = serwist.routes.get('GET')!;
+getRoutes.unshift(getRoutes.pop()!);
 
-// Registered before Serwist's own listeners; install only ends (and the worker activates) once both settle.
+// Next to Serwist's own install listener: install only ends (and the worker activates) once the copy settles, so it
+// reads the old precache entries before activation drops them.
 self.addEventListener('install', (event) => {
-  event.waitUntil(Promise.allSettled([keepPreviousBuildFiles(serwist), warmInstallPages(event)]));
+  event.waitUntil(keepPreviousBuildFiles(serwist).catch(() => {}));
 });
 
 serwist.addEventListeners();

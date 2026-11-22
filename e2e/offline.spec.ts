@@ -4,7 +4,7 @@ import type { Page } from '@playwright/test';
 import { expectNoViolations } from './axe';
 import { expect, test } from './fixtures';
 
-// The one spec that runs the service worker (playwright.config.ts blocks it everywhere else).
+// The one spec that runs the service worker (playwright.config.ts blocks it everywhere else; the last test blocks it too).
 test.use({ serviceWorkers: 'allow' });
 
 const poster = readFileSync(path.join(process.cwd(), 'e2e', 'assets', 'poster.jpg'));
@@ -67,4 +67,52 @@ test('visited pages and the saved ones open offline; any other page shows "Sem c
   const urls = await cachedUrls(page);
   expect(urls.some((url) => url.endsWith('/filmes'))).toBe(true);
   expect(urls.filter((url) => /\/api\/(library|auth|account)/.test(new URL(url).pathname))).toEqual([]);
+});
+
+test('/ and /minha-lista open offline even after tv-pages fills up and evicts their copies', async ({ page, context }) => {
+  const inPagesCache = (path: string) =>
+    page.evaluate(
+      async (url) => Boolean(await (await caches.open('tv-pages')).match(url)),
+      new URL(path, page.url()).href,
+    );
+
+  await page.goto('/');
+  await page.evaluate(() => navigator.serviceWorker.ready.then(() => undefined));
+  await page.reload();
+  await page.goto('/minha-lista');
+  await expect(page.getByRole('heading', { level: 1, name: 'Minha lista' })).toBeVisible();
+  // Both pages are network first while online: their latest copy lands in tv-pages.
+  await expect.poll(() => inPagesCache('/minha-lista')).toBe(true);
+  await expect.poll(() => inPagesCache('/')).toBe(true);
+
+  // 85 more pages (warm-ups, WARM_HEADER in src/sw/rules.ts) push past the 80-entry limit.
+  await page.evaluate(() =>
+    Promise.all(
+      Array.from({ length: 85 }, (_, i) =>
+        fetch(`/filmes?n=${i}`, { headers: { 'X-TelaViva-Warm': '1', Accept: 'text/html' } }),
+      ),
+    ),
+  );
+  await expect.poll(() => inPagesCache('/minha-lista'), { timeout: 20_000 }).toBe(false);
+  await expect.poll(() => inPagesCache('/'), { timeout: 20_000 }).toBe(false);
+
+  await context.setOffline(true);
+  await page.goto('/minha-lista');
+  await expect(page.getByRole('heading', { level: 1, name: 'Minha lista' })).toBeVisible();
+  await page.goto('/');
+  await expect(page.getByRole('heading', { level: 1 }).first()).toBeVisible();
+  await expect(page.getByRole('heading', { level: 1, name: 'Sem conexão' })).toHaveCount(0);
+});
+
+test.describe('with the worker blocked', () => {
+  test.use({ serviceWorkers: 'block' });
+
+  test('a registration that fails raises no page error', async ({ page }) => {
+    const errors: string[] = [];
+    page.on('pageerror', (error) => errors.push(error.message));
+    await page.goto('/', { waitUntil: 'load' });
+    await expect(page.getByRole('heading', { level: 1 }).first()).toBeVisible();
+    await page.waitForTimeout(1500); // negative assertion: registration runs after load
+    expect(errors).toEqual([]);
+  });
 });
