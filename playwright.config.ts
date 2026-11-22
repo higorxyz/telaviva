@@ -15,6 +15,8 @@ export default defineConfig({
   use: {
     baseURL: APP_URL,
     trace: 'on-first-retry',
+    // The offline worker would answer requests that page.route() stubs; e2e/offline.spec.ts opts back in.
+    serviceWorkers: 'block',
   },
   projects: [
     { name: 'desktop', use: { viewport: { width: 1440, height: 900 } } },

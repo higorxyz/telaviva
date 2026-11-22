@@ -5,6 +5,7 @@ import { useState, type ReactNode } from 'react';
 import { NavigationTracker } from '@/features/detail/NavigationTracker';
 import { AuthLibrary } from '@/features/auth/AuthLibrary';
 import { AuthProvider } from '@/features/auth/AuthProvider';
+import { ServiceWorker } from '@/features/offline/ServiceWorker';
 import { ToastProvider } from '@/ui/toast/ToastProvider';
 
 export function Providers({ children }: { children: ReactNode }) {
@@ -17,16 +18,18 @@ export function Providers({ children }: { children: ReactNode }) {
       }),
   );
   return (
-    <QueryClientProvider client={client}>
-      <ToastProvider>
-        {/* Outside the library: an identity change remounts the library's tree, not the sign-in state. */}
-        <AuthProvider>
-          <AuthLibrary>
-            <NavigationTracker />
-            {children}
-          </AuthLibrary>
-        </AuthProvider>
-      </ToastProvider>
-    </QueryClientProvider>
+    <ServiceWorker>
+      <QueryClientProvider client={client}>
+        <ToastProvider>
+          {/* Outside the library: an identity change remounts the library's tree, not the sign-in state. */}
+          <AuthProvider>
+            <AuthLibrary>
+              <NavigationTracker />
+              {children}
+            </AuthLibrary>
+          </AuthProvider>
+        </ToastProvider>
+      </QueryClientProvider>
+    </ServiceWorker>
   );
 }
