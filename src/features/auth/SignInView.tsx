@@ -1,7 +1,7 @@
 'use client';
 
 import { useRouter, useSearchParams } from 'next/navigation';
-import { useOffline } from 'next/offline';
+import { useIsOffline } from '@/features/offline/useIsOffline';
 import { useEffect, useRef, useState } from 'react';
 import { buttonClasses } from '@/ui/Button';
 import { cn } from '@/lib/cn';
@@ -36,7 +36,7 @@ let signInStartedHere = false;
 export function SignInView() {
   const auth = useAuth();
   const router = useRouter();
-  const offline = useOffline();
+  const offline = useIsOffline();
   const voltar = useSearchParams().get('voltar');
   const [mode, setMode] = useState<Mode>('entrar');
   const [view, setView] = useState<'form' | 'forgot'>('form');

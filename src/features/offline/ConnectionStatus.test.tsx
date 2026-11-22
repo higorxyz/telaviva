@@ -50,7 +50,10 @@ describe('ConnectionStatus', () => {
     resetOffline();
     vi.useFakeTimers();
   });
-  afterEach(() => vi.useRealTimers());
+  afterEach(() => {
+    vi.useRealTimers();
+    vi.restoreAllMocks();
+  });
 
   it('is a polite live region, present and empty while online with nothing queued', () => {
     setup();
@@ -65,6 +68,18 @@ describe('ConnectionStatus', () => {
     expect(region()).toHaveTextContent(OFFLINE);
     setOffline(false);
     expect(region()).toBeEmptyDOMElement();
+  });
+
+  it('opened already offline (no router fetch failed yet), says so from the browser’s own report', () => {
+    const online = vi.spyOn(navigator, 'onLine', 'get').mockReturnValue(false);
+    setup();
+    expect(region()).toHaveTextContent(OFFLINE);
+    online.mockReturnValue(true);
+    act(() => void window.dispatchEvent(new Event('online')));
+    expect(region()).toBeEmptyDOMElement();
+    online.mockReturnValue(false);
+    act(() => void window.dispatchEvent(new Event('offline')));
+    expect(region()).toHaveTextContent(OFFLINE);
   });
 
   it('counts the queued actions, singular and plural', () => {

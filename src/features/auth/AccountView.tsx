@@ -2,7 +2,7 @@
 
 import { Download, LoaderCircle, LogOut } from 'lucide-react';
 import { useRouter } from 'next/navigation';
-import { useOffline } from 'next/offline';
+import { useIsOffline } from '@/features/offline/useIsOffline';
 import { useState } from 'react';
 import { NEEDS_NETWORK } from '@/features/offline/copy';
 import { Button, ButtonLink } from '@/ui/Button';
@@ -70,7 +70,7 @@ export function AccountView() {
   const auth = useAuth();
   const router = useRouter();
   const toast = useToast();
-  const offline = useOffline();
+  const offline = useIsOffline();
   const [leaving, setLeaving] = useState(false);
   const [exporting, setExporting] = useState(false);
 

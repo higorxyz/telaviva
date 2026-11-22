@@ -1,6 +1,6 @@
 'use client';
 
-import { useOffline } from 'next/offline';
+import { useIsOffline } from '@/features/offline/useIsOffline';
 import { useEffect, useRef, useState } from 'react';
 import { NEEDS_NETWORK } from '@/features/offline/copy';
 import { authErrorCode, authErrorMessage } from './errors';
@@ -17,7 +17,7 @@ export const RESEND_COOLDOWN_MS = 60_000;
  */
 export function useResendVerification(): { resend(): Promise<void>; cooling: boolean; message: string | null } {
   const { sendVerification } = useAuth();
-  const offline = useOffline();
+  const offline = useIsOffline();
   const [cooling, setCooling] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
   const timer = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);

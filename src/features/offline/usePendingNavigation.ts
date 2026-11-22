@@ -1,7 +1,7 @@
 'use client';
 
 import { usePathname } from 'next/navigation';
-import { useOffline } from 'next/offline';
+import { useIsOffline } from './useIsOffline';
 import { useEffect, useState } from 'react';
 import { PENDING_NAVIGATION_DELAY_MS } from './copy';
 
@@ -37,7 +37,7 @@ function routedTarget(event: MouseEvent): string | null {
  * (`router.push`) are not seen.
  */
 export function usePendingNavigation(delayMs = PENDING_NAVIGATION_DELAY_MS): boolean {
-  const offline = useOffline();
+  const offline = useIsOffline();
   const pathname = usePathname();
   /** The navigation being followed: where it goes, and one number per click so a new click restarts the wait. */
   const [started, setStarted] = useState<{ to: string; click: number } | null>(null);

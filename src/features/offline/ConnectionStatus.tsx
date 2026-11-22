@@ -1,7 +1,7 @@
 'use client';
 
 import { CloudCheck, CloudUpload, WifiOff, type LucideIcon } from 'lucide-react';
-import { useOffline } from 'next/offline';
+import { useIsOffline } from './useIsOffline';
 import { useEffect, useState, type ReactNode } from 'react';
 import { createPortal } from 'react-dom';
 import { cn } from '@/lib/cn';
@@ -90,13 +90,15 @@ function Message({ offline, pending, queued, synced }: MessageProps) {
  * The connection indicator, at the very bottom of the toast stack (`useToastStatusSlot`), under the e-mail
  * confirmation card: fixed, so it never moves the page nor covers a title. Offline it says so (or, once an in-app
  * navigation has been stuck for 1.5 s, that the page opens when the internet returns) and counts the actions waiting
- * to be sent; it confirms when the queue empties. `queued` comes from the offline queue once there is one.
+ * to be sent; it confirms when the queue empties. `queued` comes from the account's offline queue (mounted by
+ * `LibraryConnectionStatus`, which reads it).
  *
- * Its live region stays in the tree, empty while there is nothing to say, so each message is announced. `useOffline`
- * is false on the server and during hydration, so the first paint is always empty: nothing to mismatch.
+ * Its live region stays in the tree, empty while there is nothing to say, so each message is announced.
+ * `useIsOffline` is false on the server and during hydration, so the first paint is always empty: nothing to
+ * mismatch.
  */
 export function ConnectionStatus({ queued = 0 }: { queued?: number }) {
-  const offline = useOffline();
+  const offline = useIsOffline();
   const pending = usePendingNavigation();
   const synced = useSyncedNotice(queued, offline);
   const slot = useToastStatusSlot();

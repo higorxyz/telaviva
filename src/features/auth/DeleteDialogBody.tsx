@@ -1,7 +1,7 @@
 'use client';
 
 import { LoaderCircle } from 'lucide-react';
-import { useOffline } from 'next/offline';
+import { useIsOffline } from '@/features/offline/useIsOffline';
 import { useId, useState, type FormEvent } from 'react';
 import { cn } from '@/lib/cn';
 import { NEEDS_NETWORK } from '@/features/offline/copy';
@@ -54,7 +54,7 @@ function reauthError(error: unknown): string | null {
 export function DeleteDialogBody(props: Props) {
   const { titleId, textId, expectedUid, onStale, provider, busy, setBusy, onCancel, onDeleted } = props;
   const { reauthenticate } = useAuth();
-  const offline = useOffline();
+  const offline = useIsOffline();
   const [word, setWord] = useState('');
   const [phase, setPhase] = useState<'confirm' | 'reauth'>('confirm');
   const [password, setPassword] = useState('');

@@ -1,7 +1,7 @@
 'use client';
 
 import { ArrowLeft, MailCheck } from 'lucide-react';
-import { useOffline } from 'next/offline';
+import { useIsOffline } from '@/features/offline/useIsOffline';
 import { useEffect, useRef, useState, type FormEvent } from 'react';
 import { NEEDS_NETWORK } from '@/features/offline/copy';
 import { looksLikeEmail } from '@/lib/email';
@@ -26,7 +26,7 @@ export function ForgotPassword({ initialEmail, onBack }: { initialEmail: string;
   // One per submit: the error's key, so a repeated identical error is announced again.
   const [tries, setTries] = useState(0);
   const input = useRef<HTMLInputElement>(null);
-  const offline = useOffline();
+  const offline = useIsOffline();
 
   // The form replaced the one that had focus: carry focus over to its field.
   useEffect(() => {
