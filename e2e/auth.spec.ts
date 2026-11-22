@@ -3,6 +3,7 @@ import type { Locator, Page } from '@playwright/test';
 import {
   authTest as test,
   openSecondDevice,
+  pageGet,
   resetLinksSentTo,
   sessionUid,
   signIn,
@@ -41,6 +42,7 @@ const episode = (page: Page, n: number): Locator =>
   page.locator('li').filter({ has: page.getByRole('heading', { name: new RegExp(`^E${n} · `) }) });
 const errorToasts = (page: Page) => page.locator('[data-toast][data-tone="error"]');
 const isCommand = (url: string, method: string) => url.endsWith('/api/library/commands') && method === 'POST';
+const isLibraryLoad = (url: string, method: string) => new URL(url).pathname === '/api/library' && method === 'GET';
 
 const stored = (page: Page, key: string) => page.evaluate((k) => window.localStorage.getItem(k), key);
 
@@ -122,7 +124,11 @@ test('after signing out the list is empty, and signing in brings it back', async
 test('with the session cookie gone, the next action renews it silently and is saved', async ({ page, accounts }) => {
   const user = await accounts.create('sessao', { verified: true });
   await signIn(page, user);
+  // The page's own library load must be done before the cookie goes: one still on its way would meet the 401
+  // first and renew the session itself, and the command below would then never see a 401.
+  const loaded = page.waitForResponse((r) => isLibraryLoad(r.url(), r.request().method()) && r.ok());
   await page.goto(MOVIE);
+  await loaded;
   await expect(page.getByRole('link', { name: 'Sua conta' })).toBeVisible();
 
   await page.context().clearCookies({ name: 'tv_session' });
@@ -199,7 +205,7 @@ test('the export holds the list, and a deleted account cannot sign in again', as
   await expect(page.getByText('Conta excluída.')).toBeVisible();
   await expect(page.getByRole('link', { name: 'Entrar', exact: true })).toBeVisible();
   await expect.poll(() => stored(page, preMergeKey(uid))).toBeNull();
-  expect((await page.request.get('/api/auth/me')).status()).toBe(401);
+  expect((await pageGet(page, '/api/auth/me')).status).toBe(401);
 
   await submitSignIn(page, user.email, user.password);
   await expect(page.getByText(WRONG_CREDENTIALS)).toBeVisible();

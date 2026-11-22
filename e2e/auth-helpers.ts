@@ -54,6 +54,18 @@ export async function markVerified(uid: string): Promise<void> {
   });
 }
 
+/**
+ * Disables the account, as an admin would: Firebase refuses to refresh its tokens (`auth/user-disabled`) and the server
+ * refuses to mint a session from them, so a lost session cannot be renewed (a true 401).
+ */
+export async function disableUser(uid: string): Promise<void> {
+  await call(`${ADMIN}/accounts:update`, {
+    method: 'POST',
+    headers: OWNER,
+    body: JSON.stringify({ localId: uid, disableUser: true }),
+  });
+}
+
 /** Removes the accounts behind these addresses (those that still exist). */
 export async function deleteUsersByEmail(emails: string[]): Promise<void> {
   if (emails.length === 0) return;
@@ -116,11 +128,27 @@ export async function signUp(page: Page, user: { email: string; password: string
   await expect(page.getByRole('link', { name: 'Sua conta' })).toBeVisible();
 }
 
+/**
+ * A GET from inside the page, with its cookies, answered as `{ status, body }` (body: parsed JSON, or null). Not
+ * `page.request`: its pooled keep-alive socket, reused after more than the server's 5 s keep-alive timeout, can be
+ * closed by the server just as the request goes out (`read ECONNRESET`), while the browser sends such a GET again on
+ * a new connection.
+ */
+export function pageGet(page: Page, path: string, headers: Record<string, string> = {}) {
+  return page.evaluate(
+    async ([url, extra]) => {
+      const response = await fetch(url, { headers: extra, credentials: 'same-origin', cache: 'no-store' });
+      return { status: response.status, body: (await response.json().catch(() => null)) as unknown };
+    },
+    [path, headers] as const,
+  );
+}
+
 /** The uid of the session this page's browser context holds, as the server sees it. */
 export async function sessionUid(page: Page): Promise<string> {
-  const response = await page.request.get('/api/auth/me');
-  expect(response.status()).toBe(200);
-  return ((await response.json()) as { user: { id: string } }).user.id;
+  const { status, body } = await pageGet(page, '/api/auth/me');
+  expect(status).toBe(200);
+  return (body as { user: { id: string } }).user.id;
 }
 
 /**
