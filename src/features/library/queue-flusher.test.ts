@@ -140,6 +140,67 @@ describe('createQueueFlusher', () => {
     expect(settled).toEqual([{ sent: 1, rejected: 1, expired: 0 }]);
   });
 
+  it('a 403 stops and keeps the whole queue, with no retry scheduled and nothing reported', async () => {
+    const fake = fakeLibraryServer();
+    const items = await enqueue(queuedCommand(want(1), T1), queuedCommand(want(2), T2));
+    fake.answerNext(403, 'forbidden');
+    const { flusher, settled } = setup();
+    await flusher.flush();
+    expect(fake.received).toHaveLength(1);
+    expect((await store.listQueue(UID)).map((i) => i.id)).toEqual(items.map((i) => i.id));
+    expect(retries).toEqual([]);
+    expect(settled).toEqual([]);
+  });
+
+  it('a 404, 405, 415, 408 or 429 keeps the queue and retries later (only a 400 is about the action)', async () => {
+    const fake = fakeLibraryServer();
+    const items = await enqueue(queuedCommand(want(1), T1), queuedCommand(want(2), T2));
+    const { flusher, settled } = setup();
+    for (const status of [404, 405, 415, 408, 429]) {
+      fake.answerNext(status);
+      await flusher.flush();
+    }
+    expect(fake.received).toHaveLength(5);
+    expect(await store.listQueue(UID)).toEqual([
+      { ...items[0], attempts: 5 },
+      items[1],
+    ]);
+    expect(retries).toEqual([2000, 4000, 8000, 16000, 32000]);
+    expect(settled).toEqual([]);
+  });
+
+  it('a 400 with any code (validation) drops that action too', async () => {
+    const fake = fakeLibraryServer();
+    await enqueue(queuedCommand(want(1), T1));
+    fake.answerNext(400, 'invalid');
+    const { flusher, settled } = setup();
+    await flusher.flush();
+    expect(await store.countQueue(UID)).toBe(0);
+    expect(settled).toEqual([{ sent: 0, rejected: 1, expired: 0 }]);
+  });
+
+  it('a run that only drops actions still tells the other tabs: their count reaches 0', async () => {
+    const fake = fakeLibraryServer();
+    await enqueue(queuedCommand(want(1), T1), queuedCommand(want(2), T2));
+    // Tab B loads its own copy of the modules, as another tab would (its own tab id on the library channel).
+    vi.resetModules();
+    const inTabB = await import('./offline-repository');
+    const serverInTabB = await import('./server-repository');
+    const server = serverInTabB.createServerRepository({ uid: UID, onUnauthenticated: async () => false });
+    const tabB = inTabB.createOfflineAccountRepository({ server, store: await anotherConnection(), uid: UID });
+    let countB = await tabB.queue.count();
+    expect(countB).toBe(2);
+    stops.push(tabB.queue.subscribe(() => void tabB.queue.count().then((n) => (countB = n))));
+    const reloadB = vi.fn();
+    stops.push(tabB.subscribe(reloadB));
+    fake.answerNext(400, 'stale');
+    fake.answerNext(413, 'limit');
+    await setup().flusher.flush();
+    expect(fake.received).toHaveLength(2);
+    await vi.waitFor(() => expect(countB).toBe(0));
+    await vi.waitFor(() => expect(reloadB).toHaveBeenCalled());
+  });
+
   it('a 409 conflict (only a restore can get it, and none is queued) is dropped without a report', async () => {
     const fake = fakeLibraryServer();
     await enqueue(queuedCommand(want(1), T1));

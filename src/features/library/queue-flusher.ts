@@ -57,12 +57,12 @@ const browserOffline = () => typeof navigator !== 'undefined' && navigator.onLin
 /**
  * Sends `uid`'s offline queue, in order, each action with the time it was done (`at`) and its id (`commandId`, so a
  * resend is a no-op), inside the queue lock: only one tab sends at a time. Errors:
- * - no answer or 5xx: stop and try again later (2 s → 5 min);
+ * - 400 (`stale` or validation) and 413 `limit`: drop that action, tell the person, go on;
+ * - 409 `conflict`: only a restore gets it, and restores are never queued; dropped if it ever happens;
  * - 401: the server repository renews the session and resends once; if that fails, stop and keep the queue;
- * - 409 `wrong_account`: stop (sign-in catches up);
- * - other 4xx (`stale`, validation, the size limit): drop that action, tell the person, go on;
- * - 409 `conflict`: only a restore gets it, and restores are never queued; dropped if it ever happens.
- * At the end, the last answer becomes the saved copy and the other tabs are told to reload.
+ * - 409 `wrong_account` and 403: stop and keep the queue (sign-in catches up; a 403 waits for the next trigger);
+ * - anything else (no answer, 5xx, 404, 408, 429…): stop and try again later (2 s → 5 min).
+ * At the end, the last answer becomes the saved copy, and when anything left the queue the other tabs are told.
  */
 export function createQueueFlusher(options: Options): QueueFlusher {
   const { store, server, uid, onSettled, onProgress, now = () => new Date().toISOString(), later = timer } = options;
@@ -86,10 +86,11 @@ export function createQueueFlusher(options: Options): QueueFlusher {
       if (error instanceof LibraryConflictError) return { kind: 'dropped', tell: false };
       if (error instanceof LibraryLimitError) return { kind: 'dropped', tell: true };
       const status = error instanceof LibraryRemoteError ? error.status : null;
-      // 408 and 429 are worth another try later; any other 4xx would be refused again.
-      if (status !== null && status >= 400 && status < 500 && status !== 408 && status !== 429) {
-        return { kind: 'dropped', tell: true };
-      }
+      // Only a 400 (`stale` or validation) is about the action itself: it would be refused again.
+      if (status === 400) return { kind: 'dropped', tell: true };
+      // Refused for this request, not this action (a firewall or bot challenge, say): keep it all for the next trigger.
+      if (status === 403) return { kind: 'stop' };
+      // Anything else (no answer, 5xx, 404 during a deploy, 408, 429…) may pass later.
       return { kind: 'retry' };
     }
   }
@@ -124,11 +125,12 @@ export function createQueueFlusher(options: Options): QueueFlusher {
         onProgress?.();
       }
     } finally {
-      if (last) {
-        await store.putSnapshot(uid, last).catch(() => {});
-        postLibraryMessage({ uid, kind: 'synced' });
+      if (last) await store.putSnapshot(uid, last).catch(() => {});
+      // Also when the run only dropped actions: the other tabs' counts and lists must drop them too.
+      if (changed) {
+        postLibraryMessage({ uid, kind: last ? 'synced' : 'queue' });
+        onSettled(outcome);
       }
-      if (changed) onSettled(outcome);
     }
   }
 
