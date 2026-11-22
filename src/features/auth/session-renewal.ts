@@ -1,5 +1,6 @@
 import type { User } from 'firebase/auth';
 import { quietly, type AuthState } from './auth-state';
+import type { DeviceSession } from './device-session';
 import { endsSession } from './errors';
 import { isFirebaseLoaded, loadFirebase } from './firebase-client';
 import { clearAuthHint, deleteSession, fetchMe, type MeResult } from './session-client';
@@ -11,12 +12,23 @@ export const ME_RETRY_MS = [300, 900];
 
 const wait = (ms: number) => new Promise<void>((resolve) => setTimeout(resolve, ms));
 
-/** Keeping the session cookie alive and truthful: renewal, expiry, the verified re-mint and a patient `me`. */
-export function createSessionRenewal(state: AuthState) {
+/** The browser knows it is offline (`true` proves nothing). */
+const browserOffline = () => typeof navigator !== 'undefined' && navigator.onLine === false;
+
+/**
+ * Keeping the session cookie alive and truthful: renewal, expiry, the verified re-mint and a patient `me`. `device`
+ * keeps the account's copy and queue on the device in step (see device-session.ts).
+ */
+export function createSessionRenewal(state: AuthState, device: DeviceSession) {
   let renewing: Promise<boolean> | null = null;
 
-  /** The session is gone for good: back to the visitor's library, saying why. */
+  /**
+   * The session is gone for good: back to the visitor's library, saying why. The account's saved copy goes (it is
+   * downloaded again on the next sign-in); its queue stays, to be sent when that account signs in again. At start-up
+   * nobody is signed in yet, and the session was the last identity's.
+   */
   async function expire() {
+    const uid = state.uid ?? (await device.lastUid());
     state.generation += 1;
     if (isFirebaseLoaded()) {
       await quietly(async () => {
@@ -26,6 +38,7 @@ export function createSessionRenewal(state: AuthState) {
     }
     clearAuthHint();
     await deleteSession();
+    if (uid) await device.sessionEnded(uid);
     state.guest(SESSION_EXPIRED);
   }
 
@@ -35,6 +48,15 @@ export function createSessionRenewal(state: AuthState) {
       const before = state.uid;
       const started = state.generation;
       let definitive = true; // No Firebase user: nothing can renew the session.
+      // A "Sair" still pending (here or in another tab): the Firebase SDK may still hold that user, and minting from
+      // it would sign the person back in. The visitor, in silence: that is what they asked for.
+      if (await device.isSignOutPending()) {
+        if (started !== state.generation) return false;
+        state.generation += 1;
+        clearAuthHint();
+        state.guest();
+        return false;
+      }
       try {
         const { auth } = await loadFirebase();
         const user = auth.currentUser;
@@ -78,12 +100,13 @@ export function createSessionRenewal(state: AuthState) {
 
   /**
    * `/api/auth/me`, asked again (twice at most, briefly apart) after a passing failure, while the page still waits
-   * on sign-in: one dropped request must not show a signed-in person the visitor's list.
+   * on sign-in: one dropped request must not show a signed-in person the visitor's list. When the browser knows it is
+   * offline, asking again cannot help: the start-up goes on to the identity kept on the device at once.
    */
   async function patientMe(started: number): Promise<MeResult> {
     let me = await fetchMe();
     for (const ms of ME_RETRY_MS) {
-      if (me.kind !== 'error' || started !== state.generation) break;
+      if (me.kind !== 'error' || started !== state.generation || browserOffline()) break;
       await wait(ms);
       me = await fetchMe();
     }

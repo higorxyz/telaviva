@@ -1,6 +1,7 @@
 import { normalizeLibraryState, parseLibraryEntries } from '@/features/library/schema';
 import { GUEST_LIBRARY_KEY } from '@/features/library/storage-key';
 import type { LibraryState } from '@/features/library/types';
+import { whenOnline } from '@/features/offline/when-online';
 import { chunkLibrary, holdsEveryKey } from './merge-chunks';
 
 const KEY = GUEST_LIBRARY_KEY;
@@ -29,6 +30,11 @@ type Options = {
   storage?: Storage | null;
   sleep?: (ms: number) => Promise<void>;
   chunkBytes?: number;
+  /**
+   * Resolves once there is a connection to send through: true to go on, false to give up (`kept`). Defaults to
+   * `whenOnline`; the AuthProvider also checks the account is still the one signed in by then.
+   */
+  whenOnline?: () => Promise<boolean>;
 };
 
 const wait = (ms: number) => new Promise<void>((resolve) => setTimeout(resolve, ms));
@@ -148,6 +154,7 @@ async function send(
  * - only then is `telaviva:library:v1` removed, and only if the backup exists and no other tab changed it meanwhile.
  *
  * On any failure everything stays local and the next start tries again. Repeating is safe: the merge is idempotent.
+ * Signed in without a connection (spec §6.3), it waits for one before the first request, the copy untouched meanwhile.
  */
 export async function mergeOnLogin(uid: string, opts: Options = {}): Promise<MergeOutcome> {
   const storage = opts.storage !== undefined ? opts.storage : browserStorage();
@@ -161,6 +168,7 @@ export async function mergeOnLogin(uid: string, opts: Options = {}): Promise<Mer
   const guest = readGuest(raw);
   if (!guest || guest.items.length + guest.ratings.length + guest.episodes.length === 0) return 'empty';
   if (readConfirmed(storage, uid) === fingerprint(raw)) return 'unchanged';
+  if (!(await (opts.whenOnline ?? (() => whenOnline().then(() => true)))())) return 'kept';
 
   const backedUp = backUp(storage, uid, raw);
   let answer: LibraryState | null = null;

@@ -1,6 +1,6 @@
 'use client';
 
-import { Download, LoaderCircle, LogOut } from 'lucide-react';
+import { Download, LoaderCircle } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { useIsOffline } from '@/features/offline/useIsOffline';
 import { useState } from 'react';
@@ -14,6 +14,7 @@ import { AccountDetails } from './AccountDetails';
 import { initialOf } from './AccountButton';
 import { DeleteAccount } from './DeleteAccount';
 import type { SessionUser } from './session-client';
+import { SignOutConfirm } from './SignOutConfirm';
 import { useAuth } from './useAuth';
 
 const SECTION = 'border-t border-ink-700 pt-6';
@@ -131,10 +132,7 @@ export function AccountView() {
             <p className="mt-0.5 truncate font-sans text-base text-ivory-muted">{user.email}</p>
           ) : null}
         </div>
-        <Button variant="ghost" size="sm" onClick={signOut}>
-          <LogOut aria-hidden="true" className="size-4" />
-          Sair
-        </Button>
+        <SignOutConfirm onSignOut={signOut} />
       </div>
 
       <AccountDetails user={user} className={`mt-8 ${SECTION}`} />

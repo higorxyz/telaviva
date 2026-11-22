@@ -12,6 +12,11 @@ export type AuthDeps = {
   onNotice(): void;
 };
 
+export type AuthHooks = {
+  /** Someone is signed in now (`previous`: who was before, null for nobody); offline identity keeping. */
+  onSignedIn?(user: SessionUser, previous: string | null): void;
+};
+
 /** The longest a sign-out waits for a session mint still in flight. */
 export const MINT_WAIT_MS = 5000;
 
@@ -28,7 +33,7 @@ export const quietly = async (work: () => Promise<unknown>) => {
  * which changes on every explicit sign-in or sign-out, so a renewal or a start-up check that began before one drops
  * its result instead of undoing it.
  */
-export function createAuthState(deps: AuthDeps) {
+export function createAuthState(deps: AuthDeps, hooks: AuthHooks = {}) {
   const notices: ToastInput[] = [];
   /** Session mints still waiting for the server (renewal, verified re-mint, re-authentication). */
   const minting = new Set<Promise<unknown>>();
@@ -80,10 +85,12 @@ export function createAuthState(deps: AuthDeps) {
     },
 
     signedIn(user: SessionUser) {
+      const previous = state.uid;
       state.uid = user.id;
       state.email = user.email;
       state.sessionVerified = user.emailVerified;
       deps.setSnapshot({ status: 'signed-in', user });
+      hooks.onSignedIn?.(user, previous);
     },
 
     /** Signed in with a session just minted from this Firebase user. */

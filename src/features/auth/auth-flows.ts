@@ -1,12 +1,14 @@
 import type { User } from 'firebase/auth';
 import { createAuthState, quietly, type AuthDeps } from './auth-state';
+import { createDeviceSession } from './device-session';
 import { authErrorMessage } from './errors';
-import { isFirebaseLoaded, loadFirebase, type FirebaseClient } from './firebase-client';
-import { clearAuthHint, createSession, deleteSession, fetchMe, hasAuthHint, type SessionUser } from './session-client';
+import { loadFirebase, type FirebaseClient } from './firebase-client';
+import { clearAuthHint, createSession, deleteSession, fetchMe, type SessionUser } from './session-client';
 import { reauthFirebase } from './reauth';
 import { readRedirectReturn } from './redirect-return';
 import { createSessionRenewal } from './session-renewal';
-import { emailSignIn, emailSignUp, googleSignIn, redirectPending } from './sign-in';
+import { emailSignIn, emailSignUp, googleSignIn } from './sign-in';
+import { createStartUp } from './start-up';
 
 export type { AuthSnapshot } from './auth-state';
 export { SESSION_EXPIRED } from './session-renewal';
@@ -20,21 +22,34 @@ const verificationSettings = () => ({ url: `${window.location.origin}/conta` });
 /**
  * The sign-in state machine, created once per AuthProvider. It lives outside the components below the library (which
  * remount on every identity change), so a sign-in started on a page finishes even after that page is gone. The
- * shared state is in auth-state.ts; renewal and expiry in session-renewal.ts.
+ * shared state is in auth-state.ts; renewal and expiry in session-renewal.ts; the page load's check in start-up.ts;
+ * what the device keeps of the account (offline identity, pending sign-out) in device-session.ts.
  */
 export function createAuthFlows(deps: AuthDeps) {
-  const state = createAuthState(deps);
-  const { renew, remintVerified, patientMe } = createSessionRenewal(state);
+  const device = createDeviceSession();
+  const state = createAuthState(deps, {
+    // Every sign-in is the identity to open offline with; an account signed in over another drops that one's copy.
+    onSignedIn(user, previous) {
+      if (previous && previous !== user.id) void device.dropCopy(previous);
+      void device.remember(user);
+    },
+  });
+  const { renew, remintVerified, patientMe } = createSessionRenewal(state, device);
 
-  /** ID token → session cookie → signed in. A failure signs Firebase out again, so both sides agree. */
+  /**
+   * ID token → session cookie → signed in. A failure signs Firebase out again, so both sides agree. A "Sair" still
+   * pending clears the old cookie first; the new cookie replaces it either way, so the mark goes once minted.
+   */
   async function establish({ auth, sdk }: FirebaseClient, user: User): Promise<SessionUser> {
     let sessionUser: SessionUser;
     try {
+      await device.settleSignOut();
       sessionUser = await createSession(await user.getIdToken());
     } catch (error) {
       await quietly(() => sdk.signOut(auth));
       throw error;
     }
+    await device.clearSignOutPending();
     state.generation += 1;
     state.adopt(user, sessionUser);
     return sessionUser;
@@ -67,13 +82,19 @@ export function createAuthFlows(deps: AuthDeps) {
     return false;
   }
 
-  /** Back to the visitor; `endSession` also ends the session on the server (a deleted account has none left). */
+  /**
+   * Back to the visitor; `endSession` also ends the session on the server (a deleted account has none left). The
+   * account's copy, queue and identity leave the device first, connection or not. A DELETE that cannot reach the
+   * server leaves a pending sign-out (see device-session.ts): the httpOnly cookie is only the server's to clear.
+   */
   async function leave(endSession: boolean, notice?: string) {
+    const uid = state.uid;
     state.generation += 1;
     state.uid = null; // A 401 from here on is the sign-out itself, not a session to renew.
     // A mint still in flight would set the cookies again after the DELETE: let it land first.
     await state.mintsSettled();
-    if (endSession) await deleteSession();
+    if (uid) await device.wipe(uid);
+    if (endSession && !(await deleteSession())) await device.markSignOutPending(uid);
     clearAuthHint();
     await quietly(async () => {
       const { auth, sdk } = await loadFirebase();
@@ -82,22 +103,13 @@ export function createAuthFlows(deps: AuthDeps) {
     state.guest(notice);
   }
 
+  const startUp = createStartUp({ state, device, renew, patientMe, completeRedirect });
+
   const flows = {
     currentUid: () => state.uid,
     takeNotices: state.takeNotices,
 
-    async start() {
-      const started = state.generation;
-      if ((redirectPending() || isFirebaseLoaded()) && (await completeRedirect())) return;
-      if (started !== state.generation) return;
-      if (!hasAuthHint()) return state.guest();
-      const me = await patientMe(started);
-      if (started !== state.generation) return;
-      if (me.kind === 'user') return state.signedIn(me.user);
-      if (me.kind === 'unauthenticated') return void (await renew());
-      if (me.kind === 'off') clearAuthHint();
-      state.guest();
-    },
+    start: startUp,
 
     /** From the account library on a 401: renews only while someone is signed in (a retired request is ignored). */
     onUnauthenticated: (): Promise<boolean> => (state.uid === null ? Promise.resolve(false) : renew()),

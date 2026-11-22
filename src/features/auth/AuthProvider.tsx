@@ -3,6 +3,7 @@
 import { useQueryClient } from '@tanstack/react-query';
 import { useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import { LIBRARY_KEY, type LibraryMode } from '@/features/library/LibraryProvider';
+import { whenOnline } from '@/features/offline/when-online';
 import { authEnabled } from '@/lib/auth-config';
 import { useToast } from '@/ui/toast/useToast';
 import { AuthContext, LibraryBindingContext, type AuthApi, type LibraryBinding } from './auth-context';
@@ -53,13 +54,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   // Right after switching to an account (and on each start while one is signed in), fold in what the visitor saved
   // here. A failed merge keeps the local copy, so the next start tries again. When the session turned out to be
-  // another account's (another tab switched), nothing was merged: look again at who is in.
+  // another account's (another tab switched), nothing was merged: look again at who is in. Signed in without a
+  // connection, it waits for one, and gives up if by then this account is no longer the one signed in.
   const merging = useRef(new Set<string>());
   useEffect(() => {
     if (!uid || merging.current.has(uid)) return;
     const running = merging.current;
     running.add(uid);
-    void mergeOnLogin(uid)
+    void mergeOnLogin(uid, { whenOnline: () => whenOnline().then(() => flows.currentUid() === uid) })
       .then((outcome) => {
         if (outcome === 'wrong_account') {
           if (flows.currentUid() === uid) void flows.refresh();

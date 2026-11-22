@@ -12,17 +12,18 @@ export type SessionUser = {
   provider: 'google' | 'password' | null;
 };
 
-const userBody = z.object({
-  user: z.object({
-    id: z.string().min(1),
-    email: z.string().nullable(),
-    name: z.string().nullable(),
-    photoUrl: z.string().nullable(),
-    emailVerified: z.boolean(),
-    authTime: z.number(),
-    provider: z.enum(['google', 'password']).nullable().catch(null),
-  }),
+/** A `SessionUser` as the server sends it (and as offline-identity.ts keeps it on the device). */
+export const sessionUserSchema = z.object({
+  id: z.string().min(1),
+  email: z.string().nullable(),
+  name: z.string().nullable(),
+  photoUrl: z.string().nullable(),
+  emailVerified: z.boolean(),
+  authTime: z.number(),
+  provider: z.enum(['google', 'password']).nullable().catch(null),
 });
+
+const userBody = z.object({ user: sessionUserSchema });
 
 /** Public hint cookie: only tells the client to try the signed-in mode. Never trusted for anything. */
 const HINT = 'tv_auth';
@@ -93,11 +94,16 @@ export async function createSession(idToken: string): Promise<SessionUser> {
   return readUser(response);
 }
 
-/** Ends the session on the server (it clears both cookies). Best effort: never throws. */
-export async function deleteSession(): Promise<void> {
+/**
+ * Ends the session on the server (it clears both cookies). Never throws; true when the server answered that it did
+ * (or, with a 404, that sign-in is off and there is no session to end), false when the request failed (offline) or was
+ * refused, so the httpOnly cookie may still be there.
+ */
+export async function deleteSession(): Promise<boolean> {
   try {
-    await fetch('/api/auth/session', { ...init, method: 'DELETE' });
+    const response = await fetch('/api/auth/session', { ...init, method: 'DELETE' });
+    return response.ok || response.status === 404;
   } catch {
-    // Offline: the hint is cleared locally and the cookie expires on its own.
+    return false;
   }
 }
