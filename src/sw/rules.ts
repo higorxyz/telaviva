@@ -1,6 +1,7 @@
 import { CacheFirst, ExpirationPlugin, NetworkFirst, type RouteMatchCallback, type RuntimeCaching } from 'serwist';
 import { corsImageRequest, documentCacheKey } from './plugins';
 import { isPrecachedPagePath } from './precached-pages';
+import { WARM_HEADER } from './warm-header';
 
 export const CACHE_NAMES = {
   pages: 'tv-pages',
@@ -13,8 +14,7 @@ const DAY = 24 * 60 * 60;
 
 export const STATIC_RESERVE_LIMITS = { maxEntries: 400, maxAgeSeconds: 30 * DAY };
 
-/** Header of a page warm-up: a plain fetch (no RSC header) that `tv-pages` stores like a visit. */
-export const WARM_HEADER = 'X-TelaViva-Warm';
+export { WARM_HEADER };
 
 /** Personal data, the sign-in proxy and the worker itself: never cached, never even answered by the worker. */
 const PRIVATE_PREFIXES = ['/api/library', '/api/account', '/api/auth', '/__/auth/', '/serwist/'];

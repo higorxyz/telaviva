@@ -7,6 +7,7 @@ import { AuthLibrary } from '@/features/auth/AuthLibrary';
 import { AuthProvider } from '@/features/auth/AuthProvider';
 import { LibraryConnectionStatus } from '@/features/library/LibraryConnectionStatus';
 import { ServiceWorker } from '@/features/offline/ServiceWorker';
+import { WarmWatching } from '@/features/offline/useWarmWatching';
 import { ToastProvider } from '@/ui/toast/ToastProvider';
 
 export function Providers({ children }: { children: ReactNode }) {
@@ -28,6 +29,8 @@ export function Providers({ children }: { children: ReactNode }) {
               <NavigationTracker />
               {/* Inside the library, for its queue count; it renders into the toast stack, not here. */}
               <LibraryConnectionStatus />
+              {/* Inside the library too: saves the series being watched for offline, in the background. */}
+              <WarmWatching />
               {children}
             </AuthLibrary>
           </AuthProvider>
