@@ -3,6 +3,7 @@
 import { useQueryClient } from '@tanstack/react-query';
 import { useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import { LIBRARY_KEY, type LibraryMode } from '@/features/library/LibraryProvider';
+import { reloadQuery } from '@/features/library/reload-query';
 import { whenOnline } from '@/features/offline/when-online';
 import { authEnabled } from '@/lib/auth-config';
 import { useToast } from '@/ui/toast/useToast';
@@ -68,7 +69,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           return;
         }
         if (outcome === 'empty' || outcome === 'unchanged') return;
-        void queryClient.invalidateQueries({ queryKey: LIBRARY_KEY });
+        // The account's first load may have read the list before the merge saved it: load it again.
+        void reloadQuery(queryClient, LIBRARY_KEY);
         if (outcome === 'merged' && flows.currentUid() === uid) toast.show({ message: LIST_SAVED });
       })
       .finally(() => running.delete(uid));

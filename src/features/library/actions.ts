@@ -6,7 +6,7 @@ import { useToast } from '@/ui/toast/useToast';
 import { applyCommand, type LibraryCommand } from './commands';
 import { NOTICE, UNDO_LABEL } from './copy';
 import { titleFingerprint } from './fingerprint';
-import { isRetired, LIBRARY_KEY, LIBRARY_TOAST_TAG, useLibraryRepository } from './LibraryProvider';
+import { isRetired, LIBRARY_KEY, LIBRARY_NETWORK_MODE, LIBRARY_TOAST_TAG, useLibraryRepository } from './LibraryProvider';
 import { refOfCommand, titlePreImage, type TitlePreImage } from './pre-image';
 import {
   LibraryConflictError,
@@ -84,6 +84,7 @@ export function useLibraryActions(): { run(command: LibraryCommand, opts?: RunOp
 
   const mutation = useMutation<Saved, Error, Variables, Context>({
     mutationKey: LIBRARY_KEY,
+    networkMode: LIBRARY_NETWORK_MODE,
     mutationFn: ({ command, repository: target, unqueue }) =>
       unqueue ? undoQueued(target, unqueue, command) : apply(target, command),
     onMutate: async ({ command, repository: target }) => {

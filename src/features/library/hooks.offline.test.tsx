@@ -1,5 +1,5 @@
 import 'fake-indexeddb/auto';
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { onlineManager, QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { act, fireEvent, renderHook, screen, waitFor } from '@testing-library/react';
 import type { ReactNode } from 'react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
@@ -33,6 +33,7 @@ beforeEach(async () => {
 afterEach(() => {
   vi.unstubAllGlobals();
   vi.restoreAllMocks();
+  onlineManager.setOnline(true);
 });
 
 function setup() {
@@ -96,6 +97,20 @@ describe('the account library offline', () => {
     await waitFor(() => expect(result.current.status.queued).toBe(0));
     expect(fake.received).toHaveLength(1);
     expect(result.current.entry.item?.status).toBe('want');
+  });
+
+  it('an action taken after the browser said `offline` is queued at once (TanStack Query must not hold it back)', async () => {
+    const fake = fakeLibraryServer(applyCommand(EMPTY_LIBRARY, setStatus('want'), T0));
+    const { result } = setup();
+    await waitFor(() => expect(result.current.entry.item?.status).toBe('want'));
+    reportOnline(false);
+    // What the browser fires when the connection drops; TanStack Query's onlineManager listens to it.
+    act(() => void window.dispatchEvent(new Event('offline')));
+    act(() => result.current.actions.run(setStatus('watched')));
+    await waitFor(() => expect(result.current.status.queued).toBe(1));
+    expect(await store.countQueue(UID)).toBe(1);
+    expect(result.current.entry.item?.status).toBe('watched');
+    expect(fake.received).toEqual([]);
   });
 
   it('an action the server refuses on sync shows one toast, however many were refused', async () => {

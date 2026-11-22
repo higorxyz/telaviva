@@ -3,7 +3,7 @@
 import { useQuery } from '@tanstack/react-query';
 import { useSyncExternalStore } from 'react';
 import { findItem, findRating } from './commands';
-import { LIBRARY_KEY, useLibraryRepository } from './LibraryProvider';
+import { LIBRARY_KEY, LIBRARY_NETWORK_MODE, useLibraryRepository } from './LibraryProvider';
 import { LibrarySessionError, LibraryWrongAccountError } from './repository';
 import type { EpisodeMark, LibraryItem, LibraryState, LibraryStatus, Rating, TitleRef } from './types';
 
@@ -34,6 +34,7 @@ export function useLibrary(): { state: LibraryState | undefined; ready: boolean 
     queryFn: () => repository.load(),
     staleTime: Infinity,
     retry: retryLibrary,
+    networkMode: LIBRARY_NETWORK_MODE,
     enabled: !repository.pending,
   });
   const hydrated = useHydrated();
@@ -69,6 +70,7 @@ export function useLibraryStatus(ref: TitleRef): { ready: boolean; status: Libra
     queryFn: () => repository.load(),
     staleTime: Infinity,
     retry: retryLibrary,
+    networkMode: LIBRARY_NETWORK_MODE,
     enabled: !repository.pending,
     select: (state): LibraryStatus | null => findItem(state, ref)?.status ?? null,
   });

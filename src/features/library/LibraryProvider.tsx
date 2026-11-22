@@ -5,12 +5,21 @@ import { createContext, useCallback, useContext, useEffect, useLayoutEffect, use
 import { useToast } from '@/ui/toast/useToast';
 import { NOTICE } from './copy';
 import { createFor, isRetired, setRetired, type LibraryMode } from './mode-repository';
+import { reloadQuery } from './reload-query';
 import type { LibraryNotice, LibraryRepository } from './repository';
 import type { OnUnauthenticated } from './server-repository';
 
 export { isRetired, type LibraryMode };
 
 export const LIBRARY_KEY = ['library'] as const;
+
+/**
+ * The library's queries and writes run whatever TanStack Query believes about the connection: the repository is what
+ * works offline (the visitor's list is on the device; the account's falls back to its saved copy and queues actions).
+ * With the default `online` mode, a write made after the browser said `offline` would only show its optimistic value
+ * and wait, unsaved and unqueued, for the connection to return.
+ */
+export const LIBRARY_NETWORK_MODE = 'always';
 
 const RepositoryContext = createContext<LibraryRepository | null>(null);
 
@@ -143,7 +152,8 @@ function IdentityScope({
     return current.subscribe(() => {
       // A write in flight reloads the list itself when it settles; a load now could read it before the write.
       if (queryClient.isMutating({ mutationKey: LIBRARY_KEY }) > 0) return;
-      void queryClient.invalidateQueries({ queryKey: LIBRARY_KEY });
+      // A load in flight (the first one included) may have read the list before this change: it is dropped.
+      void reloadQuery(queryClient, LIBRARY_KEY);
     });
   }, [current, queryClient]);
 
