@@ -2,7 +2,9 @@
 
 import { Download, LoaderCircle, LogOut } from 'lucide-react';
 import { useRouter } from 'next/navigation';
+import { useOffline } from 'next/offline';
 import { useState } from 'react';
+import { NEEDS_NETWORK } from '@/features/offline/copy';
 import { Button, ButtonLink } from '@/ui/Button';
 import { Skeleton } from '@/ui/Skeleton';
 import { useToast } from '@/ui/toast/useToast';
@@ -68,6 +70,7 @@ export function AccountView() {
   const auth = useAuth();
   const router = useRouter();
   const toast = useToast();
+  const offline = useOffline();
   const [leaving, setLeaving] = useState(false);
   const [exporting, setExporting] = useState(false);
 
@@ -97,6 +100,7 @@ export function AccountView() {
 
   async function exportData() {
     if (exporting) return;
+    if (offline) return toast.show({ message: NEEDS_NETWORK, tone: 'error' });
     setExporting(true);
     try {
       try {

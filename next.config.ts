@@ -9,6 +9,9 @@ const nextConfig: NextConfig = {
   cacheComponents: true,
   partialPrefetching: false,
   reactCompiler: true,
+  // A navigation, prefetch or Server Action that fails for lack of network stays pending and runs again when the
+  // connection returns, instead of failing; `useOffline` (next/offline) drives the connection indicator.
+  experimental: { useOffline: true },
   images: { unoptimized: true },
   // Firebase's sign-in helper served from this site, so the Google redirect works without third-party cookies
   // (Safari/iOS, installed PWA). Read when the config loads; absent without a project id (sign-in off). The id must

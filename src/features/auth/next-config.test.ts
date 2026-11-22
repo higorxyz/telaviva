@@ -47,3 +47,10 @@ describe('next.config build directory', () => {
     expect(config.typescript?.tsconfigPath).toBe('tsconfig.e2e.json');
   });
 });
+
+describe('next.config offline', () => {
+  it('turns on useOffline (pending navigations retried when the connection returns), partial prefetching unchanged', () => {
+    expect(nextConfig.experimental?.useOffline).toBe(true);
+    expect(nextConfig.partialPrefetching).toBe(false);
+  });
+});

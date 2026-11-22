@@ -1,9 +1,11 @@
 'use client';
 
 import { useRouter, useSearchParams } from 'next/navigation';
+import { useOffline } from 'next/offline';
 import { useEffect, useRef, useState } from 'react';
 import { buttonClasses } from '@/ui/Button';
 import { cn } from '@/lib/cn';
+import { NEEDS_NETWORK } from '@/features/offline/copy';
 import { EmailForm, type Busy, type Mode } from './EmailForm';
 import { authErrorMessage } from './errors';
 import { preloadFirebase } from './firebase-client';
@@ -34,6 +36,7 @@ let signInStartedHere = false;
 export function SignInView() {
   const auth = useAuth();
   const router = useRouter();
+  const offline = useOffline();
   const voltar = useSearchParams().get('voltar');
   const [mode, setMode] = useState<Mode>('entrar');
   const [view, setView] = useState<'form' | 'forgot'>('form');
@@ -78,6 +81,8 @@ export function SignInView() {
   }, [view]);
 
   async function attempt(kind: 'google' | 'email', action: () => Promise<void>): Promise<string | null> {
+    // Firebase is not even asked: offline it could only fail, after a wait.
+    if (offline) return NEEDS_NETWORK;
     setBusy(kind);
     signInStartedHere = true;
     try {

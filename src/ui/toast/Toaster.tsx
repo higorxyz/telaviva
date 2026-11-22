@@ -76,15 +76,18 @@ function ToastItem({ toast, onDismiss }: { toast: ToastEntry; onDismiss: (id: nu
 type ToasterProps = {
   toasts: ToastEntry[];
   onDismiss: (id: number) => void;
-  /** Receives the stack's lowest slot (see `useToastDock`). */
+  /** Receives the slot for a notice that stays (see `useToastDock`). */
   dockRef?: (element: HTMLElement | null) => void;
+  /** Receives the slot under it, for a status with its own live region (see `useToastStatusSlot`). */
+  statusSlotRef?: (element: HTMLElement | null) => void;
 };
 
 /**
  * Sits above the mobile TabBar (h-14 + safe area) and in the bottom corner on desktop. One fixed column: the toasts
- * (a polite live region) and, under them, the dock for a notice that stays. Fixed, so nothing in the page moves.
+ * (a polite live region), under them the dock for a notice that stays, and at the very bottom the status slot (the
+ * connection indicator, closest to the edge). Fixed, so nothing in the page moves.
  */
-export function Toaster({ toasts, onDismiss, dockRef }: ToasterProps) {
+export function Toaster({ toasts, onDismiss, dockRef, statusSlotRef }: ToasterProps) {
   const column = 'flex w-full flex-col items-center gap-2 md:items-end';
   return (
     <div
@@ -98,6 +101,9 @@ export function Toaster({ toasts, onDismiss, dockRef }: ToasterProps) {
         ))}
       </div>
       <div ref={dockRef} className={cn(column, 'empty:hidden')} />
+      {/* Never hidden while it holds the status's region (a live region must stay in the tree); while that region is
+          empty it has no height, and the negative margin cancels the gap above it. */}
+      <div ref={statusSlotRef} className={cn(column, 'empty:hidden has-[>:empty]:-mt-2')} />
     </div>
   );
 }

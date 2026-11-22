@@ -104,6 +104,39 @@ test('/ and /minha-lista open offline even after tv-pages fills up and evicts th
   await expect(page.getByRole('heading', { level: 1, name: 'Sem conexão' })).toHaveCount(0);
 });
 
+test('offline the indicator shows; a link to a page not saved waits, says so after 1.5 s and opens when back online', async ({
+  page,
+  context,
+}) => {
+  const offlineText = page.getByText('Sem conexão. Suas ações serão enviadas quando a internet voltar.');
+  const pendingText = page.getByText('Esta página abre quando a internet voltar.');
+  await page.goto('/filmes');
+  await page.evaluate(() => navigator.serviceWorker.ready.then(() => undefined));
+  await expect(page.getByRole('heading', { level: 1, name: 'Filmes em cartaz e além' })).toBeVisible();
+  await expect(offlineText).toHaveCount(0);
+
+  await context.setOffline(true);
+  await expect(offlineText).toBeVisible();
+  await expectNoViolations(page);
+
+  // A title page this device never opened nor prefetched (below the fold until now; one prefetched while online would
+  // render from the router's memory): the router keeps the navigation pending instead of failing.
+  const title = page.locator('main a[href^="/filme/"]').last();
+  const href = (await title.getAttribute('href'))!;
+  await title.click();
+  await expect(pendingText).toHaveCount(0);
+  await expect(pendingText).toBeVisible();
+  await expect(page.getByRole('link', { name: 'Ver minha lista' })).toHaveAttribute('href', '/minha-lista');
+  await expect(page).toHaveURL('/filmes');
+
+  await context.setOffline(false);
+  await expect(page).toHaveURL(href);
+  await expect(page.getByRole('heading', { level: 1, name: 'Filmes em cartaz e além' })).toHaveCount(0);
+  await expect(page.getByRole('heading', { level: 1 })).toBeVisible();
+  await expect(offlineText).toHaveCount(0);
+  await expect(pendingText).toHaveCount(0);
+});
+
 test.describe('with the worker blocked', () => {
   test.use({ serviceWorkers: 'block' });
 

@@ -1,8 +1,10 @@
 'use client';
 
 import { LoaderCircle } from 'lucide-react';
+import { useOffline } from 'next/offline';
 import { useId, useState, type FormEvent } from 'react';
 import { cn } from '@/lib/cn';
+import { NEEDS_NETWORK } from '@/features/offline/copy';
 import { buttonClasses } from '@/ui/Button';
 import { requestAccountDeletion } from './account-client';
 import {
@@ -52,6 +54,7 @@ function reauthError(error: unknown): string | null {
 export function DeleteDialogBody(props: Props) {
   const { titleId, textId, expectedUid, onStale, provider, busy, setBusy, onCancel, onDeleted } = props;
   const { reauthenticate } = useAuth();
+  const offline = useOffline();
   const [word, setWord] = useState('');
   const [phase, setPhase] = useState<'confirm' | 'reauth'>('confirm');
   const [password, setPassword] = useState('');
@@ -82,6 +85,7 @@ export function DeleteDialogBody(props: Props) {
   function confirm(event: FormEvent) {
     event.preventDefault();
     if (!ready || busy || phase !== 'confirm') return;
+    if (offline) return fail(NEEDS_NETWORK);
     setBusy(true);
     setError(null);
     void attempt(false);
@@ -92,6 +96,7 @@ export function DeleteDialogBody(props: Props) {
     if (busy) return;
     const usePassword = provider === 'password';
     if (usePassword && !password) return fail(PASSWORD_MISSING);
+    if (offline) return fail(NEEDS_NETWORK);
     setBusy(true);
     setError(null);
     let outcome: ReauthOutcome;

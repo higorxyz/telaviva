@@ -69,11 +69,12 @@ function Banner({ onDismiss }: { onDismiss: () => void }) {
 }
 
 /**
- * A card in the lowest slot of the toast stack (`useToastDock`): above the TabBar on phones, in the bottom corner on
- * desktop, with the toasts piling up above it. It is fixed, so it never pushes the page (no layout shift) nor covers a
- * title, and, being absent until sign-in resolves on the client, it cannot differ between server and client. Closing
- * it hides it for the rest of the browser session. It stays off /conta, which shows the same "Reenviar e-mail" in
- * place: two buttons there would keep two cooldowns, and two sends in a row hit "too many requests".
+ * A card in the dock of the toast stack (`useToastDock`): above the TabBar on phones, in the bottom corner on desktop,
+ * with the toasts piling up above it and only the connection indicator below it. It is fixed, so it never pushes the
+ * page (no layout shift) nor covers a title, and, being absent until sign-in resolves on the client, it cannot differ
+ * between server and client. Closing it hides it for the rest of the browser session. It stays off /conta, which
+ * shows the same "Reenviar e-mail" in place: two buttons there would keep two cooldowns, and two sends in a row hit
+ * "too many requests".
  */
 export function VerifyEmailBanner() {
   const { status, user } = useAuth();
