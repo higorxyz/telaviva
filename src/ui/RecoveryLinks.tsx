@@ -22,7 +22,7 @@ export function RecoveryLinks({ primary, shortcuts = SHORTCUTS }: { primary?: Sh
         <Link
           key={s.href}
           href={s.href}
-          className="rounded text-ivory-muted hover:text-ivory hover:underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-amber"
+          className="inline-flex min-h-11 items-center rounded text-ivory-muted hover:text-ivory hover:underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-amber"
         >
           {s.label}
         </Link>
