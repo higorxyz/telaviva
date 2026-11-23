@@ -26,7 +26,8 @@ export async function HomeRails() {
     <>
       {deduped.map((rail, i) => (
         <div key={rail.id} className="space-y-12 md:space-y-14">
-          <Rail {...rail} priorityCount={i === 0 ? 2 : 0} />
+          {/* Under a hero the first rail starts below the fold: eager posters would only compete with the hero image. */}
+          <Rail {...rail} priorityCount={i === 0 && !featured ? 2 : 0} />
           {i === Math.min(EDITORIAL_AFTER, deduped.length) - 1 ? <QuickActions year={year} /> : null}
         </div>
       ))}
