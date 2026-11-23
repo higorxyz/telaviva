@@ -147,6 +147,26 @@
       transform: translateY(40px);
     }
   }
+
+  /* Rails that do not open the page (Rail): laid out, painted and given their lazy posters only as they near the
+     viewport, so a page of a dozen rails does not do all of that during its first load. The block sizes are a rail's
+     height at each breakpoint, so the page barely changes height as rails render. */
+  .rail-deferred {
+    content-visibility: auto;
+    contain-intrinsic-block-size: auto 22.5rem;
+
+    @media (width >= 48rem) {
+      contain-intrinsic-block-size: auto 24.5rem;
+    }
+
+    @media (width >= 80rem) {
+      contain-intrinsic-block-size: auto 27.5rem;
+    }
+
+    @media (width >= 96rem) {
+      contain-intrinsic-block-size: auto 29rem;
+    }
+  }
 }
 
 @media (prefers-reduced-motion: reduce) {

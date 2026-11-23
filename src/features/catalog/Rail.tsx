@@ -123,7 +123,14 @@ export function Rail({
   }
 
   return (
-    <section id={id} aria-label={label} className="group/rail relative">
+    <section
+      id={id}
+      aria-label={label}
+      // A rail that does not open the page renders as it nears the viewport (`.rail-deferred`, globals.css). That
+      // brings paint containment, which clips at the padding box: the side padding (offset by negative margins, so
+      // nothing moves) keeps room for the scroller's overhang, the first and last posters' focus ring and glow.
+      className={cn('group/rail relative', priorityCount === 0 && 'rail-deferred -mx-3 px-3')}
+    >
       <div className="mb-3 flex items-baseline justify-between gap-4">
         <AccentTitle
           as="h2"
