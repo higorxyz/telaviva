@@ -6,6 +6,7 @@ import { useEffect, useRef, useState, type FormEvent } from 'react';
 import { cn } from '@/lib/cn';
 import { normalizeQuery, searchHref } from './query';
 import { clearRecent, saveRecent, useRecentSearches } from './recent';
+import { SearchPrompt } from './SearchPrompt';
 import { SearchResults, type SearchTab } from './SearchResults';
 
 const TABS: { id: SearchTab; label: string }[] = [
@@ -101,8 +102,7 @@ export function SearchView() {
         </>
       ) : (
         <div className="mt-10 text-center">
-          <h2 className="font-display text-3xl text-ivory">Comece a digitar</h2>
-          <p className="mt-2 text-ivory-muted">Filmes, séries e pessoas, com no mínimo 2 letras.</p>
+          <SearchPrompt />
           {recent.length > 0 ? (
             <section aria-labelledby="recentes" className="mx-auto mt-8 max-w-xl">
               <div className="flex items-center justify-between">
