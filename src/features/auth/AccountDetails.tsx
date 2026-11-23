@@ -38,16 +38,18 @@ export function AccountDetails({ user, className }: { user: SessionUser; classNa
         </>
       ) : null}
       <dt className="text-ivory-muted">Verificação</dt>
+      {/* Text on the baseline, icon centred apart: the status keeps the text's baseline, so it lines up with the label
+          (an icon first would lend the row its bottom edge as the baseline). */}
       <dd>
         {user.emailVerified ? (
-          <span className="inline-flex items-center gap-1.5 text-ivory">
-            <CircleCheck aria-hidden="true" className="size-4 text-ivory-muted" />
+          <span className="inline-flex items-baseline gap-1.5 text-ivory">
+            <CircleCheck aria-hidden="true" className="size-4 self-center text-ivory-muted" />
             E-mail confirmado
           </span>
         ) : (
           <span className="flex flex-wrap items-center gap-x-5">
-            <span className="inline-flex items-center gap-1.5 text-ivory">
-              <CircleAlert aria-hidden="true" className="size-4 text-amber" />
+            <span className="inline-flex items-baseline gap-1.5 text-ivory">
+              <CircleAlert aria-hidden="true" className="size-4 self-center text-amber" />
               E-mail não confirmado
             </span>
             <Resend />
