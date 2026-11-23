@@ -1,7 +1,7 @@
 'use client';
 
 import { BookmarkCheck, Check, Play, Plus } from 'lucide-react';
-import type { MediaSummary } from '@/features/tmdb/types';
+import type { CardItem } from '@/features/catalog/card-item';
 import { useLibraryActions, useLibraryStatus } from './hooks';
 import { UNDOABLE } from './copy';
 import { useHasLibrary } from './LibraryProvider';
@@ -11,12 +11,12 @@ import type { TitleRef } from './types';
 const CIRCLE = 'grid size-8 place-items-center rounded-full bg-ink-950/60 backdrop-blur-sm';
 
 /** Quick "Quero ver" on a poster: icon only. `tabIndex` -1 keeps it out of a roving tab stop. Renders nothing without a library or before it loads. */
-export function CardLibraryAction({ item, tabIndex }: { item: MediaSummary; tabIndex?: number }) {
+export function CardLibraryAction({ item, tabIndex }: { item: CardItem; tabIndex?: number }) {
   const hasLibrary = useHasLibrary();
   return hasLibrary ? <Action item={item} tabIndex={tabIndex} /> : null;
 }
 
-function Action({ item, tabIndex }: { item: MediaSummary; tabIndex?: number }) {
+function Action({ item, tabIndex }: { item: CardItem; tabIndex?: number }) {
   const ref: TitleRef = { mediaType: item.mediaType, tmdbId: item.id };
   const { ready, status } = useLibraryStatus(ref);
   const { run } = useLibraryActions();

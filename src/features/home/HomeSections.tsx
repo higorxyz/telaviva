@@ -1,3 +1,4 @@
+import { toCardItem } from '@/features/catalog/card-item';
 import { Hero, HERO_HEIGHT } from '@/features/catalog/Hero';
 import { Rail } from '@/features/catalog/Rail';
 import { dedupeRails, loadHomeRails, PER_RAIL, requireRails } from '@/features/catalog/rails';
@@ -27,7 +28,7 @@ export async function HomeRails() {
       {deduped.map((rail, i) => (
         <div key={rail.id} className="space-y-12 md:space-y-14">
           {/* Under a hero the first rail starts below the fold: eager posters would only compete with the hero image. */}
-          <Rail {...rail} priorityCount={i === 0 && !featured ? 2 : 0} />
+          <Rail {...rail} items={rail.items.map(toCardItem)} priorityCount={i === 0 && !featured ? 2 : 0} />
           {i === Math.min(EDITORIAL_AFTER, deduped.length) - 1 ? <QuickActions year={year} /> : null}
         </div>
       ))}

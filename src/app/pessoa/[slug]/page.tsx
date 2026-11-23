@@ -1,5 +1,6 @@
 import type { Metadata } from 'next';
 import { cacheLife } from 'next/cache';
+import { toCardItem } from '@/features/catalog/card-item';
 import { Rail } from '@/features/catalog/Rail';
 import { ClampedText } from '@/features/detail/ClampedText';
 import { DetailSection } from '@/features/detail/DetailSection';
@@ -73,7 +74,7 @@ export default async function PessoaPage({ params }: Props) {
           </DetailSection>
         ) : null}
       </PersonHero>
-      {famous.length > 0 ? <Rail id="conhecido-por" title={{ lead: 'Conhecido', accent: 'por' }} items={famous} /> : null}
+      {famous.length > 0 ? <Rail id="conhecido-por" title={{ lead: 'Conhecido', accent: 'por' }} items={famous.map(toCardItem)} /> : null}
       {person.credits.length > 0 ? (
         <DetailSection id="filmografia" title={{ lead: 'Filmografia' }}>
           <Filmography rows={toFilmRows(person.credits)} />

@@ -1,4 +1,5 @@
 import type { MediaType } from '@/features/tmdb/types';
+import { toCardItem } from './card-item';
 import { HubGenres } from './HubGenres';
 import { CATALOG_LISTS } from './lists';
 import { Rail } from './Rail';
@@ -18,7 +19,7 @@ export async function HubRails({ media }: { media: MediaType }) {
   return (
     <>
       {rails.map((rail, i) => (
-        <Rail key={rail.id} {...rail} priorityCount={i === 0 ? 2 : 0} />
+        <Rail key={rail.id} {...rail} items={rail.items.map(toCardItem)} priorityCount={i === 0 ? 2 : 0} />
       ))}
       <HubGenres media={media} />
     </>

@@ -3,9 +3,9 @@
 import { ArrowRight, ChevronLeft, ChevronRight } from 'lucide-react';
 import Link from 'next/link';
 import { useCallback, useEffect, useRef, useState, type FocusEvent, type KeyboardEvent, type PointerEvent } from 'react';
-import type { MediaSummary } from '@/features/tmdb/types';
 import { AccentTitle } from '@/ui/AccentTitle';
 import { cn } from '@/lib/cn';
+import type { CardItem } from './card-item';
 import { PosterCard } from './PosterCard';
 import { RAIL_ITEM_CLASS, RAIL_SIZES } from './sizes';
 
@@ -23,13 +23,13 @@ export function Rail({
   id: string;
   title: { lead: string; accent?: string };
   href?: string;
-  items: MediaSummary[];
+  items: CardItem[];
   /** Posters with index < priorityCount load eagerly (above-the-fold rail only). */
   priorityCount?: number;
   /** Replaces the year under a poster; undefined falls back to the year. */
-  subtitleOf?: (item: MediaSummary) => string | undefined;
+  subtitleOf?: (item: CardItem) => string | undefined;
   /** Overrides the corner ring of a poster (e.g. the personal rating); undefined keeps the TMDb average. */
-  ringOf?: (item: MediaSummary) => { value: number | null; tone: 'tmdb' | 'personal' } | undefined;
+  ringOf?: (item: CardItem) => { value: number | null; tone: 'tmdb' | 'personal' } | undefined;
 }) {
   const label = [title.lead, title.accent].filter(Boolean).join(' ');
   const listRef = useRef<HTMLUListElement>(null);

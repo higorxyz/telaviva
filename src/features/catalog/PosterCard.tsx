@@ -2,16 +2,16 @@ import Link from 'next/link';
 import type { ReactNode } from 'react';
 import { CardLibraryAction } from '@/features/library/CardLibraryAction';
 import { posterSrcSet, tmdbImage } from '@/features/tmdb/images';
-import type { MediaSummary } from '@/features/tmdb/types';
 import { formatRating, formatYear } from '@/lib/format';
 import { mediaHref } from '@/lib/slug';
 import { MediaBadge } from '@/ui/MediaBadge';
 import { RatingRing } from '@/ui/RatingRing';
+import type { CardItem } from './card-item';
 import { GRID_SIZES } from './GridSkeleton';
 import { LinkPending } from './LinkPending';
 
 /** Screen-reader name that starts with the title: "Duna (2021) — Série — Nota 8,0". */
-export function posterLabel(item: MediaSummary, meta: string | null): string {
+export function posterLabel(item: CardItem, meta: string | null): string {
   return [
     meta ? `${item.title} (${meta})` : item.title,
     item.mediaType === 'tv' ? 'Série' : null,
@@ -33,7 +33,7 @@ export function PosterCard({
   ringValue,
   ringTone = 'tmdb',
 }: {
-  item: MediaSummary;
+  item: CardItem;
   /** Loads eagerly (above-the-fold posters). */
   priority?: boolean;
   /** The page's likely LCP image: eager and fetched with high priority. At most one per page. */

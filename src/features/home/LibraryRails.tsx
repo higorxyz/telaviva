@@ -9,7 +9,6 @@ import { nextEpisodeLabel, toSummary } from '@/features/library/summary';
 import type { LibraryItem, LibraryState } from '@/features/library/types';
 import { useRecommendations } from '@/features/library/useRecommendations';
 import { useTvProgress } from '@/features/library/view/useTvProgress';
-import type { MediaSummary } from '@/features/tmdb/types';
 
 const MIN_RECOMMENDATIONS = 6;
 
@@ -60,8 +59,8 @@ export function LibraryRails() {
           title={{ lead: 'Continue', accent: 'assistindo' }}
           href="/minha-lista?aba=assistindo"
           items={continueItems}
-          subtitleOf={(item: MediaSummary) => subtitles.get(item.id)}
-          ringOf={(item: MediaSummary) => ({
+          subtitleOf={(item) => subtitles.get(item.id)}
+          ringOf={(item) => ({
             value: findRating(state, { mediaType: 'tv', tmdbId: item.id })?.score ?? null,
             tone: 'personal',
           })}
