@@ -1,9 +1,15 @@
-const dateFormatter = new Intl.DateTimeFormat('pt-BR', {
-  day: 'numeric',
-  month: 'short',
-  year: 'numeric',
-  timeZone: 'America/Sao_Paulo',
-});
+let dateFormatter: Intl.DateTimeFormat | undefined;
+
+/** Built on first use: a formatter with a time zone is costly to create, and this module loads on every page. */
+function getDateFormatter(): Intl.DateTimeFormat {
+  dateFormatter ??= new Intl.DateTimeFormat('pt-BR', {
+    day: 'numeric',
+    month: 'short',
+    year: 'numeric',
+    timeZone: 'America/Sao_Paulo',
+  });
+  return dateFormatter;
+}
 
 export function formatRating(v: number): string {
   return v.toFixed(1).replace('.', ',');
@@ -21,7 +27,7 @@ export function formatDate(iso: string | null): string | null {
   if (!iso) return null;
   const date = new Date(`${iso}T12:00:00-03:00`);
   if (Number.isNaN(date.getTime())) return null;
-  return dateFormatter.format(date);
+  return getDateFormatter().format(date);
 }
 
 export function formatYear(iso: string | null): string | null {
