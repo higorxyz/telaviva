@@ -18,35 +18,47 @@ indicador do INP, como pede o plano).
 - **`--disable-gpu` na medição final.** Na primeira rodada, várias execuções (de antes e de depois, em qualquer página)
   tiveram uma única tarefa "Unattributable" de 1,5–2 s simulados. O trace mostrou que, nesse intervalo, o processo de GPU do
   Chromium headless estava parado (`GPUTask` de ~400 ms com ~0,7 ms de CPU) e a thread principal só esperava por ele: uma
-  trava do ambiente, não trabalho do site. Com `--disable-gpu` ela some (em `/buscar`, TBT de 1.510/83/201 ms passou a
-  92/90/87/69 ms), então a comparação final usa essa flag nos dois builds.
+  trava do ambiente, não trabalho do site. Com `--disable-gpu` ela some: em `/buscar`, TBT de 1.510/83/201 ms (três
+  execuções sem a flag) contra 92/90/87/69 ms numa sondagem de quatro execuções com a flag. Por isso a comparação final
+  usa essa flag nos dois builds.
 - Os JSON brutos ficaram fora do repositório.
 
 ## Resultado
 
 Mediana de três execuções intercaladas, Lighthouse mobile simulado, `--disable-gpu`.
 
-| Página | LCP antes | LCP depois | CLS antes | CLS depois | TBT antes | TBT depois | Nota antes | Nota depois | Elemento do LCP |
-|---|---|---|---|---|---|---|---|---|---|
-| `/` | 4,08 s | 3,84 s | 0 | 0 | 805 ms | 493 ms | 68 | 75 | backdrop do herói (`w780`) |
-| `/filmes` | 3,92 s | 3,79 s | 0 | 0 | 402 ms | 594 ms | 78 | 74 | 1º pôster do 1º trilho (`w342`) |
-| Filme | 5,95 s | 4,84 s | 0 | 0 | 303 ms | 240 ms | 73 | 77 | backdrop do herói (`w780`) |
-| Série | 5,72 s | 5,48 s | 0 | 0 | 613 ms | 505 ms | 62 | 67 | backdrop do herói (`w780`) |
-| `/minha-lista` | 3,60 s | 3,62 s | 0 | 0 | 517 ms | 516 ms | 77 | 76 | texto do estado vazio |
-| `/buscar` | 0,78 s | 0,78 s | **0,079** | **0** | 388 ms | 440 ms | 89 | 89 | texto do rodapé |
+| Página         | LCP antes | LCP depois | CLS antes | CLS depois | TBT antes | TBT depois | Nota antes | Nota depois | Elemento do LCP                 |
+| -------------- | --------- | ---------- | --------- | ---------- | --------- | ---------- | ---------- | ----------- | ------------------------------- |
+| `/`            | 4,08 s    | 3,84 s     | 0         | 0          | 805 ms    | 493 ms     | 68         | 75          | backdrop do herói (`w780`)      |
+| `/filmes`      | 3,92 s    | 3,79 s     | 0         | 0          | 402 ms    | 594 ms     | 78         | 74          | 1º pôster do 1º trilho (`w342`) |
+| Filme          | 5,95 s    | 4,84 s     | 0         | 0          | 303 ms    | 240 ms     | 73         | 77          | backdrop do herói (`w780`)      |
+| Série          | 5,72 s    | 5,48 s     | 0         | 0          | 613 ms    | 505 ms     | 62         | 67          | backdrop do herói (`w780`)      |
+| `/minha-lista` | 3,60 s    | 3,62 s     | 0         | 0          | 517 ms    | 516 ms     | 77         | 76          | texto do estado vazio           |
+| `/buscar`      | 0,78 s    | 0,78 s     | **0,079** | **0**      | 388 ms    | 440 ms     | 89         | 89          | texto do rodapé                 |
 
-O TBT varia ±200 ms entre execuções iguais nesta máquina (em `/filmes`, antes: 402/553/343 ms); diferenças menores que
-isso não são conclusivas. O LCP e o CLS são estáveis.
+As medianas escondem bastante variação, e só as diferenças maiores que ela contam:
+
+- **TBT** varia ±200 ms entre execuções iguais nesta máquina (em `/filmes`, antes: 402/553/343 ms).
+- **LCP simulado** também varia, em até ~1 s numa mesma página. Por execução:
+  - `/`: antes 3,80/4,08/4,11 s, depois 3,70/3,84/4,92 s;
+  - `/filmes`: antes 3,92/3,93/3,92 s, depois 3,79/3,73/4,69 s;
+  - filme: antes 5,95/6,01/5,65 s, depois 4,84/4,60/5,15 s;
+  - série: antes 5,54/6,15/5,72 s, depois 5,63/5,37/5,48 s.
+- **No LCP simulado de `/` e `/filmes`, a melhora é inconclusiva**, porque os conjuntos de execuções se sobrepõem. A
+  evidência de ganho nessas duas páginas é a tabela com rede e CPU limitadas de verdade, logo abaixo.
+- **No filme, os conjuntos se separam** (5,65–6,01 s antes, 4,60–5,15 s depois). **Na série, quase** (só 5,54–5,63 s em
+  comum).
+- **O CLS é estável**: os mesmos valores em todas as execuções.
 
 **Conferência com rede e CPU limitadas de verdade** (DevTools: 150 ms de latência, 1,6 Mbps, CPU 4×, Pixel 7 emulado,
 valores observados, mediana de três primeiras visitas intercaladas):
 
-| Página | LCP antes → depois | `load` antes → depois | Imagens na 1ª carga | Bytes na 1ª carga |
-|---|---|---|---|---|
-| `/` | 3,51 s → 2,62 s | 8,3 s → 4,6 s | 29 → 13 | 1,39 MB → 0,79 MB |
-| `/filmes` | 2,84 s → 2,16 s | 8,0 s → 6,0 s | 35 → 19 | 1,70 MB → 0,89 MB |
-| Filme | 2,54 s → 2,25 s | 4,4 s → 4,2 s | 12 → 12 | 0,91 MB → 0,75 MB |
-| Série | 3,61 s → 3,48 s | 3,7 s → 3,5 s | 5 → 5 | 0,76 MB → 0,63 MB |
+| Página    | LCP antes → depois | `load` antes → depois | Imagens na 1ª carga | Bytes na 1ª carga |
+| --------- | ------------------ | --------------------- | ------------------- | ----------------- |
+| `/`       | 3,51 s → 2,62 s    | 8,3 s → 4,6 s         | 29 → 13             | 1,39 MB → 0,79 MB |
+| `/filmes` | 2,84 s → 2,16 s    | 8,0 s → 6,0 s         | 35 → 19             | 1,70 MB → 0,89 MB |
+| Filme     | 2,54 s → 2,25 s    | 4,4 s → 4,2 s         | 12 → 12             | 0,91 MB → 0,75 MB |
+| Série     | 3,61 s → 3,48 s    | 3,7 s → 3,5 s         | 5 → 5               | 0,76 MB → 0,63 MB |
 
 Sem a limitação de banda (rede local rápida, como na rodada do Lighthouse), o Chrome pedia 83 imagens do TMDb (2,6 MB) no
 carregamento da página inicial no celular; depois, 13 (420 KB).
@@ -64,8 +76,9 @@ carregamento da página inicial no celular; depois, 13 (420 KB).
 
 1. **Parallax do herói sem JavaScript** (`perf:`). O movimento de 40 px do backdrop era o único uso da `motion`, cujo
    pedaço (cerca de 47 KB gzip, três quartos sem uso) carregava e rodava em toda página com herói. Virou uma animação
-   ligada à rolagem (`animation-timeline: scroll()`), no compositor. Fica parado onde não há suporte e com movimento
-   reduzido, como antes. A dependência `motion` saiu do `package.json`.
+   ligada à rolagem (`animation-timeline: scroll()`), no compositor. Fica parado com movimento reduzido, como antes, e
+   também onde não há suporte a `animation-timeline` (Firefox por padrão, Safari anterior ao 26), que antes tinha o
+   movimento via JS. A dependência `motion` saiu do `package.json`.
 2. **Formatador de datas criado no primeiro uso** (`perf:`). `lib/format` carrega em toda página, e montar um
    `Intl.DateTimeFormat` com fuso no carregamento do módulo custava ~50 ms de thread principal com a CPU limitada.
 3. **Preconnect com o CDN do TMDb** (`perf:`). Vai no cabeçalho `Link` da resposta, então a conexão com
