@@ -128,6 +128,27 @@
   }
 }
 
+@layer components {
+  /* Hero backdrop drift (ParallaxBackdrop): 40px over the first 700px of page scroll, on the compositor. Gated so a
+     browser without scroll timelines never applies the end frame of a zero-length animation, and off for reduced
+     motion. */
+  @supports (animation-timeline: scroll()) {
+    @media (prefers-reduced-motion: no-preference) {
+      .parallax-drift {
+        animation: parallax-drift linear both;
+        animation-timeline: scroll(root block);
+        animation-range: 0 700px;
+      }
+    }
+  }
+
+  @keyframes parallax-drift {
+    to {
+      transform: translateY(40px);
+    }
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
   *,
   *::before,
