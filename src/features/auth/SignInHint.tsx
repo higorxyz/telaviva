@@ -7,10 +7,11 @@ import { useAuth } from './useAuth';
 export function SignInHint() {
   const { status } = useAuth();
   // While sign-in resolves, hold the line's space so a guest's list does not jump down. Off and signed in: no line.
-  if (status === 'loading') return <div aria-hidden="true" className="mt-6 min-h-11" />;
+  // No top margin: the toolbar above already spaces it, and the line sits nearer the list it is about.
+  if (status === 'loading') return <div aria-hidden="true" className="mb-3 min-h-11" />;
   if (status !== 'guest') return null;
   return (
-    <p className="mt-6 min-h-11 font-sans text-sm text-ivory-muted">
+    <p className="mb-3 min-h-11 font-sans text-sm text-ivory-muted">
       Entre para ver sua lista em todos os aparelhos.{' '}
       <Link href="/entrar?voltar=/minha-lista" className="inline-flex min-h-11 items-center font-medium text-amber">
         Entrar
