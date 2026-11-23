@@ -1,4 +1,6 @@
-const IMAGE_BASE = 'https://image.tmdb.org/t/p';
+/** The CDN every poster, backdrop and photo comes from (the root layout preconnects to it). */
+export const IMAGE_ORIGIN = 'https://image.tmdb.org';
+const IMAGE_BASE = `${IMAGE_ORIGIN}/t/p`;
 
 export type ImageSize =
   | 'w92'

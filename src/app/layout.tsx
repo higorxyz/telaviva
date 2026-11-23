@@ -1,11 +1,13 @@
 import type { Metadata, Viewport } from 'next';
 import { Instrument_Serif, Inter_Tight } from 'next/font/google';
+import { preconnect } from 'react-dom';
 import { VerifyEmailBanner } from '@/features/auth/VerifyEmailBanner';
 import { env } from '@/lib/env';
 import { Footer } from '@/features/shell/Footer';
 import { Header } from '@/features/shell/Header';
 import { TabBar } from '@/features/shell/TabBar';
 import { OG_BASE } from '@/features/share/page-meta';
+import { IMAGE_ORIGIN } from '@/features/tmdb/images';
 import { TOKENS } from '@/ui/tokens';
 import { Grain } from '@/ui/Grain';
 import { Providers } from './providers';
@@ -38,6 +40,9 @@ export const viewport: Viewport = {
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
+  // The hero or first posters of almost every page come from the TMDb CDN: open that connection while the HTML is
+  // still arriving instead of when the first image is found.
+  preconnect(IMAGE_ORIGIN);
   return (
     <html lang="pt-BR" className={`${instrumentSerif.variable} ${interTight.variable}`}>
       <body className="min-h-dvh">
