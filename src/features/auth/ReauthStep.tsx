@@ -11,6 +11,8 @@ import type { SessionUser } from './session-client';
 type Props = {
   /** The provider of the session: what signing in again must use (the password form, or Google). */
   provider: SessionUser['provider'];
+  /** The account's e-mail: the hidden username of the password form, so a password manager knows what to fill. */
+  email: string | null;
   password: string;
   setPassword(password: string): void;
   busy: boolean;
@@ -21,7 +23,7 @@ type Props = {
  * The deletion dialog's "sign in again" step, shown when the server asks for a recent sign-in. Focus moves to its
  * control (the password field, or "Continuar com Google") as it appears.
  */
-export function ReauthStep({ provider, password, setPassword, busy, onSubmit }: Props) {
+export function ReauthStep({ provider, email, password, setPassword, busy, onSubmit }: Props) {
   const control = useRef<HTMLButtonElement & HTMLInputElement>(null);
   const ids = { text: useId(), password: useId() };
 
@@ -36,6 +38,8 @@ export function ReauthStep({ provider, password, setPassword, busy, onSubmit }: 
       </p>
       {provider === 'password' ? (
         <form onSubmit={onSubmit} className="mt-3 flex flex-col gap-3">
+          {/* Never shown nor focusable: it tells password managers which account's password goes below. */}
+          {email ? <input type="email" name="username" autoComplete="username" value={email} readOnly hidden /> : null}
           <PasswordField
             id={ids.password}
             label="Senha"

@@ -34,6 +34,8 @@ type Props = {
   /** The session turned out to be another account's (409): the parent tells the person and reloads who is in. */
   onStale(): void;
   provider: SessionUser['provider'];
+  /** The account's e-mail, for the password managers on the "sign in again" step. */
+  email: string | null;
   busy: boolean;
   setBusy(busy: boolean): void;
   onCancel(): void;
@@ -52,7 +54,7 @@ function reauthError(error: unknown): string | null {
  * password), which mints a new session, and the deletion is tried once more.
  */
 export function DeleteDialogBody(props: Props) {
-  const { titleId, textId, expectedUid, onStale, provider, busy, setBusy, onCancel, onDeleted } = props;
+  const { titleId, textId, expectedUid, onStale, provider, email, busy, setBusy, onCancel, onDeleted } = props;
   const { reauthenticate } = useAuth();
   const offline = useIsOffline();
   const [word, setWord] = useState('');
@@ -138,6 +140,7 @@ export function DeleteDialogBody(props: Props) {
       {phase === 'reauth' ? (
         <ReauthStep
           provider={provider}
+          email={email}
           password={password}
           setPassword={setPassword}
           busy={busy}

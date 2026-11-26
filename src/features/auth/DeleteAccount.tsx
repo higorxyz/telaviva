@@ -103,6 +103,7 @@ export function DeleteAccount({ onLeaving }: { onLeaving?: () => void }) {
             expectedUid={target}
             onStale={stale}
             provider={auth.user?.provider ?? null}
+            email={auth.user?.email ?? null}
             busy={busy}
             setBusy={setBusy}
             onCancel={() => {
