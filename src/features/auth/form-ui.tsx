@@ -6,7 +6,7 @@ import { cn } from '@/lib/cn';
 
 /** 48 px tall, 16 px text (iOS never zooms in), amber border and ring on focus. */
 const INPUT =
-  'h-12 w-full rounded-xl border border-ink-600 bg-ink-900 px-4 font-sans text-base text-ivory transition-colors placeholder:text-ivory-muted hover:border-ivory/30 focus:border-amber focus:outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-amber aria-invalid:border-amber/70 motion-reduce:transition-none';
+  'h-12 w-full rounded-xl border border-ink-600 bg-ink-900 px-4 font-sans text-base text-ivory transition-colors placeholder:text-ivory-muted hover:border-ivory/30 focus:border-amber focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-amber aria-invalid:border-amber/70 motion-reduce:transition-none';
 
 type FieldProps = Omit<InputHTMLAttributes<HTMLInputElement>, 'id'> & {
   id: string;
