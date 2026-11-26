@@ -1,5 +1,6 @@
 import { withSerwist } from '@serwist/turbopack';
 import type { NextConfig } from 'next';
+import { AUTH_HELPER_PATHS, securityHeaders } from './src/lib/security-headers';
 
 const nextConfig: NextConfig = {
   // The E2E build (playwright.config.ts) goes to its own directory with its own tsconfig, so its fake Firebase config
@@ -19,7 +20,11 @@ const nextConfig: NextConfig = {
   async rewrites() {
     const projectId = process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID;
     if (!projectId || !/^[a-z0-9-]+$/.test(projectId)) return [];
-    return [{ source: '/__/auth/:path*', destination: `https://${projectId}.firebaseapp.com/__/auth/:path*` }];
+    return [{ source: AUTH_HELPER_PATHS, destination: `https://${projectId}.firebaseapp.com/__/auth/:path*` }];
+  },
+  // nosniff, referrer and permissions policies, and no framing by other sites (src/lib/security-headers.ts).
+  async headers() {
+    return securityHeaders();
   },
   // Fonts read with fs by the share-image and icon routes (keys are picomatch route globs, contains-matched).
   outputFileTracingIncludes: {

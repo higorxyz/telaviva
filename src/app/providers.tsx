@@ -1,5 +1,7 @@
 'use client';
 
+import '@/lib/zod-jitless';
+
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { useState, type ReactNode } from 'react';
 import { NavigationTracker } from '@/features/detail/NavigationTracker';
