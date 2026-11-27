@@ -81,10 +81,11 @@ export default async function SeriePage({ params, searchParams }: Props) {
               {tv.nextEpisodeToAir ? <NextEpisode episode={tv.nextEpisodeToAir} /> : null}
             </>
           }
-          afterTrailer={
+          afterTrailer={(rest) => (
             <SeasonsSection
               tv={tv}
               searchParams={searchParams}
+              after={rest}
               renderAction={(episode, aired) => (
                 <EpisodeToggle
                   tvId={tv.id}
@@ -104,7 +105,7 @@ export default async function SeriePage({ params, searchParams }: Props) {
                 />
               )}
             />
-          }
+          )}
         />
       </div>
     </>
