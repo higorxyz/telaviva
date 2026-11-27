@@ -1,8 +1,7 @@
 # Auditoria de desempenho — Fase 4 (novembro de 2026)
 
-Registro da Task 9 do plano da Fase 4: medição com Lighthouse, correções e o que ficou de fora. Metas do design da v2
-(§6 "Imagens e desempenho"): **LCP < 2,5 s** no celular em 4G, **CLS < 0,1** e **INP < 200 ms** (aqui o TBT serve de
-indicador do INP, como pede o plano).
+Registro da auditoria de desempenho da Fase 4: medição com Lighthouse, correções e o que ficou de fora. Metas da v2:
+**LCP < 2,5 s** no celular em 4G, **CLS < 0,1** e **INP < 200 ms** (aqui o TBT serve de indicador do INP).
 
 ## Como foi medido
 
@@ -113,8 +112,8 @@ carregamento da página inicial no celular; depois, 13 (420 KB).
   LCP observado depois das correções fica em 2,6 s (`/`), 2,2 s (`/filmes`) e 2,2 s (filme).
   - Chegar a 2,5 s no modelo simulado exigiria cortar pela metade o JavaScript inicial, que é quase todo do Next e do React,
     ou não usar as fontes da identidade. As duas coisas estão fora do escopo de uma auditoria.
-  - A medição em produção, prevista no spec para logo depois do lançamento, vai mostrar o número sem a distorção do
-    `localhost`.
+  - A medição em produção, feita logo depois do lançamento (seção "Medição em produção", abaixo), mostra o número sem a
+    distorção do `localhost`.
 - **Série (3,5 s observados, 5,5 s simulados)**: é a página que segue fora da meta mesmo com a rede limitada de verdade.
   O backdrop de Breaking Bad tem 101 KB em `w780` (o de Divertida Mente 2, 77 KB; o da página inicial, 51 KB), e a página
   carrega mais JavaScript que as outras (~307 KB gzip em 21 pedaços, contra ~245 KB em 15 na página inicial: seletor

@@ -1,6 +1,6 @@
 # Auditoria de segurança, acessibilidade e SEO — Fase 4 (novembro de 2026)
 
-Registro da Task 10 do plano da Fase 4 (spec §6.6 e §8): cabeçalhos de segurança e CSP, dependências, revisão de
+Registro da auditoria de segurança e acessibilidade da Fase 4: cabeçalhos de segurança e CSP, dependências, revisão de
 segurança das rotas novas, teclado, contraste, axe, `robots.txt`, `sitemap.xml` e o formulário de reautenticação.
 
 ## Cabeçalhos de segurança
@@ -156,8 +156,9 @@ Tudo passa AA (e AAA, 7:1, sobre ink-950/900/800). `ink-950` sobre `amber` (bot�
 - **Reautenticação:** o formulário de senha de "Excluir minha conta" ganhou `<input type="email" autocomplete="username"
 hidden>` com o e-mail da conta, no mesmo `<form>` da senha (`autocomplete="current-password"`), para gerenciadores de
   senha. Fora da árvore de acessibilidade e do Tab.
-- **Firewall da Vercel** (`/api/recommendations`, `/api/tv/*`, login): proposta no plano, aplicar só com aprovação do
-  autor. Não feito aqui.
+- **Firewall da Vercel**: aplicado depois do lançamento, com aprovação do autor. Uma regra de limite para toda a `/api`
+  (300 requisições por minuto por IP, 429 por 1 minuto acima disso); o plano Hobby só permite uma regra desse tipo, e o
+  login segue com o limitador do próprio app.
 - **Lembrete ao autor:** `!.env.example` no `.gitignore` (alteração dele, sem commit).
 
 ## Testes
