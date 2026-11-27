@@ -1,8 +1,8 @@
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { createEvent, fireEvent, render, screen } from '@testing-library/react';
+import { act, createEvent, fireEvent, render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import type { ReactNode } from 'react';
-import { describe, expect, it } from 'vitest';
+import { afterEach, describe, expect, it, vi } from 'vitest';
 import { LibraryProvider } from '@/features/library/LibraryProvider';
 import type { LibraryRepository } from '@/features/library/repository';
 import { EMPTY_LIBRARY } from '@/features/library/types';
@@ -14,6 +14,35 @@ const five = [1, 2, 3, 4, 5].map((id) => movie({ id, title: `Filme ${id}` }));
 const title = { lead: 'Séries', accent: 'em alta' };
 
 describe('Rail', () => {
+  afterEach(() => {
+    vi.unstubAllGlobals();
+    vi.restoreAllMocks();
+  });
+
+  it('measures its overflow in the ResizeObserver callback, never with a forced layout on mount', () => {
+    const callbacks: Array<() => void> = [];
+    vi.stubGlobal(
+      'ResizeObserver',
+      class {
+        constructor(callback: () => void) {
+          callbacks.push(callback);
+        }
+        observe() {}
+        disconnect() {}
+      },
+    );
+    const reads = vi.spyOn(HTMLElement.prototype, 'scrollWidth', 'get').mockReturnValue(2000);
+    vi.spyOn(HTMLElement.prototype, 'clientWidth', 'get').mockReturnValue(400);
+    render(<Rail id="r" title={title} href="/series/em-alta" items={five} />);
+    expect(reads).not.toHaveBeenCalled();
+    expect(screen.queryByRole('button', { name: 'Rolar para a direita' })).toBeNull();
+
+    // The browser calls the observer once, after its own layout.
+    act(() => callbacks.forEach((callback) => callback()));
+    expect(reads).toHaveBeenCalled();
+    expect(screen.getByRole('button', { name: 'Rolar para a direita' })).toBeInTheDocument();
+  });
+
   it('is a labelled region', () => {
     render(<Rail id="r" title={title} href="/series/em-alta" items={five} />);
     expect(screen.getByRole('region', { name: 'Séries em alta' })).toBeInTheDocument();
