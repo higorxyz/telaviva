@@ -4,6 +4,13 @@ import { isFirebaseLoaded, loadFirebase } from './firebase-client';
 import { clearAuthHint, fetchMe, hasAuthHint, type MeResult, type SessionUser } from './session-client';
 import { redirectPending } from './sign-in';
 
+/**
+ * Signed in from the device, how long until `/api/auth/me` is asked again without any event: 30 s, doubling while it
+ * still fails, up to 5 min. A slow but reachable server (or a 5xx) never fires `online`, so a timer must ask too.
+ */
+export const OFFLINE_RECHECK_MS = 30_000;
+export const OFFLINE_RECHECK_MAX_MS = 5 * 60_000;
+
 type Deps = {
   state: AuthState;
   device: DeviceSession;
@@ -19,7 +26,8 @@ type Deps = {
  * - A pending "Sair" (its DELETE never reached the server) goes first: its DELETE is the first request, and while it
  *   has not landed the `tv_auth` hint is ignored and nothing renews a session: the app is a visitor.
  * - With the hint, `/api/auth/me` that fails by network or 5xx (after `patientMe`'s retries) signs in with the identity
- *   kept on the device, without a toast, and asks again once the connection is back. Only a true 401 ends the session.
+ *   kept on the device, without a toast, and asks again on `online`, when the tab comes back into view, and on a
+ *   timer (OFFLINE_RECHECK_MS, backing off). Only a true 401 ends the session.
  * - A visitor's start (no hint, no redirect) never waits on the device store.
  */
 export function createStartUp({ state, device, renew, patientMe, completeRedirect }: Deps) {
@@ -32,22 +40,57 @@ export function createStartUp({ state, device, renew, patientMe, completeRedirec
     });
   }
 
-  /** Signed in from the device; once online, `/api/auth/me` decides (a 401 renews, or expires the session). */
+  /**
+   * Signed in from the device; `/api/auth/me` decides as soon as it answers (a 401 renews, or expires the session).
+   * Asked on `online`, when the tab comes back into view and on a backing-off timer, one request at a time, until it
+   * answers or the session changed (sign-out, another account).
+   */
   function signInOffline(started: number, user: SessionUser) {
     state.signedIn(user);
-    window.addEventListener(
-      'online',
-      () => {
-        if (started !== state.generation || state.uid !== user.id) return;
-        void (async () => {
+    let checking = false;
+    let delay = OFFLINE_RECHECK_MS;
+    let timer: ReturnType<typeof setTimeout> | undefined;
+    const current = () => started === state.generation && state.uid === user.id;
+    const stop = () => {
+      clearTimeout(timer);
+      window.removeEventListener('online', check);
+      document.removeEventListener('visibilitychange', onVisible);
+    };
+    const schedule = () => {
+      clearTimeout(timer);
+      timer = setTimeout(check, delay);
+      delay = Math.min(delay * 2, OFFLINE_RECHECK_MAX_MS);
+    };
+    function onVisible() {
+      if (document.visibilityState === 'visible') check();
+    }
+    function check() {
+      if (!current()) return stop();
+      if (checking) return;
+      checking = true;
+      void (async () => {
+        try {
           const me = await fetchMe();
-          if (started !== state.generation || state.uid !== user.id) return;
-          if (me.kind === 'user') state.signedIn(me.user);
-          else if (me.kind === 'unauthenticated') await renew();
-        })();
-      },
-      { once: true },
-    );
+          if (!current()) return stop();
+          if (me.kind === 'user') {
+            stop();
+            state.signedIn(me.user);
+          } else if (me.kind === 'unauthenticated') {
+            stop();
+            await renew();
+          } else if (me.kind === 'off') {
+            stop();
+          } else {
+            schedule();
+          }
+        } finally {
+          checking = false;
+        }
+      })();
+    }
+    window.addEventListener('online', check);
+    document.addEventListener('visibilitychange', onVisible);
+    schedule();
   }
 
   return async function start() {

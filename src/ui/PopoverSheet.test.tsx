@@ -115,6 +115,25 @@ describe('PopoverSheet', () => {
     expect(within(panel()).getByRole('button', { name: 'Primeiro' })).toHaveFocus();
   });
 
+  it('mobile: a tap right after the native Esc (its close event still queued) opens the sheet again', async () => {
+    mq.matches = false;
+    const user = userEvent.setup();
+    render(<Harness />);
+    await user.click(trigger());
+    const late: Array<() => void> = [];
+    vi.spyOn(HTMLDialogElement.prototype, 'close').mockImplementation(function close(this: HTMLDialogElement) {
+      this.removeAttribute('open');
+      late.push(() => this.dispatchEvent(new Event('close')));
+    });
+    act(() => panel().close()); // what Esc does on a native modal dialog
+    expect(panel()).not.toHaveAttribute('open');
+    await user.click(trigger());
+    expect(panel()).toHaveAttribute('open');
+    act(() => late.forEach((deliver) => deliver()));
+    expect(panel()).toHaveAttribute('open');
+    expect(trigger()).toHaveAttribute('aria-expanded', 'true');
+  });
+
   it('closes on an outside click without pulling focus back', async () => {
     const user = userEvent.setup();
     render(<Harness />);
