@@ -1,4 +1,4 @@
-import { z } from 'zod';
+import { z } from 'zod/mini';
 import type { LibraryCommand } from './commands';
 import { LIBRARY_LIMITS, PG_INT_MAX } from './limits';
 import {
@@ -19,14 +19,14 @@ import {
  */
 
 const refSchema = z.object({ mediaType, tmdbId: id });
-const episodeRef = z.object({ seasonNumber, episodeNumber: z.number().int().min(0).max(PG_INT_MAX) });
+const episodeRef = z.object({ seasonNumber, episodeNumber: z.int().check(z.minimum(0), z.maximum(PG_INT_MAX)) });
 const markRef = z.object({ seasonNumber, episodeNumber });
 
 const fingerprintSchema = z.object({
-  itemUpdatedAt: isoDate.nullable(),
-  ratingUpdatedAt: isoDate.nullable(),
-  markCount: z.number().int().min(0).max(LIBRARY_LIMITS.marks),
-  latestMarkAt: isoDate.nullable(),
+  itemUpdatedAt: z.nullable(isoDate),
+  ratingUpdatedAt: z.nullable(isoDate),
+  markCount: z.int().check(z.minimum(0), z.maximum(LIBRARY_LIMITS.marks)),
+  latestMarkAt: z.nullable(isoDate),
 });
 
 const progressSchema = z
@@ -34,13 +34,13 @@ const progressSchema = z
     tvId: id,
     ended: z.boolean(),
     seasons: z
-      .array(z.object({ seasonNumber, episodeCount: z.number().int().min(0).max(LIBRARY_LIMITS.marks) }))
-      .max(1_000),
-    lastAired: episodeRef.nullable(),
-    nextToAir: episodeRef.extend({ airDate: z.string().max(40).nullable() }).nullable(),
+      .array(z.object({ seasonNumber, episodeCount: z.int().check(z.minimum(0), z.maximum(LIBRARY_LIMITS.marks)) }))
+      .check(z.maxLength(1_000)),
+    lastAired: z.nullable(episodeRef),
+    nextToAir: z.nullable(z.extend(episodeRef, { airDate: z.nullable(z.string().check(z.maxLength(40))) })),
   })
   // `setStatus` to watched marks every aired episode: never more than a user may keep.
-  .refine((p) => p.seasons.reduce((sum, s) => sum + s.episodeCount, 0) <= LIBRARY_LIMITS.marks);
+  .check(z.refine((p) => p.seasons.reduce((sum, s) => sum + s.episodeCount, 0) <= LIBRARY_LIMITS.marks));
 
 const commandSchema = z.discriminatedUnion('type', [
   z.object({
@@ -48,15 +48,20 @@ const commandSchema = z.discriminatedUnion('type', [
     ref: refSchema,
     status: z.enum(['want', 'watching', 'watched']),
     snapshot: snapshotSchema,
-    progress: progressSchema.optional(),
+    progress: z.optional(progressSchema),
   }),
   z.object({ type: z.literal('remove'), ref: refSchema }),
-  z.object({ type: z.literal('rate'), ref: refSchema, score: z.number().int().min(1).max(10), snapshot: snapshotSchema }),
+  z.object({
+    type: z.literal('rate'),
+    ref: refSchema,
+    score: z.int().check(z.minimum(1), z.maximum(10)),
+    snapshot: snapshotSchema,
+  }),
   z.object({ type: z.literal('unrate'), ref: refSchema }),
   z.object({
     type: z.literal('setEpisodes'),
     tvId: id,
-    marks: z.array(markRef).max(LIBRARY_LIMITS.marksPerSetEpisodes),
+    marks: z.array(markRef).check(z.maxLength(LIBRARY_LIMITS.marksPerSetEpisodes)),
     watched: z.boolean(),
     snapshot: snapshotSchema,
     progress: progressSchema,
@@ -64,10 +69,10 @@ const commandSchema = z.discriminatedUnion('type', [
   z.object({
     type: z.literal('restore'),
     ref: refSchema,
-    item: itemSchema.nullable(),
-    rating: ratingSchema.nullable(),
-    marks: z.array(episodeSchema).max(LIBRARY_LIMITS.marks),
-    expected: fingerprintSchema.optional(),
+    item: z.nullable(itemSchema),
+    rating: z.nullable(ratingSchema),
+    marks: z.array(episodeSchema).check(z.maxLength(LIBRARY_LIMITS.marks)),
+    expected: z.optional(fingerprintSchema),
   }),
 ]);
 
@@ -109,8 +114,8 @@ export type CommandEnvelope = { command: LibraryCommand; at?: string; commandId?
 const envelopeSchema = z.object({
   command: z.unknown(),
   // ISO 8601 with an offset; 40 characters hold any real one, fractions included.
-  at: z.string().max(40).pipe(isoDate).optional(),
-  commandId: z.uuid().optional(),
+  at: z.optional(z.pipe(z.string().check(z.maxLength(40)), isoDate)),
+  commandId: z.optional(z.uuid()),
 });
 
 /** The envelope when the command and both optional fields are valid, or null. */

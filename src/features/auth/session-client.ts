@@ -1,4 +1,4 @@
-import { z } from 'zod';
+import { z } from 'zod/mini';
 import { requestDeadline } from '@/lib/request-timeout';
 
 /** The signed-in user as `/api/auth/me` and `POST /api/auth/session` answer it (src/server/auth/session.ts). */
@@ -15,13 +15,13 @@ export type SessionUser = {
 
 /** A `SessionUser` as the server sends it (and as offline-identity.ts keeps it on the device). */
 export const sessionUserSchema = z.object({
-  id: z.string().min(1),
-  email: z.string().nullable(),
-  name: z.string().nullable(),
-  photoUrl: z.string().nullable(),
+  id: z.string().check(z.minLength(1)),
+  email: z.nullable(z.string()),
+  name: z.nullable(z.string()),
+  photoUrl: z.nullable(z.string()),
   emailVerified: z.boolean(),
   authTime: z.number(),
-  provider: z.enum(['google', 'password']).nullable().catch(null),
+  provider: z.catch(z.nullable(z.enum(['google', 'password'])), null),
 });
 
 const userBody = z.object({ user: sessionUserSchema });
