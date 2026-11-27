@@ -1,3 +1,4 @@
+import { isLeaving } from '../offline/leaving';
 import type { OfflineStore, QueuedCommand } from '../offline/store-types';
 import { postLibraryMessage, withQueueLock } from './queue-sync';
 import {
@@ -125,7 +126,8 @@ export function createQueueFlusher(options: Options): QueueFlusher {
         onProgress?.();
       }
     } finally {
-      if (last) await store.putSnapshot(uid, last).catch(() => {});
+      // Not once "Sair" started: its wipe (run again after this lock, device-session.ts) must have the last word.
+      if (last && !isLeaving(uid)) await store.putSnapshot(uid, last).catch(() => {});
       // Also when the run only dropped actions: the other tabs' counts and lists must drop them too.
       if (changed) {
         postLibraryMessage({ uid, kind: last ? 'synced' : 'queue' });

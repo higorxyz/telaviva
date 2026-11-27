@@ -1,6 +1,9 @@
 import 'fake-indexeddb/auto';
+import { http, HttpResponse } from 'msw';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import { clearLeaving, markLeaving } from '../offline/leaving';
 import type { OfflineStore } from '../offline/store-types';
+import { server as msw } from '@/test/server';
 import { applyCommand, type LibraryCommand } from './commands';
 import { createOfflineAccountRepository } from './offline-repository';
 import {
@@ -307,3 +310,85 @@ describe('createOfflineAccountRepository: signal but no data (navigator.onLine s
   });
 });
 
+describe('createOfflineAccountRepository: an answer landing after "Sair" wiped the account', () => {
+  const url = (path: string) => `${window.location.origin}${path}`;
+  afterEach(() => clearLeaving(UID));
+
+  /** Holds the next answer to `method path` until `release()` (or makes it fail as a network error: `fail()`). */
+  function holdNext(method: 'get' | 'post', path: string, answer: () => Response) {
+    let release!: () => void;
+    let fail!: () => void;
+    const gate = new Promise<boolean>((resolve) => {
+      release = () => resolve(true);
+      fail = () => resolve(false);
+    });
+    let arrived = false;
+    msw.use(
+      http[method](
+        url(path),
+        async () => {
+          arrived = true;
+          return (await gate) ? answer() : HttpResponse.error();
+        },
+        { once: true },
+      ),
+    );
+    return { release, fail, arrived: () => arrived };
+  }
+
+  /** What "Sair" does to the device (auth-flows.ts `leave`): the mark first, then the wipe. */
+  async function signOut() {
+    markLeaving(UID);
+    await store.wipeAccount(UID);
+  }
+
+  it('a load in flight writes no copy back', async () => {
+    const fake = fakeLibraryServer(applyCommand(EMPTY_LIBRARY, want(1), T0));
+    const { repository } = setup();
+    await loadedOnline(repository);
+    const held = holdNext('get', '/api/library', () => HttpResponse.json(fake.stored));
+    const loading = repository.load();
+    await vi.waitUntil(held.arrived);
+    await signOut();
+    held.release();
+    await loading;
+    expect(await store.getSnapshot(UID)).toBeNull();
+  });
+
+  it('a send in flight writes no copy back', async () => {
+    const fake = fakeLibraryServer(applyCommand(EMPTY_LIBRARY, want(1), T0));
+    const { repository } = setup();
+    await loadedOnline(repository);
+    const held = holdNext('post', '/api/library/commands', () =>
+      HttpResponse.json({ library: applyCommand(fake.stored, want(2), T1), previous: null }),
+    );
+    const sending = repository.applyWithPreImage!(want(2));
+    await vi.waitUntil(held.arrived);
+    await signOut();
+    held.release();
+    await sending;
+    expect(await store.getSnapshot(UID)).toBeNull();
+  });
+
+  it('a send in flight that then fails is not queued (it fails, nothing is kept)', async () => {
+    fakeLibraryServer(applyCommand(EMPTY_LIBRARY, want(1), T0));
+    const { repository } = setup();
+    await loadedOnline(repository);
+    const held = holdNext('post', '/api/library/commands', () => HttpResponse.error());
+    const sending = repository.applyWithPreImage!(want(2)).catch((error: unknown) => error);
+    await vi.waitUntil(held.arrived);
+    markLeaving(UID);
+    held.fail();
+    expect(await sending).toMatchObject({ network: true });
+    expect(await store.countQueue(UID)).toBe(0);
+  });
+
+  it('after signing in again, the copy is kept as usual', async () => {
+    const fake = fakeLibraryServer(applyCommand(EMPTY_LIBRARY, want(1), T0));
+    const { repository } = setup();
+    await signOut();
+    clearLeaving(UID);
+    await repository.load();
+    expect((await store.getSnapshot(UID))?.state).toEqual(fake.stored);
+  });
+});

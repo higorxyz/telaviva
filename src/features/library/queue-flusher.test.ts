@@ -1,5 +1,6 @@
 import 'fake-indexeddb/auto';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import { clearLeaving, markLeaving } from '../offline/leaving';
 import type { OfflineStore } from '../offline/store-types';
 import { applyCommand } from './commands';
 import { createQueueFlusher, type FlushOutcome } from './queue-flusher';
@@ -263,6 +264,22 @@ describe('createQueueFlusher', () => {
     expect(retries).toEqual([2000]);
     // The lock is free again: another holder gets it at once.
     expect((await withQueueLock(async () => 'free', { ifAvailable: true })).ran).toBe(true);
+  });
+
+  it('a run still sending when "Sair" starts saves no copy at the end', async () => {
+    const fake = fakeLibraryServer();
+    await enqueue(queuedCommand(want(1), T1));
+    const { flusher } = setup();
+    const answered = fake.received.length;
+    const run = flusher.flush();
+    markLeaving(UID);
+    try {
+      await run;
+      expect(fake.received.length).toBe(answered + 1);
+      expect(await store.getSnapshot(UID)).toBeNull();
+    } finally {
+      clearLeaving(UID);
+    }
   });
 
   it('caps the wait between retries at 5 minutes', async () => {

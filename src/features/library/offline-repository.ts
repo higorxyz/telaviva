@@ -1,3 +1,4 @@
+import { isLeaving } from '../offline/leaving';
 import type { OfflineStore, QueuedCommand } from '../offline/store-types';
 import { applyCommand, type LibraryCommand } from './commands';
 import { NOTICE } from './copy';
@@ -54,7 +55,8 @@ const quietly = <T>(promise: Promise<T>): Promise<T | null> => promise.catch(() 
  *   waiting (to keep the order) or no answer, onto the queue: it answers the copy with the queue on top and no
  *   pre-image (`previous: null`); `queued` says how to undo it. A restore is never queued.
  *
- * When the store fails, each call falls back to the plain server behaviour.
+ * When the store fails, each call falls back to the plain server behaviour. Once the account is signing out
+ * (leaving.ts), an answer still in flight saves no copy and an action is no longer queued.
  */
 export function createOfflineAccountRepository(options: Options): OfflineAccountRepository {
   const { server, store, uid, now = () => new Date().toISOString() } = options;
@@ -94,16 +96,21 @@ export function createOfflineAccountRepository(options: Options): OfflineAccount
 
   async function send(command: LibraryCommand, commandId: string): Promise<AppliedCommand> {
     const applied = await server.applyWithPreImage(command, { commandId });
-    await quietly(store.putSnapshot(uid, applied.state));
+    // An answer landing after "Sair" wiped the account never writes it back (leaving.ts, as in device-meta.ts).
+    // Checked right before the write, which starts in the same task: a wipe that begins later removes it.
+    if (!isLeaving(uid)) await quietly(store.putSnapshot(uid, applied.state));
     // A success means the server answers: send whatever another tab may have queued.
     kick();
     return applied;
   }
 
   async function enqueue(command: LibraryCommand, id: string, at: string, failure: unknown): Promise<AppliedCommand> {
+    if (isLeaving(uid)) throw failure;
     const view = await quietly(local());
     if (!view) throw failure;
     const state = applyCommand(view.state, command, at);
+    // Signing out meanwhile: the action fails like no answer, and nothing of the account is queued.
+    if (isLeaving(uid)) throw failure;
     if ((await quietly(store.enqueue({ id, uid, command, at, attempts: 0 }))) === null) throw failure;
     queueChanged();
     postLibraryMessage({ uid, kind: 'queue' });
@@ -182,6 +189,7 @@ export function createOfflineAccountRepository(options: Options): OfflineAccount
         if (!view) throw error;
         return view.state;
       }
+      if (isLeaving(uid)) return state;
       await quietly(store.putSnapshot(uid, state));
       return replay(state, (await quietly(store.listQueue(uid))) ?? []);
     },
