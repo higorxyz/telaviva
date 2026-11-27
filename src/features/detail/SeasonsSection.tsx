@@ -45,12 +45,16 @@ async function Episodes({
 /**
  * Seasons and episodes. `searchParams` is read only here, inside Suspense, so the page itself stays
  * static-friendly and keeps real 308/404 status codes.
+ *
+ * `after` (the sections below this one) streams in the same boundary, so it never sits under the placeholder in the
+ * static shell (see DetailSections). The placeholder keeps the section title, as before.
  */
 export function SeasonsSection({
   tv,
   searchParams,
   renderAction,
   renderSeasonActions,
+  after,
 }: {
   tv: TvDetails;
   searchParams: SearchParams;
@@ -58,17 +62,27 @@ export function SeasonsSection({
   renderAction?: RenderAction;
   /** Season-level slot above the episode list (Phase 2: mark the whole season). */
   renderSeasonActions?: RenderSeasonActions;
+  /** What follows the section on the page, streamed together with the episodes. */
+  after?: ReactNode;
 }) {
+  const title = { lead: 'Temporadas e', accent: 'episódios' };
   return (
-    <DetailSection id="episodios" title={{ lead: 'Temporadas e', accent: 'episódios' }}>
-      <Suspense fallback={<Skeleton className="h-96 w-full" />}>
+    <Suspense
+      fallback={
+        <DetailSection id="episodios" title={title}>
+          <Skeleton className="h-96 w-full" />
+        </DetailSection>
+      }
+    >
+      <DetailSection id="episodios" title={title}>
         <Episodes
           tv={tv}
           searchParams={searchParams}
           renderAction={renderAction}
           renderSeasonActions={renderSeasonActions}
         />
-      </Suspense>
-    </DetailSection>
+      </DetailSection>
+      {after}
+    </Suspense>
   );
 }

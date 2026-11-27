@@ -130,8 +130,16 @@ export function resolve(pathname: string, params: URLSearchParams, authorization
   }
 }
 
-createServer((req, res) => {
+/**
+ * The seasons of this series answer late, like a real TMDb on a cold cache: the page's static shell then reaches the
+ * browser well before the streamed episodes (e2e/detail.spec.ts, cast photos).
+ */
+const SLOW_SEASON = /^\/3\/tv\/4242\/season\/\d+$/;
+const SLOW_SEASON_MS = 1500;
+
+createServer(async (req, res) => {
   const url = new URL(req.url ?? '/', `http://127.0.0.1:${PORT}`);
+  if (SLOW_SEASON.test(url.pathname)) await new Promise((done) => setTimeout(done, SLOW_SEASON_MS));
   const resolved = req.method === 'GET' ? resolve(url.pathname, url.searchParams, req.headers.authorization) : notFound;
   const { status } = resolved;
   let body = resolved.body;

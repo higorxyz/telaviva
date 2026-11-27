@@ -71,3 +71,27 @@ test('series page lists episodes and switching season keeps the scroll position'
   const after = await page.evaluate(() => window.scrollY);
   expect(Math.abs(after - before)).toBeLessThan(50);
 });
+
+test('series page: cast photos wait for the person to scroll near them (they never compete with the backdrop)', async ({
+  page,
+  isMobile,
+}) => {
+  test.skip(!isMobile, 'the long episode list pushes the cast far below on a phone');
+  const requested: string[] = [];
+  page.on('request', (r) => {
+    if (r.resourceType() === 'image') requested.push(r.url());
+  });
+  // Series 4242: the mock answers its seasons late, so the episodes stream in well after the static shell.
+  await page.goto('/serie/4242-game-of-thrones?temporada=1', { waitUntil: 'load' });
+  const cast = page.locator('#elenco img');
+  await expect(cast.first()).toBeAttached();
+  await page.waitForTimeout(1000);
+  const sources = await cast.evaluateAll((imgs) => imgs.map((img) => (img as HTMLImageElement).src));
+  expect(sources.length).toBeGreaterThan(0);
+  expect(requested.filter((url) => sources.some((src) => url.split('/').pop() === src.split('/').pop()))).toEqual([]);
+
+  await page.locator('#elenco').scrollIntoViewIfNeeded();
+  await expect
+    .poll(() => requested.filter((url) => sources.some((src) => url.split('/').pop() === src.split('/').pop())).length)
+    .toBeGreaterThan(0);
+});
