@@ -61,7 +61,7 @@ export async function sendResetIfVerified(email: string): Promise<void> {
         // Firebase writes the e-mail in this language when the template is the default one.
         'X-Firebase-Locale': 'pt-BR',
         // The site itself, like the browser's own calls with this key. The key must still carry no HTTP-referrer
-        // restriction (docs/setup/fase3-contas.md): a server's Referer is not something to rely on.
+        // restriction (docs/setup/configuracao.md, "O que nunca fazer"): a server's Referer is not something to rely on.
         Referer: `${new URL(env.SITE_URL).origin}/`,
       },
       body: JSON.stringify({ requestType: 'PASSWORD_RESET', email }),
