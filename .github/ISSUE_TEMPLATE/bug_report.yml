@@ -1,6 +1,6 @@
 name: Bug report
 description: Report a reproducible defect
-title: "bug: "
+title: 'bug: '
 labels:
   - bug
   - needs-triage
@@ -12,11 +12,13 @@ body:
       description: Which part of the app is affected?
       options:
         - Home
-        - Movie Details
-        - Discover
-        - Trending
+        - Movie or series details
+        - Episode tracking
         - Search
-        - Genre/Category
+        - Discover / genres
+        - Minha lista
+        - Sign-in / account
+        - Offline / installed app
         - Navigation
         - Build/CI
         - Other
@@ -64,8 +66,8 @@ body:
     id: environment
     attributes:
       label: Environment
-      description: Browser, OS, screen size, app version/branch.
-      placeholder: Chrome 136, Windows 11, 1920x1080
+      description: Device, browser, signed in or visitor, online or offline, installed app or tab.
+      placeholder: Pixel 7, Chrome 142, signed in, installed app, offline
     validations:
       required: true
 
