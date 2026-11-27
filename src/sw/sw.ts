@@ -20,7 +20,9 @@ const serwist = new Serwist({
   // reserve keeps the previous build's files for tabs opened before it.
   skipWaiting: true,
   clientsClaim: true,
-  navigationPreload: true,
+  // Off on purpose: private navigations (/__/auth, downloads) and precached pages never use the preloaded response,
+  // so Chrome cancels it and logs an error each time. Pages are network-first anyway.
+  navigationPreload: false,
   runtimeCaching,
   fallbacks: {
     entries: [{ url: OFFLINE_URL, matcher: ({ request }) => request.destination === 'document' }],
