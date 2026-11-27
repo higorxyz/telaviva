@@ -162,13 +162,26 @@ Como ler a tabela:
   imagem, 1,26 s baixando a imagem e 0,04 s até pintar. A imagem é descoberta cedo e pedida com prioridade alta; o que
   pesa é a banda dividida com o JavaScript (~260–300 KB), as fontes (75 KB) e as imagens abaixo da dobra.
 
-Próximos passos, em ordem de ganho provável:
+### Depois: imagens da série e trilhos (mesmo dia)
 
-1. **Hidratação da página inicial.** Uma tarefa longa de ~560 ms no pedaço do roteador do Next é a hidratação do
-   React. Medir com o Profiler do React quais componentes de cliente custam mais (cartões dos trilhos, herói) antes de
-   mexer.
-2. **Imagens abaixo da dobra na página da série.** Pôsteres das recomendações (15 × `w342`) e fotos de episódio
-   (6 × `w780`) já têm `loading="lazy"`, mas estão dentro da distância em que o Chrome as baixa mesmo assim, e disputam
-   a banda com o backdrop. Uma opção é só montar essas seções perto da tela.
-3. **Medir usuários reais** (Vercel Speed Insights ou `web-vitals`), porque o modelo simulado do Lighthouse soma ao LCP
-   tudo o que terminou antes dele.
+- **Página da série** (PR #40): a sondagem num Pixel 7 emulado mostrou que as 20 fotos do elenco (a ~8.700 px do topo)
+  eram baixadas no carregamento. A lista de episódios é transmitida depois (Suspense); no shell estático, o elenco
+  ficava logo abaixo do espaço reservado de 24rem, a ~2.100 px do topo enquanto o HTML chegava, perto o bastante para o
+  Chrome baixar as imagens `loading="lazy"`. As seções abaixo dos episódios passaram a ser transmitidas junto com eles.
+  No Lighthouse da produção, a primeira carga da série foi de **27 imagens (778 KB) para 9 (391 KB)**, iguais nas três
+  execuções. O LCP simulado não mudou (o backdrop já era pedido primeiro, com prioridade alta); o ganho é de banda para
+  quem tem conexão lenta ou plano de dados limitado. Um E2E com temporadas que respondem com atraso protege isso.
+- **Trilhos** (PR #41): o perfil de CPU da página inicial (CPU 4× mais lenta) mostrou ~240 ms de layout forçado: cada
+  trilho lia `scrollWidth` no efeito de montagem para decidir as setas. A primeira medição agora fica com o
+  `ResizeObserver`, que roda depois do layout do navegador. O pedaço do trilho foi de 261 ms de tempo próprio para 0 ms
+  em quatro perfis. O TBT do Lighthouse segue variando demais entre execuções (649 e 853 ms na página inicial, com o
+  mesmo código) para mostrar isso sozinho.
+- **Hidratação, o resto:** o JavaScript da página inicial já é enxuto (`react-dom` 70 KB, Next 44 KB, o resto em
+  pedaços pequenos; os polyfills são `noModule` e os navegadores atuais não os baixam). O que sobra é o custo normal de
+  hidratar a página e de avaliar os módulos.
+
+Próximo passo:
+
+- **Medir usuários reais** (Vercel Speed Insights ou `web-vitals`), porque o modelo simulado do Lighthouse soma ao LCP
+  tudo o que terminou antes dele. Depende de uma decisão do autor: o Speed Insights envia métricas de cada visita à
+  Vercel e pode ter custo conforme o plano.
