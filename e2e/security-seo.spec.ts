@@ -21,7 +21,7 @@ test('the service worker keeps its root scope header', async ({ request }) => {
   expect(response.headers()['x-content-type-options']).toBe('nosniff');
 });
 
-test('robots.txt keeps crawlers off the account, sign-in, API and worker paths and points to the sitemap', async ({
+test('robots.txt keeps crawlers off the API and worker paths (not the noindex pages) and points to the sitemap', async ({
   request,
 }) => {
   const response = await request.get('/robots.txt');
@@ -29,7 +29,9 @@ test('robots.txt keeps crawlers off the account, sign-in, API and worker paths a
   const body = await response.text();
   expect(body).toContain('User-Agent: *');
   expect(body).toContain('Allow: /');
-  for (const path of ['/conta', '/entrar', '/api/', '/serwist/']) expect(body).toContain(`Disallow: ${path}`);
+  for (const path of ['/api/', '/serwist/']) expect(body).toContain(`Disallow: ${path}`);
+  // `/conta` and `/entrar` are `noindex`: crawlers must be able to fetch them to see it.
+  for (const path of ['/conta', '/entrar']) expect(body).not.toContain(`Disallow: ${path}`);
   expect(body).toContain(`Sitemap: ${APP_URL}/sitemap.xml`);
 });
 

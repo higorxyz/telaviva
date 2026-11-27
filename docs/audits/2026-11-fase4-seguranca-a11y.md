@@ -142,7 +142,9 @@ Tudo passa AA (e AAA, 7:1, sobre ink-950/900/800). `ink-950` sobre `amber` (bot�
 
 ## SEO
 
-- `src/app/robots.ts`: libera tudo menos `/conta`, `/entrar`, `/api/` e `/serwist/`; aponta o sitemap em `SITE_URL`.
+- `src/app/robots.ts`: libera tudo menos `/api/` e `/serwist/`; aponta o sitemap em `SITE_URL`. `/conta` e `/entrar`
+  ficam liberadas de propósito: são `noindex`, e um bloqueio no `robots.txt` esconderia essa marca dos buscadores
+  (revisão final da fase).
 - `src/app/sitemap.ts`: `/`, `/filmes`, `/series`, `/descobrir`, `/generos`, as listas de `/filmes/[lista]` e
   `/series/[lista]` e todas as páginas de gênero (das mesmas listas em cache que prerenderizam essas páginas). Sem páginas
   de título, conta, busca ou Minha lista. Os dois saem estáticos no build (`○ /robots.txt`, `○ /sitemap.xml`, revalida

@@ -12,13 +12,15 @@ async function load(siteUrl?: string) {
 }
 
 describe('robots', () => {
-  it('lets every crawler in except the account, sign-in, API and service-worker paths', async () => {
+  it('lets every crawler in except the API and service-worker paths', async () => {
     const robots = await load();
-    expect(robots.rules).toEqual({
-      userAgent: '*',
-      allow: '/',
-      disallow: ['/conta', '/entrar', '/api/', '/serwist/'],
-    });
+    expect(robots.rules).toEqual({ userAgent: '*', allow: '/', disallow: ['/api/', '/serwist/'] });
+  });
+
+  it('leaves the account and sign-in pages crawlable, so their noindex is seen', async () => {
+    const { disallow } = (await load()).rules as { disallow: string[] };
+    expect(disallow).not.toContain('/conta');
+    expect(disallow).not.toContain('/entrar');
   });
 
   it('points to the sitemap on the default site URL', async () => {
