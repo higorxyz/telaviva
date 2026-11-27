@@ -570,10 +570,25 @@ Fixe as versões exatas, todas publicadas há mais de duas semanas.
 
 Cada passo que mexe em GitHub, Vercel, Firebase ou Neon **espera a aprovação explícita do autor**. Peça uma vez por grupo, dizendo o que vai acontecer.
 
+- [ ] **Step 0: Migração no Neon, antes de qualquer push** (aprovação: rodar a migração no banco compartilhado):
+  - preview e produção usam **o mesmo banco Neon**, e a v2 lê `library_removals` e `applied_commands` em toda ação e
+    em todo merge. Um preview sem essas tabelas responde 500 em cada ação (e a fila tenta de novo em silêncio), por
+    isso a migração vem **antes** do push do Step 1;
+  - conferir que o Postgres do Neon é **15 ou mais novo** (`SHOW server_version;` no SQL Editor do Neon, ou a versão no
+    painel do projeto): a migração usa `UNIQUE NULLS NOT DISTINCT`, que não existe antes do 15;
+  - `npm run db:migrate -- --confirm` com o `DATABASE_URL` do Neon (o script mostra o host, sem senha, antes de
+    aplicar);
+  - é seguro para o que está no ar: a migração **só cria tabelas** (`drizzle/0001_dizzy_union_jack.sql`). A v1 em
+    produção não usa banco, e o código da Fase 3 não lê essas tabelas.
 - [ ] **Step 1: Preview** (aprovação: push da `v2`):
   - acompanhar o build;
   - no preview (link de compartilhamento), conferir que `/serwist/sw.js` responde e que **as URLs do precache existem no preview**, pedindo cada uma e esperando 200. Esse é o ponto `/_next/static/immutable/…` do spec §5. Se não baterem, corrigir com `modifyURLPrefix`/`manifestTransforms` do Serwist e repetir;
   - conferir offline num navegador desktop;
+  - **`commandId` repetido:** logado no preview, mandar a mesma ação duas vezes com o mesmo `commandId` (por exemplo,
+    repetindo o mesmo `POST /api/library/commands` com "Replay" no DevTools → Network). A segunda resposta tem de ser
+    200 com a lista igual, sem aplicar de novo e sem erro nos logs: confirma que o erro de chave duplicada do Neon
+    (código `23505` em `applied_commands_pkey`, que `isDuplicateCommand` em `src/server/library/applied.ts`
+    reconhece) chega no formato esperado com o driver de produção;
   - conferir zero erros de runtime.
 - [ ] **Step 2: Atualização com aba aberta** (Foco 1):
   - com o preview aberto numa aba, fazer outro deploy (commit pequeno de docs);
@@ -582,6 +597,10 @@ Cada passo que mexe em GitHub, Vercel, Firebase ou Neon **espera a aprovação e
 - [ ] **Step 3: Pedir ao autor** que teste no celular:
   - login com Google e com e-mail no PWA instalado;
   - o caso do metrô em modo avião;
+  - **conexão fraca (sinal sem dados)**, não só o modo avião: o navegador continua achando que está online e as
+    requisições ficam penduradas. Por exemplo, um Wi-Fi de roteador sem internet ou um portal cativo antes do login.
+    Esperado: em até ~8 s (`REQUEST_TIMEOUT_MS`, `src/lib/request-timeout.ts`) a Minha lista aparece pela cópia
+    salva, uma ação entra na fila e "Desfazer" responde;
   - sair offline.
 
   Registrar o resultado no ledger.
@@ -589,7 +608,8 @@ Cada passo que mexe em GitHub, Vercel, Firebase ou Neon **espera a aprovação e
   - variáveis do ambiente **Production**: TMDb, Firebase público, credencial de serviço, `DATABASE_URL`, `NEXT_PUBLIC_SITE_URL=https://telaviva.vercel.app`, `NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN=telaviva.vercel.app`. Os valores vêm do `.env.local` ou do Preview, pela CLI, sem exibir valores (como foi feito com a chave em 2026-11-21);
   - `npm run env:check` adaptado para listar as variáveis da Vercel por nome (`vercel env ls`);
   - Firebase: `telaviva.vercel.app` em domínios autorizados e nas URIs de retorno do OAuth. Se o console exigir, isso é passo do autor;
-  - Neon: `npm run db:migrate -- --confirm` com a migração da Task 3, antes do merge;
+  - Neon: a migração já foi aplicada no Step 0 (o banco é o mesmo). Só rodar `npm run db:migrate -- --confirm` de
+    novo se surgiu outra migração depois dele (o script pula as já aplicadas);
   - **Firewall da Vercel:** propor a regra de limite (por IP, por exemplo 120 req/min em `/api/recommendations`, `/api/tv/*` e `/api/auth/*`) e aplicar só com aprovação.
 - [ ] **Step 5: Pull request `v2` → `main`** (aprovação: abrir o PR e fazer o merge):
   - descrição para portfólio, sem menção a IA, com resumo das quatro fases e links para os specs;
@@ -599,7 +619,12 @@ Cada passo que mexe em GitHub, Vercel, Firebase ou Neon **espera a aprovação e
   - `https://telaviva.vercel.app`: página inicial, login com Google e com e-mail, uma ação na lista, offline (desktop e celular), zero erros de runtime;
   - Lighthouse mobile em produção (mesmo comando da Task 9), atualizando o documento de desempenho.
 - [ ] **Step 7: Plano de volta, se algo falhar:**
-  - rollback instantâneo da Vercel para o deploy anterior de produção (o da v1);
-  - se o problema for o service worker, `NEXT_PUBLIC_SW_DISABLED=1` em Production e novo deploy;
+  - a v1 não tem `/serwist/sw.js`: depois de um rollback direto, quem já instalou o worker da v2 fica com ele (a
+    checagem de atualização dá 404, o navegador mantém o worker antigo, e ele continua atendendo as navegações). Por
+    isso, **primeiro** `NEXT_PUBLIC_SW_DISABLED=1` em Production e **Redeploy** da v2: o `/serwist/sw.js` passa a ser
+    um worker que se remove (apaga os caches `tv-*`/`serwist-*`, se desregistra e recarrega as abas). Esperar um
+    pouco (as visitas seguintes trocam o worker) e só então o rollback instantâneo para o deploy da v1;
+  - alternativa: publicar na v1 um `/serwist/sw.js` com o mesmo worker que se remove (`src/sw/kill-switch.ts`);
+  - se o problema for só o service worker, basta o `NEXT_PUBLIC_SW_DISABLED=1` com Redeploy, sem voltar o código;
   - a tag `v1` fica como referência.
 - [ ] **Step 8:** registrar no ledger o que foi verificado, o que ficou com o autor e os lembretes (por exemplo, `!.env.example` no `.gitignore`).

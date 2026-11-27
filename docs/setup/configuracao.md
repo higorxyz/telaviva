@@ -279,36 +279,57 @@ uma migração precisa ser compatível com o código que está no ar: só adicio
 
 ## 7. Lançamento e operação em produção
 
-### 7.1 Antes do merge na `main`
+### 7.1 Antes do primeiro push da v2 e do merge na `main`
 
-1. Variáveis de Production conferidas (seção 4.1) e `npm run env:check -- --target=production --file=...` sem nada além
+1. **Migração aplicada antes de qualquer push** (inclusive o do preview): `npm run db:migrate -- --confirm` com o
+   `DATABASE_URL` do Neon (seção 6). Preview e produção usam o mesmo banco, e a v2 lê `library_removals` e
+   `applied_commands` em toda ação e em todo merge da lista: um deploy sem essas tabelas responde 500 em cada ação.
+   Antes, confira que o Postgres do Neon é **15 ou mais novo** (`SHOW server_version;` no SQL Editor do Neon), porque
+   a migração usa `UNIQUE NULLS NOT DISTINCT`. Ela só cria tabelas: é segura para a v1 no ar (que não usa banco) e
+   para o código da Fase 3.
+2. No preview: entrar, fazer uma ação e repetir o mesmo `POST /api/library/commands` (mesmo `commandId`, por exemplo
+   com "Replay" no DevTools). A segunda resposta deve ser 200 com a lista igual e sem erro nos logs: mostra que o erro
+   de chave duplicada do Neon é reconhecido.
+3. Variáveis de Production conferidas (seção 4.1) e `npm run env:check -- --target=production --file=...` sem nada além
    das Sensitive (seção 0).
-2. `telaviva.vercel.app` nos domínios autorizados do Firebase (passo 2.3) e
+4. `telaviva.vercel.app` nos domínios autorizados do Firebase (passo 2.3) e
    `https://telaviva.vercel.app/__/auth/handler` nas URIs de redirecionamento (passo 2.6).
-3. **Migração aplicada antes do merge:** `npm run db:migrate -- --confirm` com o `DATABASE_URL` de produção. As
-   migrações da v2 só adicionam tabelas e não afetam o código que está no ar.
-4. CI verde no pull request.
+5. CI verde no pull request.
 
 ### 7.2 Depois do deploy
 
 - Abrir a página inicial, entrar com Google e com e-mail (com o console do navegador aberto, procurando erros de CSP),
-  fazer uma ação na lista e testar o modo offline no celular.
+  fazer uma ação na lista e testar o modo offline no celular: em modo avião e também com **conexão fraca** (sinal sem
+  dados, como um Wi-Fi sem internet ou um portal cativo). Nesse caso o navegador acha que está online; em até ~8 s a
+  Minha lista deve aparecer pela cópia salva e uma ação deve entrar na fila.
 - Conferir os erros de execução na Vercel (**Logs** ou **Observability**).
 
 ### 7.3 Botão de emergência do service worker
 
 Se o service worker causar problemas (por exemplo, amigos presos numa versão velha), defina
 `NEXT_PUBLIC_SW_DISABLED=1` no ambiente Production e faça um **Redeploy**. Como a variável entra no build, só vale
-depois do novo deploy. Na próxima visita, o site remove o service worker instalado e passa a funcionar só online. Para
-religar, apague a variável e faça outro deploy.
+depois do novo deploy. A partir dele, `/serwist/sw.js` deixa de ser o worker completo e passa a ser um worker mínimo
+que se remove sozinho (`src/sw/kill-switch.ts`): o navegador encontra a versão nova na própria checagem de
+atualização (nas navegações, e pelo menos uma vez por dia), mesmo numa aba que nunca carregou o código novo da página.
+Ele apaga os caches `tv-*` e `serwist-*`, se desregistra e recarrega as abas abertas; dali em diante o site funciona só
+online. As páginas novas também removem o worker por conta própria. Para religar, apague a variável e faça outro
+deploy.
 
 ### 7.4 Plano de volta
 
-- **Rollback instantâneo da Vercel:** **Deployments** → o deploy de produção anterior → menu `...` → **Instant
-  Rollback**. Volta o código na hora, sem build. As variáveis de ambiente e o banco não voltam junto (por isso as
-  migrações só adicionam).
+- **Voltar para a v1: primeiro o botão de emergência, depois o rollback.** A v1 não tem `/serwist/sw.js`. Num rollback
+  direto, quem já instalou o worker da v2 continua com ele: a checagem de atualização recebe 404, o navegador mantém o
+  worker antigo, e ele segue atendendo as navegações com a v2 do cache. Por isso:
+  1. `NEXT_PUBLIC_SW_DISABLED=1` em Production e **Redeploy** da v2 (7.3), para os workers instalados se removerem;
+  2. esperar um pouco (algumas horas, ou um dia, para quem abre o app de vez em quando trocar o worker);
+  3. só então o **rollback instantâneo da Vercel:** **Deployments** → o deploy de produção da v1 → menu `...` →
+     **Instant Rollback**. Volta o código na hora, sem build.
+
+  Alternativa, se for preciso voltar na hora: publicar na v1 um `/serwist/sw.js` com o mesmo worker que se remove
+  (`src/sw/kill-switch.ts`). As variáveis de ambiente e o banco não voltam junto num rollback (por isso as migrações
+  só adicionam).
 - A tag `v1` do git marca a última versão da v1, como referência.
-- Se o problema for o service worker, use o botão de emergência (7.3) em vez de voltar tudo.
+- Se o problema for só o service worker, use o botão de emergência (7.3) em vez de voltar tudo.
 
 ## 8. O que nunca fazer
 
