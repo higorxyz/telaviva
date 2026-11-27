@@ -1,0 +1,445 @@
+{
+  "page": 1,
+  "results": [
+    {
+      "adult": false,
+      "backdrop_path": "/i1phX1JpaqSnHBBGta6LBFYVCZq.jpg",
+      "genre_ids": [
+        10759,
+        10765
+      ],
+      "id": 84773,
+      "origin_country": [
+        "US"
+      ],
+      "original_language": "en",
+      "original_name": "The Lord of the Rings: The Rings of Power",
+      "overview": "Tendo início em uma época de relativa paz, a série acompanha um grupo de personagens que enfrenta o ressurgimento do mal na Terra-média. Das profundezas escuras das Montanhas de Névoa, das majestosas florestas de Lindon, do belíssimo reino da ilha de Númenor, até os confins do mapa, esses reinos e personagens criarão legados que permanecerão vivos muito além de suas partidas.",
+      "popularity": 1865.5108,
+      "poster_path": "/8FPCnfOftiLTHg5wnJxVdtlF8EN.jpg",
+      "first_air_date": "2022-09-01",
+      "softcore": false,
+      "name": "O Senhor dos Anéis: Os Anéis de Poder",
+      "vote_average": 7.219,
+      "vote_count": 4104
+    },
+    {
+      "adult": false,
+      "backdrop_path": "/x8pSFa3BXyVpkjHyn7YxmLyhjoh.jpg",
+      "genre_ids": [
+        10764
+      ],
+      "id": 37678,
+      "origin_country": [
+        "US"
+      ],
+      "original_language": "en",
+      "original_name": "The Voice",
+      "overview": "Quatro músicos famosos procuram pela melhor voz na América e vão orientar os cantores durante a competição. A América irá decidir qual cantor será digno do grande prêmio.",
+      "popularity": 1446.9501,
+      "poster_path": "/7ah1WExcMkzbq7sARCTmcC23tBr.jpg",
+      "first_air_date": "2011-04-26",
+      "softcore": false,
+      "name": "The Voice",
+      "vote_average": 5.84,
+      "vote_count": 234
+    },
+    {
+      "adult": false,
+      "backdrop_path": "/jIArNHIekrCSVgdMbKPAXpPY03Y.jpg",
+      "genre_ids": [
+        16,
+        35
+      ],
+      "id": 456,
+      "origin_country": [
+        "US"
+      ],
+      "original_language": "en",
+      "original_name": "The Simpsons",
+      "overview": "Uma animação sobre uma típica família dos Estados Unidos. Homer é o pai de família nada saudável ou inteligente, que adora beber cerveja. Marge é a esposa e mãe de família dedicada. Bart é o filho de 10 anos, que não leva a escola a sério e tem orgulho disso. Lisa é a garota de 8 anos, um gênio não apreciado. E Maggie é a bebê que não larga a chupeta.",
+      "popularity": 1389.9114,
+      "poster_path": "/1jGPgDDcmg3Xgs3WO8sfYfbnFoA.jpg",
+      "first_air_date": "1989-12-17",
+      "softcore": false,
+      "name": "Os Simpsons",
+      "vote_average": 8.029,
+      "vote_count": 11184
+    },
+    {
+      "adult": false,
+      "backdrop_path": "/A4NwkQXTXElE5iAsne5RpvS8R2Z.jpg",
+      "genre_ids": [
+        18
+      ],
+      "id": 1416,
+      "origin_country": [
+        "US"
+      ],
+      "original_language": "en",
+      "original_name": "Grey's Anatomy",
+      "overview": "Os médicos do Grey Sloan Memorial Hospital lidam diariamente com casos e consequências de vida ou morte. É um no outro que eles encontram apoio, conforto, amizade e, às vezes, até mais que amizade... Juntos, eles descobrem o quanto a vida profissional e a pessoal podem ser complicadas e se misturarem no meio do caminho.",
+      "popularity": 532.4523,
+      "poster_path": "/vrChGRs0DsoCoaeHif8PlZY637Q.jpg",
+      "first_air_date": "2005-03-27",
+      "softcore": false,
+      "name": "Grey's Anatomy",
+      "vote_average": 8.199,
+      "vote_count": 11143
+    },
+    {
+      "adult": false,
+      "backdrop_path": "/hINekSpbcBxjnjGqmIm6I4bz2ab.jpg",
+      "genre_ids": [
+        10767,
+        35
+      ],
+      "id": 22980,
+      "origin_country": [
+        "US"
+      ],
+      "original_language": "en",
+      "original_name": "Watch What Happens Live with Andy Cohen",
+      "overview": "",
+      "popularity": 451.1183,
+      "poster_path": "/onSD9UXfJwrMXWhq7UY7hGF2S1h.jpg",
+      "first_air_date": "2009-07-16",
+      "softcore": false,
+      "name": "Watch What Happens Live with Andy Cohen",
+      "vote_average": 4.892,
+      "vote_count": 102
+    },
+    {
+      "adult": false,
+      "backdrop_path": "/h0OC7ouop8YLwbAVfS3UUE2Lw4T.jpg",
+      "genre_ids": [
+        80,
+        18
+      ],
+      "id": 247718,
+      "origin_country": [
+        "GB",
+        "US"
+      ],
+      "original_language": "en",
+      "original_name": "MobLand",
+      "overview": "O poder está em disputa quando duas famílias do crime se chocam numa batalha que ameaça derrubar impérios e arruinar vidas. No meio está Harry Da Souza, um \"resolvedor de problemas\" que sabe bem onde a lealdade está quando as forças opostas colidem.",
+      "popularity": 407.534,
+      "poster_path": "/jM7bH9b9QT22PtkTyHzxbXx4lDI.jpg",
+      "first_air_date": "2025-03-30",
+      "softcore": false,
+      "name": "Terra da Máfia",
+      "vote_average": 8.666,
+      "vote_count": 1267
+    },
+    {
+      "adult": false,
+      "backdrop_path": "/i4OYRb5V13BrOnTPJGdyXWg4r0J.jpg",
+      "genre_ids": [
+        35,
+        10767
+      ],
+      "id": 59941,
+      "origin_country": [
+        "US"
+      ],
+      "original_language": "en",
+      "original_name": "The Tonight Show Starring Jimmy Fallon",
+      "overview": "The Tonight Show Estrelado por Jimmy Fallon é um talk show noturno americano apresentado por Jimmy Fallon na rede NBC. É a sétima versão do programa mais antigo da NBC, a franquia The Tonight Show, sendo Fallon o seu sexto apresentador. O programa também conta com a presença do narrador Steve Higgins e a banda da casa The Roots. The Tonight Show é produzido pela antiga produtora executiva do Daily Show Josh Lieb e uma produção executiva de Lorne Michaels. O programa é gravado no Estúdio 6B do Rockefeller Center, Nova Iorque. O programa vai ao ar diariamente às noites, às 23:34 no horário oriental / pacífico dos Estados Unidos. O programa abre com o monólogo típico de Jimmy Fallon, seguido por esquetes / jogo cômicos, concluindo com uma entrevista com o convidado e uma atração musical. A estreia do programa atraiu críticas positivas dos profissionais de televisão, e recebeu 11,3 milhões de telespectadores nos Estados Unidos. No Brasil o programa vai ao ar no canal GNT.",
+      "popularity": 377.8249,
+      "poster_path": "/1N4o5PmmqhlVDrcdJ2RlCFWbLGX.jpg",
+      "first_air_date": "2014-02-17",
+      "softcore": false,
+      "name": "The Tonight Show com Jimmy Fallon",
+      "vote_average": 5.817,
+      "vote_count": 402
+    },
+    {
+      "adult": false,
+      "backdrop_path": "/wsHj4oHQJoe7DMYaqNFwVoyLiAh.jpg",
+      "genre_ids": [
+        35,
+        10764
+      ],
+      "id": 33238,
+      "origin_country": [
+        "KR"
+      ],
+      "original_language": "ko",
+      "original_name": "런닝맨",
+      "overview": "É um programa de variedades sul-coreano o qual foi originalmente classificado como um programa de \"variedades de ação urbana\": um gênero de programa de variedades filmado em um ambiente urbano, onde os convidados tem a tarefa de completar missões a fim de vencer a corrida. O programa, desde então, mudou para um conceito familiar de programa de variedade-realidade focado em jogos.",
+      "popularity": 373.5737,
+      "poster_path": "/15SMnscZqd7HZ0bzruatOcKUlOV.jpg",
+      "first_air_date": "2010-07-11",
+      "softcore": false,
+      "name": "Running Man",
+      "vote_average": 8.173,
+      "vote_count": 226
+    },
+    {
+      "adult": false,
+      "backdrop_path": "/s1dTt4M31q2HwD5Fkl1tf5tQzJg.jpg",
+      "genre_ids": [
+        10766
+      ],
+      "id": 206559,
+      "origin_country": [
+        "ZA"
+      ],
+      "original_language": "af",
+      "original_name": "Binnelanders",
+      "overview": "Uma novela sul-africana em africâner. Ela se passa dentro e ao redor do hospital privado fictício, Binneland Kliniek, em Pretória, e o enredo segue os testes, traumas e tribulações da equipe e dos pacientes do hospital.",
+      "popularity": 268.0288,
+      "poster_path": "/3bzECfllho8PphdYujLUIuhncJD.jpg",
+      "first_air_date": "2005-10-13",
+      "softcore": false,
+      "name": "Binnelanders",
+      "vote_average": 5.474,
+      "vote_count": 114
+    },
+    {
+      "adult": false,
+      "backdrop_path": "/qLMfcvdCcCGD2BNLH8b6ZCBuO7D.jpg",
+      "genre_ids": [
+        10763,
+        35
+      ],
+      "id": 2224,
+      "origin_country": [
+        "US"
+      ],
+      "original_language": "en",
+      "original_name": "The Daily Show",
+      "overview": "The Daily Show é um programa estadunidense de notícias que satiriza sobretudo a política norte-americana. O programa começou em 1996 e era originalmente apresentado por Craig Killborn. Jon Stewart, que substituiu Killborn em 1999, apresentou o programa até agosto de 2015. Em setembro do mesmo ano o show foi assumido por Trevor Noah.",
+      "popularity": 267.0579,
+      "poster_path": "/ixcfyK7it6FjRM36Te4OdblAq4X.jpg",
+      "first_air_date": "1996-07-22",
+      "softcore": false,
+      "name": "The Daily Show com Trevor Noah",
+      "vote_average": 6.427,
+      "vote_count": 681
+    },
+    {
+      "adult": false,
+      "backdrop_path": "/ksNrsIkIwFKpetIyiUA7kBSBKvC.jpg",
+      "genre_ids": [
+        10766
+      ],
+      "id": 11890,
+      "origin_country": [
+        "NL"
+      ],
+      "original_language": "nl",
+      "original_name": "Goede Tijden, Slechte Tijden",
+      "overview": "",
+      "popularity": 260.5597,
+      "poster_path": "/p1oXgtJ0q0wAcEp3tHA5DpiynxL.jpg",
+      "first_air_date": "1990-10-01",
+      "softcore": false,
+      "name": "Goede Tijden, Slechte Tijden",
+      "vote_average": 5.25,
+      "vote_count": 22
+    },
+    {
+      "adult": false,
+      "backdrop_path": "/nPexsB86g0YUXxBpa7OYd8sqCPP.jpg",
+      "genre_ids": [
+        10766
+      ],
+      "id": 231962,
+      "origin_country": [
+        "ZA"
+      ],
+      "original_language": "af",
+      "original_name": "Diepe Waters",
+      "overview": "",
+      "popularity": 257.7486,
+      "poster_path": "/uF5SpFjMmYTMF0sc5MbjnDsoBcG.jpg",
+      "first_air_date": "2022-10-03",
+      "softcore": false,
+      "name": "Diepe Waters",
+      "vote_average": 8.2,
+      "vote_count": 4
+    },
+    {
+      "adult": false,
+      "backdrop_path": "/mNHRGO1gFpR2CYZdANe72kcKq7G.jpg",
+      "genre_ids": [
+        80,
+        18,
+        35
+      ],
+      "id": 153312,
+      "origin_country": [
+        "US"
+      ],
+      "original_language": "en",
+      "original_name": "Tulsa King",
+      "overview": "Depois de cumprir 25 anos de prisão, Dwight Manfredi é exilado sem cerimônia por seu chefe da máfia para se estabelecer em Oklahoma. Dwight lentamente constrói um novo império criminoso em Tulsa.",
+      "popularity": 253.5325,
+      "poster_path": "/y13WOeZ2rz2Ezpws0RJ0I8sQpG4.jpg",
+      "first_air_date": "2022-11-13",
+      "softcore": false,
+      "name": "Tulsa King",
+      "vote_average": 8.322,
+      "vote_count": 2963
+    },
+    {
+      "adult": false,
+      "backdrop_path": "/f3f5OzzYd8m3zN47DAjKs0sbx00.jpg",
+      "genre_ids": [
+        16,
+        35,
+        10751
+      ],
+      "id": 387,
+      "origin_country": [
+        "US"
+      ],
+      "original_language": "en",
+      "original_name": "SpongeBob SquarePants",
+      "overview": "Uma esponja-do-mar chamada Bob Esponja Calça Quadrada mora com seu caracol de estimação na Fenda do Biquíni, no fundo do oceano. Bob trabalha no Siri Cascudo e, nas horas vagas, vive arrumando confusões com seu melhor amigo, a estrela-do-mar Patrick.",
+      "popularity": 242.2852,
+      "poster_path": "/yXrtQINkVRyNmfUQFyVG2LuoTqm.jpg",
+      "first_air_date": "1999-05-01",
+      "softcore": false,
+      "name": "Bob Esponja",
+      "vote_average": 7.723,
+      "vote_count": 3312
+    },
+    {
+      "adult": false,
+      "backdrop_path": "/ykWWT8FAChBffNxcDzoJMCK9LBb.jpg",
+      "genre_ids": [
+        10764
+      ],
+      "id": 4656,
+      "origin_country": [
+        "US"
+      ],
+      "original_language": "en",
+      "original_name": "Raw",
+      "overview": "Esta série pioneira da WWE destaca mais de trinta anos de lutas inesquecíveis, momentos marcantes e episódios cheios de grandes estrelas.",
+      "popularity": 239.9155,
+      "poster_path": "/fstEe6RsyNyPUnMwNcL20iNl0nE.jpg",
+      "first_air_date": "1993-01-11",
+      "softcore": false,
+      "name": "Raw",
+      "vote_average": 6.721,
+      "vote_count": 387
+    },
+    {
+      "adult": false,
+      "backdrop_path": "/dfX2UaHVE5c7kLBFbgmEZJuy4Ev.jpg",
+      "genre_ids": [
+        10767,
+        35
+      ],
+      "id": 61818,
+      "origin_country": [
+        "US"
+      ],
+      "original_language": "en",
+      "original_name": "Late Night with Seth Meyers",
+      "overview": "",
+      "popularity": 237.3073,
+      "poster_path": "/qKFP9Se7LJtBaxrMS41iu63dtK3.jpg",
+      "first_air_date": "2014-02-25",
+      "softcore": false,
+      "name": "Late Night with Seth Meyers",
+      "vote_average": 5.1,
+      "vote_count": 139
+    },
+    {
+      "adult": false,
+      "backdrop_path": "/5APjn4LnV5wWk5DXq7ZewT6zzP1.jpg",
+      "genre_ids": [
+        10766
+      ],
+      "id": 291,
+      "origin_country": [
+        "GB"
+      ],
+      "original_language": "en",
+      "original_name": "Coronation Street",
+      "overview": "Coronation Street é uma novela de televisão britânica transmitida pela primeira vez na Granada Television em 1960. Ela foi logo distribuída em outras franquias da ITV. O programa diz respeito à vida dos residentes da Coronation Street em Weatherfield, uma área fictícia de Salford, e gira em torno de suas casas geminadas, cafés, lojas de esquina, bancas de jornais, fábricas de tecidos e o pub Rovers Return.\n\nO programa foi criado em 1960 pelo roteirista local Tony Warren na recém-formada Granada Television, em Manchester. A proposta inicial de Warren para a pia da cozinha foi rejeitada pelo fundador da emissora, Sidney Bernstein, mas ele foi persuadido pelo produtor Harry Elton a produzir o programa para treze episódios-piloto. Foi transmitido pela primeira vez em 9 de dezembro de 1960 e, em seis meses, tornou-se o programa mais assistido da televisão britânica. Foi um dos programas financeiramente mais lucrativos da televisão comercial britânica, sustentando o sucesso da franquia Granada Television e da emissora ITV.",
+      "popularity": 197.2544,
+      "poster_path": "/5x1HXqYqPyYw7oc7Isu1lvVmwRP.jpg",
+      "first_air_date": "1960-12-09",
+      "softcore": false,
+      "name": "Coronation Street",
+      "vote_average": 5.289,
+      "vote_count": 121
+    },
+    {
+      "adult": false,
+      "backdrop_path": "/fNcpHmuZLKoyhNMBEzdqzX8iIvg.jpg",
+      "genre_ids": [
+        18,
+        10765
+      ],
+      "id": 279246,
+      "origin_country": [
+        "KR"
+      ],
+      "original_language": "ko",
+      "original_name": "재혼 황후",
+      "overview": "A amada imperatriz Navier governa o Império do Oriente ao lado do imperador Sovieshu. Mas, quando Sovieshu se apaixona por uma escrava fugitiva e exige o divórcio, Navier aceita sob uma única condição: receber permissão para se casar com o príncipe rival Heinrey, do Reino do Ocidente.",
+      "popularity": 190.3462,
+      "poster_path": "/lzS8kJgL5pNlX25iVVjafhvQGBy.jpg",
+      "first_air_date": "2026-11-03",
+      "softcore": false,
+      "name": "A Imperatriz Se Casou Novamente",
+      "vote_average": 8.764,
+      "vote_count": 108
+    },
+    {
+      "adult": false,
+      "backdrop_path": "/c6nAwZgiMobI3HrmZR78wpIjSnr.jpg",
+      "genre_ids": [
+        80,
+        18,
+        10766
+      ],
+      "id": 72879,
+      "origin_country": [
+        "FR"
+      ],
+      "original_language": "fr",
+      "original_name": "Demain nous appartient",
+      "overview": "A história gira em torno do povo de Sète, França. Suas vidas são pontuadas por rivalidades familiares, romance e cenas da vida cotidiana, mas também por tramas envolvendo investigações policiais, segredos e traições.",
+      "popularity": 168.1857,
+      "poster_path": "/7BjipkA48xXLauTg45QKiOb144a.jpg",
+      "first_air_date": "2017-07-17",
+      "softcore": false,
+      "name": "Demain nous appartient",
+      "vote_average": 6.263,
+      "vote_count": 76
+    },
+    {
+      "adult": false,
+      "backdrop_path": "/2jzrUm0vGW2TqJPds1PfZVRYrh7.jpg",
+      "genre_ids": [
+        10766,
+        18,
+        80
+      ],
+      "id": 1871,
+      "origin_country": [
+        "GB"
+      ],
+      "original_language": "en",
+      "original_name": "EastEnders",
+      "overview": "A vida dos moradores da Albert Square, uma área fictícia localizada em  um dos bairros de East End, na Inglaterra. Por mais de 25 anos,  acompanha-se os dramas do dia-a-dia dessas pessoas, sempre em busca da  felicidade.",
+      "popularity": 157.8719,
+      "poster_path": "/ETFWCToRFx45vNAsNexh31ufSE.jpg",
+      "first_air_date": "1985-02-19",
+      "softcore": false,
+      "name": "EastEnders",
+      "vote_average": 4.3,
+      "vote_count": 232
+    }
+  ],
+  "total_pages": 87,
+  "total_results": 1727
+}

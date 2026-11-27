@@ -6,7 +6,7 @@ on:
 
 jobs:
   quality:
-    name: Lint, Test and Build
+    name: Lint, Typecheck, Test, Build and E2E
     runs-on: ubuntu-latest
     timeout-minutes: 20
 
@@ -17,7 +17,7 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v7
         with:
-          node-version: 20
+          node-version: 24
           cache: npm
 
       - name: Install dependencies
@@ -26,8 +26,31 @@ jobs:
       - name: Run lint
         run: npm run lint
 
-      - name: Run tests with coverage gate
-        run: npm run test:coverage:ci
+      - name: Typecheck
+        run: npm run typecheck
 
-      - name: Build project
-        run: npm run build
+      - name: Run unit tests
+        run: npm test
+
+      - name: Install Playwright browser
+        run: npx playwright install --with-deps chromium
+
+      # Runs `npm run build` (the production build, which prerenders against the local TMDb mock) into
+      # .e2e/next and then serves it for the tests (see playwright.config.ts). It is the same build as a plain `npm run build`
+      # except for the TMDb base URL and token and the test sign-in config (Auth emulator, PGlite), so a
+      # separate build step would only repeat it.
+      #
+      # Playwright also starts the Firebase Auth emulator itself (`npx firebase emulators:start`). firebase-tools
+      # comes from devDependencies, so the npm cache above already covers it; the Auth emulator runs on Node
+      # alone and downloads nothing (no Java, no jar in ~/.cache/firebase/emulators), so there is nothing else
+      # to cache.
+      - name: Production build, E2E and accessibility tests
+        run: npm run e2e
+
+      - name: Upload Playwright report
+        if: failure()
+        uses: actions/upload-artifact@v7
+        with:
+          name: playwright-report
+          path: playwright-report/
+          retention-days: 7

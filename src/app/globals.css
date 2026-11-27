@@ -1,0 +1,181 @@
+@import 'tailwindcss';
+
+@theme {
+  --color-ink-950: #0c0a08;
+  --color-ink-900: #15110c;
+  --color-ink-800: #1e1914;
+  --color-ink-700: #2a231c;
+  --color-ink-600: #3a3128;
+  --color-ivory: #f3ede4;
+  --color-ivory-muted: #b3a998;
+  --color-amber: #e8b25a;
+  --color-amber-strong: #f2c77e;
+  --color-wine: #6e1f1f;
+  --shadow-poster: 0 18px 40px -12px rgb(0 0 0 / 0.7);
+  --shadow-glow: 0 14px 34px -10px rgb(232 178 90 / 0.28);
+  --animate-fade-up: fade-up 400ms ease-out both;
+  /* Link pending hint: invisible for the first 150 ms so fast navigations never flash it. */
+  --animate-pending-in: pending-in 200ms ease-out 150ms forwards;
+  /* Discover filters: the bottom sheet rises, the popover settles in from an already visible state. */
+  --animate-sheet-in: sheet-in 280ms cubic-bezier(0.16, 1, 0.3, 1) both;
+  --animate-pop-in: pop-in 180ms cubic-bezier(0.16, 1, 0.3, 1) both;
+
+  /* Toasts settle in from an already visible state; reduced motion is handled globally below. */
+  --animate-toast-in: toast-in 240ms cubic-bezier(0.16, 1, 0.3, 1) both;
+
+  @keyframes toast-in {
+    from {
+      opacity: 0.4;
+      transform: translateY(8px);
+    }
+  }
+
+  @keyframes sheet-in {
+    from {
+      transform: translateY(100%);
+    }
+  }
+
+  @keyframes pop-in {
+    from {
+      opacity: 0.4;
+      transform: translateY(-6px) scale(0.98);
+    }
+  }
+
+  @keyframes pending-in {
+    to {
+      opacity: 1;
+    }
+  }
+
+  @keyframes fade-up {
+    from {
+      opacity: 0;
+      transform: translateY(8px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+}
+
+@theme inline {
+  --font-display: var(--font-instrument-serif), Georgia, serif;
+  --font-sans: var(--font-inter-tight), system-ui, sans-serif;
+}
+
+@layer base {
+  html {
+    color-scheme: dark;
+    /* Inherited by every scroller (page, dialogs, season tabs); the webkit rules below cover older Safari. */
+    scrollbar-color: var(--color-ink-600) transparent;
+    scrollbar-width: thin;
+  }
+
+  /* Modal dialogs (trailer, search, filter sheets) lock page scroll; non-modal popovers do not. */
+  html:has(dialog:modal) {
+    overflow: hidden;
+  }
+
+  body {
+    @apply bg-ink-950 text-ivory font-sans antialiased;
+  }
+
+  ::selection {
+    background: var(--color-amber);
+    color: var(--color-ink-950);
+  }
+
+  :focus-visible {
+    outline: 2px solid var(--color-amber);
+    outline-offset: 3px;
+  }
+
+  input,
+  textarea,
+  select {
+    caret-color: var(--color-amber);
+  }
+
+  /* One underline rhythm for every text link and link-styled button. */
+  a,
+  button {
+    text-underline-offset: 0.3em;
+    text-decoration-thickness: 1px;
+  }
+
+  @supports not (scrollbar-color: auto) {
+    ::-webkit-scrollbar {
+      width: 10px;
+      height: 10px;
+    }
+
+    ::-webkit-scrollbar-track {
+      background: transparent;
+    }
+
+    ::-webkit-scrollbar-thumb {
+      border: 2px solid transparent;
+      border-radius: 9999px;
+      background: var(--color-ink-600) padding-box;
+    }
+
+    ::-webkit-scrollbar-thumb:hover {
+      background-color: var(--color-ivory-muted);
+    }
+  }
+}
+
+@layer components {
+  /* Hero backdrop drift (ParallaxBackdrop): 40px over the first 700px of page scroll, on the compositor. Gated so a
+     browser without scroll timelines never applies the end frame of a zero-length animation, and off for reduced
+     motion. */
+  @supports (animation-timeline: scroll()) {
+    @media (prefers-reduced-motion: no-preference) {
+      .parallax-drift {
+        animation: parallax-drift linear both;
+        animation-timeline: scroll(root block);
+        animation-range: 0 700px;
+      }
+    }
+  }
+
+  @keyframes parallax-drift {
+    to {
+      transform: translateY(40px);
+    }
+  }
+
+  /* Rails that do not open the page (Rail): laid out, painted and given their lazy posters only as they near the
+     viewport, so a page of a dozen rails does not do all of that during its first load. The block sizes are a rail's
+     height at each breakpoint, so the page barely changes height as rails render. */
+  .rail-deferred {
+    content-visibility: auto;
+    contain-intrinsic-block-size: auto 22.5rem;
+
+    @media (width >= 48rem) {
+      contain-intrinsic-block-size: auto 24.5rem;
+    }
+
+    @media (width >= 80rem) {
+      contain-intrinsic-block-size: auto 27.5rem;
+    }
+
+    @media (width >= 96rem) {
+      contain-intrinsic-block-size: auto 29rem;
+    }
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}

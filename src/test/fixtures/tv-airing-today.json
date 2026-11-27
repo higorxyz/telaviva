@@ -1,0 +1,442 @@
+{
+  "page": 1,
+  "results": [
+    {
+      "adult": false,
+      "backdrop_path": "/i1phX1JpaqSnHBBGta6LBFYVCZq.jpg",
+      "genre_ids": [
+        10759,
+        10765
+      ],
+      "id": 84773,
+      "origin_country": [
+        "US"
+      ],
+      "original_language": "en",
+      "original_name": "The Lord of the Rings: The Rings of Power",
+      "overview": "Tendo início em uma época de relativa paz, a série acompanha um grupo de personagens que enfrenta o ressurgimento do mal na Terra-média. Das profundezas escuras das Montanhas de Névoa, das majestosas florestas de Lindon, do belíssimo reino da ilha de Númenor, até os confins do mapa, esses reinos e personagens criarão legados que permanecerão vivos muito além de suas partidas.",
+      "popularity": 1865.5108,
+      "poster_path": "/8FPCnfOftiLTHg5wnJxVdtlF8EN.jpg",
+      "first_air_date": "2022-09-01",
+      "softcore": false,
+      "name": "O Senhor dos Anéis: Os Anéis de Poder",
+      "vote_average": 7.219,
+      "vote_count": 4104
+    },
+    {
+      "adult": false,
+      "backdrop_path": "/hINekSpbcBxjnjGqmIm6I4bz2ab.jpg",
+      "genre_ids": [
+        10767,
+        35
+      ],
+      "id": 22980,
+      "origin_country": [
+        "US"
+      ],
+      "original_language": "en",
+      "original_name": "Watch What Happens Live with Andy Cohen",
+      "overview": "",
+      "popularity": 451.1183,
+      "poster_path": "/onSD9UXfJwrMXWhq7UY7hGF2S1h.jpg",
+      "first_air_date": "2009-07-16",
+      "softcore": false,
+      "name": "Watch What Happens Live with Andy Cohen",
+      "vote_average": 4.892,
+      "vote_count": 102
+    },
+    {
+      "adult": false,
+      "backdrop_path": "/i4OYRb5V13BrOnTPJGdyXWg4r0J.jpg",
+      "genre_ids": [
+        35,
+        10767
+      ],
+      "id": 59941,
+      "origin_country": [
+        "US"
+      ],
+      "original_language": "en",
+      "original_name": "The Tonight Show Starring Jimmy Fallon",
+      "overview": "The Tonight Show Estrelado por Jimmy Fallon é um talk show noturno americano apresentado por Jimmy Fallon na rede NBC. É a sétima versão do programa mais antigo da NBC, a franquia The Tonight Show, sendo Fallon o seu sexto apresentador. O programa também conta com a presença do narrador Steve Higgins e a banda da casa The Roots. The Tonight Show é produzido pela antiga produtora executiva do Daily Show Josh Lieb e uma produção executiva de Lorne Michaels. O programa é gravado no Estúdio 6B do Rockefeller Center, Nova Iorque. O programa vai ao ar diariamente às noites, às 23:34 no horário oriental / pacífico dos Estados Unidos. O programa abre com o monólogo típico de Jimmy Fallon, seguido por esquetes / jogo cômicos, concluindo com uma entrevista com o convidado e uma atração musical. A estreia do programa atraiu críticas positivas dos profissionais de televisão, e recebeu 11,3 milhões de telespectadores nos Estados Unidos. No Brasil o programa vai ao ar no canal GNT.",
+      "popularity": 377.8249,
+      "poster_path": "/1N4o5PmmqhlVDrcdJ2RlCFWbLGX.jpg",
+      "first_air_date": "2014-02-17",
+      "softcore": false,
+      "name": "The Tonight Show com Jimmy Fallon",
+      "vote_average": 5.817,
+      "vote_count": 402
+    },
+    {
+      "adult": false,
+      "backdrop_path": "/s1dTt4M31q2HwD5Fkl1tf5tQzJg.jpg",
+      "genre_ids": [
+        10766
+      ],
+      "id": 206559,
+      "origin_country": [
+        "ZA"
+      ],
+      "original_language": "af",
+      "original_name": "Binnelanders",
+      "overview": "Uma novela sul-africana em africâner. Ela se passa dentro e ao redor do hospital privado fictício, Binneland Kliniek, em Pretória, e o enredo segue os testes, traumas e tribulações da equipe e dos pacientes do hospital.",
+      "popularity": 268.0288,
+      "poster_path": "/3bzECfllho8PphdYujLUIuhncJD.jpg",
+      "first_air_date": "2005-10-13",
+      "softcore": false,
+      "name": "Binnelanders",
+      "vote_average": 5.474,
+      "vote_count": 114
+    },
+    {
+      "adult": false,
+      "backdrop_path": "/qLMfcvdCcCGD2BNLH8b6ZCBuO7D.jpg",
+      "genre_ids": [
+        10763,
+        35
+      ],
+      "id": 2224,
+      "origin_country": [
+        "US"
+      ],
+      "original_language": "en",
+      "original_name": "The Daily Show",
+      "overview": "The Daily Show é um programa estadunidense de notícias que satiriza sobretudo a política norte-americana. O programa começou em 1996 e era originalmente apresentado por Craig Killborn. Jon Stewart, que substituiu Killborn em 1999, apresentou o programa até agosto de 2015. Em setembro do mesmo ano o show foi assumido por Trevor Noah.",
+      "popularity": 267.0579,
+      "poster_path": "/ixcfyK7it6FjRM36Te4OdblAq4X.jpg",
+      "first_air_date": "1996-07-22",
+      "softcore": false,
+      "name": "The Daily Show com Trevor Noah",
+      "vote_average": 6.427,
+      "vote_count": 681
+    },
+    {
+      "adult": false,
+      "backdrop_path": "/ksNrsIkIwFKpetIyiUA7kBSBKvC.jpg",
+      "genre_ids": [
+        10766
+      ],
+      "id": 11890,
+      "origin_country": [
+        "NL"
+      ],
+      "original_language": "nl",
+      "original_name": "Goede Tijden, Slechte Tijden",
+      "overview": "",
+      "popularity": 260.5597,
+      "poster_path": "/p1oXgtJ0q0wAcEp3tHA5DpiynxL.jpg",
+      "first_air_date": "1990-10-01",
+      "softcore": false,
+      "name": "Goede Tijden, Slechte Tijden",
+      "vote_average": 5.25,
+      "vote_count": 22
+    },
+    {
+      "adult": false,
+      "backdrop_path": "/nPexsB86g0YUXxBpa7OYd8sqCPP.jpg",
+      "genre_ids": [
+        10766
+      ],
+      "id": 231962,
+      "origin_country": [
+        "ZA"
+      ],
+      "original_language": "af",
+      "original_name": "Diepe Waters",
+      "overview": "",
+      "popularity": 257.7486,
+      "poster_path": "/uF5SpFjMmYTMF0sc5MbjnDsoBcG.jpg",
+      "first_air_date": "2022-10-03",
+      "softcore": false,
+      "name": "Diepe Waters",
+      "vote_average": 8.2,
+      "vote_count": 4
+    },
+    {
+      "adult": false,
+      "backdrop_path": "/dfX2UaHVE5c7kLBFbgmEZJuy4Ev.jpg",
+      "genre_ids": [
+        10767,
+        35
+      ],
+      "id": 61818,
+      "origin_country": [
+        "US"
+      ],
+      "original_language": "en",
+      "original_name": "Late Night with Seth Meyers",
+      "overview": "",
+      "popularity": 237.3073,
+      "poster_path": "/qKFP9Se7LJtBaxrMS41iu63dtK3.jpg",
+      "first_air_date": "2014-02-25",
+      "softcore": false,
+      "name": "Late Night with Seth Meyers",
+      "vote_average": 5.1,
+      "vote_count": 139
+    },
+    {
+      "adult": false,
+      "backdrop_path": "/5APjn4LnV5wWk5DXq7ZewT6zzP1.jpg",
+      "genre_ids": [
+        10766
+      ],
+      "id": 291,
+      "origin_country": [
+        "GB"
+      ],
+      "original_language": "en",
+      "original_name": "Coronation Street",
+      "overview": "Coronation Street é uma novela de televisão britânica transmitida pela primeira vez na Granada Television em 1960. Ela foi logo distribuída em outras franquias da ITV. O programa diz respeito à vida dos residentes da Coronation Street em Weatherfield, uma área fictícia de Salford, e gira em torno de suas casas geminadas, cafés, lojas de esquina, bancas de jornais, fábricas de tecidos e o pub Rovers Return.\n\nO programa foi criado em 1960 pelo roteirista local Tony Warren na recém-formada Granada Television, em Manchester. A proposta inicial de Warren para a pia da cozinha foi rejeitada pelo fundador da emissora, Sidney Bernstein, mas ele foi persuadido pelo produtor Harry Elton a produzir o programa para treze episódios-piloto. Foi transmitido pela primeira vez em 9 de dezembro de 1960 e, em seis meses, tornou-se o programa mais assistido da televisão britânica. Foi um dos programas financeiramente mais lucrativos da televisão comercial britânica, sustentando o sucesso da franquia Granada Television e da emissora ITV.",
+      "popularity": 197.2544,
+      "poster_path": "/5x1HXqYqPyYw7oc7Isu1lvVmwRP.jpg",
+      "first_air_date": "1960-12-09",
+      "softcore": false,
+      "name": "Coronation Street",
+      "vote_average": 5.289,
+      "vote_count": 121
+    },
+    {
+      "adult": false,
+      "backdrop_path": "/fNcpHmuZLKoyhNMBEzdqzX8iIvg.jpg",
+      "genre_ids": [
+        18,
+        10765
+      ],
+      "id": 279246,
+      "origin_country": [
+        "KR"
+      ],
+      "original_language": "ko",
+      "original_name": "재혼 황후",
+      "overview": "A amada imperatriz Navier governa o Império do Oriente ao lado do imperador Sovieshu. Mas, quando Sovieshu se apaixona por uma escrava fugitiva e exige o divórcio, Navier aceita sob uma única condição: receber permissão para se casar com o príncipe rival Heinrey, do Reino do Ocidente.",
+      "popularity": 190.3462,
+      "poster_path": "/lzS8kJgL5pNlX25iVVjafhvQGBy.jpg",
+      "first_air_date": "2026-11-03",
+      "softcore": false,
+      "name": "A Imperatriz Se Casou Novamente",
+      "vote_average": 8.764,
+      "vote_count": 108
+    },
+    {
+      "adult": false,
+      "backdrop_path": "/c6nAwZgiMobI3HrmZR78wpIjSnr.jpg",
+      "genre_ids": [
+        80,
+        18,
+        10766
+      ],
+      "id": 72879,
+      "origin_country": [
+        "FR"
+      ],
+      "original_language": "fr",
+      "original_name": "Demain nous appartient",
+      "overview": "A história gira em torno do povo de Sète, França. Suas vidas são pontuadas por rivalidades familiares, romance e cenas da vida cotidiana, mas também por tramas envolvendo investigações policiais, segredos e traições.",
+      "popularity": 168.1857,
+      "poster_path": "/7BjipkA48xXLauTg45QKiOb144a.jpg",
+      "first_air_date": "2017-07-17",
+      "softcore": false,
+      "name": "Demain nous appartient",
+      "vote_average": 6.263,
+      "vote_count": 76
+    },
+    {
+      "adult": false,
+      "backdrop_path": "/2jzrUm0vGW2TqJPds1PfZVRYrh7.jpg",
+      "genre_ids": [
+        10766,
+        18,
+        80
+      ],
+      "id": 1871,
+      "origin_country": [
+        "GB"
+      ],
+      "original_language": "en",
+      "original_name": "EastEnders",
+      "overview": "A vida dos moradores da Albert Square, uma área fictícia localizada em  um dos bairros de East End, na Inglaterra. Por mais de 25 anos,  acompanha-se os dramas do dia-a-dia dessas pessoas, sempre em busca da  felicidade.",
+      "popularity": 157.8719,
+      "poster_path": "/ETFWCToRFx45vNAsNexh31ufSE.jpg",
+      "first_air_date": "1985-02-19",
+      "softcore": false,
+      "name": "EastEnders",
+      "vote_average": 4.3,
+      "vote_count": 232
+    },
+    {
+      "adult": false,
+      "backdrop_path": "/aizbHLcKVWvJ7jxkflJzTu5Z8GE.jpg",
+      "genre_ids": [
+        10766
+      ],
+      "id": 81329,
+      "origin_country": [
+        "FR"
+      ],
+      "original_language": "fr",
+      "original_name": "Un si grand soleil",
+      "overview": "De volta a Montpellier com o filho, Théo, depois de uma ausência de dezessete anos, Claire é acusada do homicídio de um amigo de infância.",
+      "popularity": 153.4434,
+      "poster_path": "/dhEN7hDJ3TR86JK36VyySEoPFok.jpg",
+      "first_air_date": "2018-08-27",
+      "softcore": false,
+      "name": "Un si grand soleil",
+      "vote_average": 6.546,
+      "vote_count": 130
+    },
+    {
+      "adult": false,
+      "backdrop_path": "/otaBZzLIqrKdXcovbAvVONJCnb4.jpg",
+      "genre_ids": [
+        18
+      ],
+      "id": 44006,
+      "origin_country": [
+        "US"
+      ],
+      "original_language": "en",
+      "original_name": "Chicago Fire",
+      "overview": "Acompanhe o dia-a-dia intenso e os dramas dos oficiais do Departamento de Bombeiros de Chicago e paramédicos do Quartel 51. A equipe composta por bombeiros, equipe de resgate e paramédicos, irá passar por situações tensas e delicadas, arriscando suas próprias vidas para salvar pessoas em perigo, além de ter que lidar com os conflitos pessoais e os desafios que surgem por conta das diferenças entre os companheiros de equipe.",
+      "popularity": 153.3917,
+      "poster_path": "/iD8lx0VgmpCZMhycI0Xw72wCuRS.jpg",
+      "first_air_date": "2012-10-10",
+      "softcore": false,
+      "name": "Chicago Fire: Heróis Contra o Fogo",
+      "vote_average": 8.412,
+      "vote_count": 2472
+    },
+    {
+      "adult": false,
+      "backdrop_path": "/vgeDRVpSUa4Hvovg4C6dgm4dfUW.jpg",
+      "genre_ids": [
+        10766,
+        18
+      ],
+      "id": 112470,
+      "origin_country": [
+        "FR"
+      ],
+      "original_language": "fr",
+      "original_name": "Ici tout commence",
+      "overview": "Esta série de drama televisivo é centrada na prestigiada escola de culinária do renomado chef Auguste Armand. O programa acompanha a vida de alunos e funcionários enquanto eles navegam pelos desafios e pressões do mundo culinário — mergulhando em suas vidas pessoais e profissionais, revelando segredos, rivalidades e relacionamentos complexos.",
+      "popularity": 146.8775,
+      "poster_path": "/v7nXPo2zdaIOfeIaERiOuTEt89N.jpg",
+      "first_air_date": "2020-11-02",
+      "softcore": false,
+      "name": "Ici tout commence",
+      "vote_average": 6.758,
+      "vote_count": 93
+    },
+    {
+      "adult": false,
+      "backdrop_path": "/kCd0rmnNwCd3sgupO9DqSi9aHa0.jpg",
+      "genre_ids": [
+        10767
+      ],
+      "id": 65270,
+      "origin_country": [
+        "KR"
+      ],
+      "original_language": "ko",
+      "original_name": "라디오스타",
+      "overview": "“Radio Star” é um talk show de música sul-coreano onde os convidados e apresentadores falam aberta e intimamente sobre suas vidas, seus passados e seu trabalho. Faz parte do bloco de programação \"Golden Fishery\" da Munhwa Broadcasting Corporation.",
+      "popularity": 138.1209,
+      "poster_path": "/ofo50w2DTFcPkOm3iguWGU3Y8cw.jpg",
+      "first_air_date": "2007-05-30",
+      "softcore": false,
+      "name": "Radio Star",
+      "vote_average": 5.286,
+      "vote_count": 7
+    },
+    {
+      "adult": false,
+      "backdrop_path": "/55tcKzl0gZ0lR1q7TrVJm0h9lkT.jpg",
+      "genre_ids": [
+        10764,
+        10751
+      ],
+      "id": 2912,
+      "origin_country": [
+        "US"
+      ],
+      "original_language": "en",
+      "original_name": "Jeopardy!",
+      "overview": "Alex Trebek apresenta um dos game shows mais antigos da TV, em que um trio de participantes demonstra seus conhecimentos de história, artes, cultura popular e mais.",
+      "popularity": 127.6263,
+      "poster_path": "/11rWvQOEZBouD7wet0sWHwu7NDs.jpg",
+      "first_air_date": "1984-09-10",
+      "softcore": false,
+      "name": "Jeopardy!",
+      "vote_average": 6.896,
+      "vote_count": 169
+    },
+    {
+      "adult": false,
+      "backdrop_path": "/VgW1XPEFiwEZgYuR2Wl204DxGL.jpg",
+      "genre_ids": [
+        18,
+        9648,
+        10765
+      ],
+      "id": 330613,
+      "origin_country": [
+        "TH"
+      ],
+      "original_language": "th",
+      "original_name": "กฎหลังเที่ยงคืน",
+      "overview": "",
+      "popularity": 127.1302,
+      "poster_path": "/hJF2csAuSuNRJIacTkQmfkd6GgL.jpg",
+      "first_air_date": "2026-10-28",
+      "softcore": false,
+      "name": "กฎหลังเที่ยงคืน",
+      "vote_average": 8.5,
+      "vote_count": 2
+    },
+    {
+      "adult": false,
+      "backdrop_path": "/tHZsAFdtNsKNxE58jopl9Eh4f7a.jpg",
+      "genre_ids": [
+        10767
+      ],
+      "id": 2221,
+      "origin_country": [
+        "US"
+      ],
+      "original_language": "en",
+      "original_name": "The View",
+      "overview": "",
+      "popularity": 125.3708,
+      "poster_path": "/pEUNIxCMh2jFjUj7u09f4O5CcR4.jpg",
+      "first_air_date": "1997-08-11",
+      "softcore": false,
+      "name": "The View",
+      "vote_average": 4.282,
+      "vote_count": 117
+    },
+    {
+      "adult": false,
+      "backdrop_path": "/18KSsDgcGQds7yOMC6MVRTbVJwt.jpg",
+      "genre_ids": [
+        80,
+        18
+      ],
+      "id": 58841,
+      "origin_country": [
+        "US"
+      ],
+      "original_language": "en",
+      "original_name": "Chicago P.D.",
+      "overview": "O Distrito 21 do Departamento de Polícia de Chicado é composto pelos policiais uniformizados que lidam com o crime nas ruas e pela Unidade de Inteligência, que lida com crimes maiores como tráfico de drogas e assassinatos.",
+      "popularity": 118.1534,
+      "poster_path": "/3k9YHHlENlcIT8g2BqeXsaDI2Hh.jpg",
+      "first_air_date": "2014-01-08",
+      "softcore": false,
+      "name": "Chicago P.D.: Distrito 21",
+      "vote_average": 8.42,
+      "vote_count": 2656
+    }
+  ],
+  "total_pages": 24,
+  "total_results": 471
+}
