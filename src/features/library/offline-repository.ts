@@ -12,6 +12,7 @@ import {
   type AppliedCommand,
   type LibraryQueue,
   type LibraryRepository,
+  QUEUE_STALLED_AFTER,
 } from './repository';
 import type { ServerLibraryRepository } from './server-repository';
 import { EMPTY_LIBRARY, type LibraryState } from './types';
@@ -78,6 +79,11 @@ export function createOfflineAccountRepository(options: Options): OfflineAccount
     uid,
     now,
     onProgress: queueChanged,
+    onRetry: () => {
+      queueChanged();
+      // The other tabs' indicators read the same queue: let them show it is stuck too.
+      postLibraryMessage({ uid, kind: 'queue' });
+    },
     onSettled: ({ rejected, expired }) => {
       if (rejected > 0) notify('queueRejected');
       if (expired > 0) notify('queueExpired');
@@ -139,6 +145,10 @@ export function createOfflineAccountRepository(options: Options): OfflineAccount
 
   const queue: LibraryQueue = {
     count: async () => (await quietly(store.countQueue(uid))) ?? 0,
+    async stalled() {
+      const [head] = (await quietly(store.listQueue(uid))) ?? [];
+      return (head?.attempts ?? 0) >= QUEUE_STALLED_AFTER;
+    },
     subscribe(onChange) {
       queueListeners.add(onChange);
       const stop = listenLibraryMessages(uid, onChange);

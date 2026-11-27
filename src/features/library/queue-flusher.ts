@@ -28,6 +28,8 @@ type Options = {
   onSettled: (outcome: FlushOutcome) => void;
   /** One action left the queue (sent or dropped), so a counter can follow along. */
   onProgress?: () => void;
+  /** The action at the head failed in a way that may pass later and waits for a retry (its `attempts` went up). */
+  onRetry?: () => void;
   now?: () => string;
   /** Runs `retry` after `delay` ms and returns what cancels it (a timer, unless a test replaces it). */
   later?: (retry: () => void, delay: number) => () => void;
@@ -66,7 +68,7 @@ const browserOffline = () => typeof navigator !== 'undefined' && navigator.onLin
  * At the end, the last answer becomes the saved copy, and when anything left the queue the other tabs are told.
  */
 export function createQueueFlusher(options: Options): QueueFlusher {
-  const { store, server, uid, onSettled, onProgress, now = () => new Date().toISOString(), later = timer } = options;
+  const { store, server, uid, onSettled, onProgress, onRetry, now = () => new Date().toISOString(), later = timer } = options;
   let failures = 0;
   let cancelRetry = () => {};
   let running: Promise<void> | null = null;
@@ -112,6 +114,7 @@ export function createQueueFlusher(options: Options): QueueFlusher {
         if (result.kind === 'retry') {
           await store.updateQueued({ ...item, attempts: item.attempts + 1 });
           schedule(retryDelay(failures++));
+          onRetry?.();
           break;
         }
         await store.removeQueued(item.id);

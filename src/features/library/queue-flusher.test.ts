@@ -54,6 +54,7 @@ function setup(opts: { renews?: boolean; on?: OfflineStore } = {}) {
   const onWrongAccount = vi.fn();
   const server = createServerRepository({ uid: UID, onUnauthenticated, onWrongAccount });
   const settled: FlushOutcome[] = [];
+  const onRetry = vi.fn();
   const flusher = createQueueFlusher({
     store: opts.on ?? store,
     server,
@@ -61,9 +62,10 @@ function setup(opts: { renews?: boolean; on?: OfflineStore } = {}) {
     now: () => NOW,
     later,
     onSettled: (outcome) => settled.push(outcome),
+    onRetry,
   });
   stops.push(() => flusher.stop());
-  return { flusher, settled, onUnauthenticated, onWrongAccount };
+  return { flusher, settled, onUnauthenticated, onWrongAccount, onRetry };
 }
 
 async function enqueue(...items: ReturnType<typeof queuedCommand>[]) {
@@ -280,6 +282,19 @@ describe('createQueueFlusher', () => {
     } finally {
       clearLeaving(UID);
     }
+  });
+
+  it('reports each retry (after the attempt was counted), and not a send that went through', async () => {
+    const fake = fakeLibraryServer();
+    await enqueue(queuedCommand(want(1), T1));
+    const { flusher, onRetry } = setup();
+    fake.answerNext(503);
+    await flusher.flush();
+    expect(onRetry).toHaveBeenCalledTimes(1);
+    expect((await store.listQueue(UID))[0]?.attempts).toBe(1);
+    await flusher.flush();
+    expect(onRetry).toHaveBeenCalledTimes(1);
+    expect(await store.listQueue(UID)).toEqual([]);
   });
 
   it('caps the wait between retries at 5 minutes', async () => {

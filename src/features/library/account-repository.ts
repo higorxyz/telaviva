@@ -53,6 +53,7 @@ export function createAccountRepository({ server, uid, openStore = openOfflineSt
     onNotice: (listener) => attach((target) => target.onNotice?.(listener)),
     queue: {
       count: async () => (await (await ready).queue?.count()) ?? 0,
+      stalled: async () => (await (await ready).queue?.stalled?.()) ?? false,
       subscribe: (onChange) => attach((target) => target.queue?.subscribe(onChange)),
       unqueue: async (id) => (await (await ready).queue?.unqueue(id)) ?? null,
       start: () => attach((target) => target.queue?.start()),

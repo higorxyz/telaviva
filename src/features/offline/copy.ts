@@ -2,6 +2,8 @@
 
 export const OFFLINE_TEXT = 'Sem conexão. Suas ações serão enviadas quando a internet voltar.';
 export const SYNCED_TEXT = 'Tudo sincronizado.';
+/** Online, the first queued action keeps failing (a server error, no answer in time); it is retried on its own. */
+export const STALLED_TEXT = 'Não conseguimos enviar agora. Vamos tentar de novo sozinhos.';
 export const PENDING_NAVIGATION_TEXT = 'Esta página abre quando a internet voltar.';
 export const MY_LIST_LINK = 'Ver minha lista';
 
