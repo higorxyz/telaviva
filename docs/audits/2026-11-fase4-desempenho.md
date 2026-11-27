@@ -128,3 +128,47 @@ carregamento da página inicial no celular; depois, 13 (420 KB).
   sessão). Hoje são ~30 KB gzip carregados em toda página, três quartos sem uso no carregamento. Ficou de fora porque mexe
   na validação compartilhada com as rotas do servidor e merece uma tarefa própria, com os testes dela.
 - **CLS**: 0 em todas as páginas medidas depois das correções.
+
+## Medição em produção (27 de novembro de 2026, depois do lançamento)
+
+A medição prevista para depois do lançamento, agora em `https://telaviva.vercel.app` em vez do `localhost`. Mesmo
+Lighthouse e mesma configuração (mobile simulado, `--disable-gpu`, perfil novo a cada execução), mediana de três
+execuções por página. "Antes" é a produção no começo do dia; "depois" é a produção com os dois ajustes abaixo.
+
+| Página         | LCP antes | LCP depois | TBT antes | TBT depois | Nota antes | Nota depois |
+| -------------- | --------- | ---------- | --------- | ---------- | ---------- | ----------- |
+| `/`            | 4,17 s    | 4,12 s     | 1.225 ms  | 649 ms     | 62         | 68          |
+| `/filmes`      | 3,66 s    | 3,94 s     | 762 ms    | 690 ms     | 71         | 70          |
+| Filme          | 4,83 s    | 4,39 s     | 658 ms    | 476 ms     | 65         | 72          |
+| Série          | 4,54 s    | 4,68 s     | 674 ms    | 498 ms     | 67         | 69          |
+| `/minha-lista` | 2,60 s    | 2,44 s     | 823 ms    | 653 ms     | 78         | 81          |
+
+CLS 0 em todas as páginas, nas duas medições.
+
+O que mudou entre as duas medições:
+
+- **`zod/mini` no navegador** (PR #37): os esquemas da biblioteca, dos comandos e da sessão deixaram o `zod` clássico.
+  No build de produção, o JavaScript do cliente foi de 449 KB para 436 KB gzip; o pedaço de 30 KB do `zod` clássico saiu.
+- **Capa do trailer** (PR #38): `sddefault` (640×480) no celular e `maxresdefault` (1280×720) só a partir de 768 px.
+  As imagens da primeira carga caíram de 778 KB para 731 KB na página da série e de 586 KB para 517 KB na de filme.
+
+Como ler a tabela:
+
+- **O TBT caiu em todas as páginas**, mas ele varia ±200 ms entre execuções iguais (ver acima). Só a queda da página
+  inicial (1.225 → 649 ms) passa com folga dessa margem.
+- **O LCP não mudou de forma mensurável.** As diferenças, para cima e para baixo, ficam dentro da variação de uma mesma
+  página (em `/filmes`, 3,93/5,44/3,94 s na mesma rodada).
+- **Divisão do LCP observado na página inicial** (sem a simulação): 0,28 s até o primeiro byte, 0,05 s até o pedido da
+  imagem, 1,26 s baixando a imagem e 0,04 s até pintar. A imagem é descoberta cedo e pedida com prioridade alta; o que
+  pesa é a banda dividida com o JavaScript (~260–300 KB), as fontes (75 KB) e as imagens abaixo da dobra.
+
+Próximos passos, em ordem de ganho provável:
+
+1. **Hidratação da página inicial.** Uma tarefa longa de ~560 ms no pedaço do roteador do Next é a hidratação do
+   React. Medir com o Profiler do React quais componentes de cliente custam mais (cartões dos trilhos, herói) antes de
+   mexer.
+2. **Imagens abaixo da dobra na página da série.** Pôsteres das recomendações (15 × `w342`) e fotos de episódio
+   (6 × `w780`) já têm `loading="lazy"`, mas estão dentro da distância em que o Chrome as baixa mesmo assim, e disputam
+   a banda com o backdrop. Uma opção é só montar essas seções perto da tela.
+3. **Medir usuários reais** (Vercel Speed Insights ou `web-vitals`), porque o modelo simulado do Lighthouse soma ao LCP
+   tudo o que terminou antes dele.
