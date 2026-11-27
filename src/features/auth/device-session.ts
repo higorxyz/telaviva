@@ -39,7 +39,12 @@ export function createDeviceSession(openStore: () => Promise<OfflineStore | null
     const run = tail.then(async () => {
       opening ??= openStore().catch(() => null);
       const store = await opening;
-      if (!store) return null;
+      if (!store) {
+        // A blocked or failed open is tried again on the next call (as device-meta.ts does): kept as null, every later
+        // wipe, "remember" and pending sign-out of this page would silently do nothing.
+        opening = null;
+        return null;
+      }
       try {
         return await work(store);
       } catch {
