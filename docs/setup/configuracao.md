@@ -146,8 +146,9 @@ Nos hosts da Vercel, como `authDomain` é o host do próprio site, o navegador e
 2. **Create Database** → escolha **Neon** (Postgres) → plano **Free** → siga o assistente (região **São Paulo**,
    `sa-east-1`: as funções do site rodam em São Paulo, `gru1` no `vercel.json`, e cada pedido da lista conversa com o
    banco) → **Create**.
-3. Na tela de conexão, marque os ambientes **Production**, **Preview** e **Development** e confirme. O banco é um só
-   para produção e previews (previews são só do autor); um branch do Neon para previews fica recomendado no futuro.
+3. Na tela de conexão, marque os ambientes **Production**, **Preview** e **Development** e confirme. A produção (e o
+   seu `.env.local`) usa o branch principal do banco. Cada preview ganha um branch próprio do Neon (por exemplo
+   `preview/v2`), copiado do principal no momento em que é criado: os dados de teste não chegam à produção.
 4. A integração cria a variável `DATABASE_URL` sozinha. Para conferir: projeto → **Settings** → **Environment
    Variables**.
 5. Para usar o banco localmente, copie o valor: **Settings** → **Environment Variables** → `DATABASE_URL` → ícone de
@@ -274,16 +275,22 @@ O script imprime o alvo (`Migrando: Neon (<host>)`, sem senha) antes de aplicar.
 sai com erro.
 
 Rode de novo sempre que o esquema mudar (cada migração é aplicada só uma vez). Para gerar uma migração nova depois de
-editar o esquema (`src/server/db/schema.ts`), use `npm run db:generate`. Como produção e previews usam o mesmo banco,
-uma migração precisa ser compatível com o código que está no ar: só adicionar, nunca quebrar.
+editar o esquema (`src/server/db/schema.ts`), use `npm run db:generate`. A migração precisa ser compatível com o código
+que está no ar: só adicionar, nunca quebrar.
+
+O `npm run db:migrate` migra o branch principal (o do `.env.local`), não os branches dos previews. Um preview cujo branch
+já existia continua com o esquema antigo e responde 500 onde usar as tabelas novas. Depois de migrar, apague o branch do
+preview no console do Neon (**Branches**) e faça um novo deploy do preview: a integração recria o branch a partir do
+principal, já migrado.
 
 ## 7. Lançamento e operação em produção
 
 ### 7.1 Antes do primeiro push da v2 e do merge na `main`
 
 1. **Migração aplicada antes de qualquer push** (inclusive o do preview): `npm run db:migrate -- --confirm` com o
-   `DATABASE_URL` do Neon (seção 6). Preview e produção usam o mesmo banco, e a v2 lê `library_removals` e
-   `applied_commands` em toda ação e em todo merge da lista: um deploy sem essas tabelas responde 500 em cada ação.
+   `DATABASE_URL` do Neon (seção 6). A v2 lê `library_removals` e `applied_commands` em toda ação e em todo merge da
+   lista: um deploy sem essas tabelas responde 500 em cada ação. O preview usa o próprio branch do Neon: se ele já
+   existia antes da migração, apague-o e faça um novo deploy do preview (seção 6).
    Antes, confira que o Postgres do Neon é **15 ou mais novo** (`SHOW server_version;` no SQL Editor do Neon), porque
    a migração usa `UNIQUE NULLS NOT DISTINCT`. Ela só cria tabelas: é segura para a v1 no ar (que não usa banco) e
    para o código da Fase 3.

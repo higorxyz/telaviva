@@ -38,7 +38,8 @@ Mudou variável de ambiente? Atualize o `.env.example`, as regras em `src/lib/ch
 2. Diga o que mudou e por quê, e ligue a issue (`Closes #123`).
 3. Mudou a interface? Anexe capturas no celular e no desktop.
 4. Mudança arriscada (banco, service worker, login, CSP)? Explique o risco e como voltar atrás. Migrações precisam ser
-   compatíveis com o código que está no ar (produção e previews usam o mesmo banco).
+   compatíveis com o código que está no ar. Cada preview tem o próprio branch do Neon, copiado do banco principal quando é
+   criado: depois de uma migração, recrie o branch do preview ([configuracao.md](../setup/configuracao.md#6-migrações-do-banco)).
 
 ## Revisão e merge
 
