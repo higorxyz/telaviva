@@ -8,13 +8,13 @@ segurança das rotas novas, teclado, contraste, axe, `robots.txt`, `sitemap.xml`
 Em `next.config.ts` (`headers()`, valores em `src/lib/security-headers.ts`), com o `withSerwist` e o proxy `/__/auth`
 como estavam:
 
-| Cabeçalho                 | Valor                                         | Onde                        |
-| ------------------------- | --------------------------------------------- | --------------------------- |
-| `X-Content-Type-Options`  | `nosniff`                                     | tudo                        |
-| `Referrer-Policy`         | `strict-origin-when-cross-origin`             | tudo                        |
-| `Permissions-Policy`      | `camera=(), microphone=(), geolocation=()`    | tudo                        |
-| `X-Frame-Options`         | `DENY`                                        | tudo, menos `/__/auth/*`    |
-| `Content-Security-Policy` | lista abaixo (com `frame-ancestors 'none'`)   | tudo, menos `/__/auth/*`    |
+| Cabeçalho                 | Valor                                       | Onde                     |
+| ------------------------- | ------------------------------------------- | ------------------------ |
+| `X-Content-Type-Options`  | `nosniff`                                   | tudo                     |
+| `Referrer-Policy`         | `strict-origin-when-cross-origin`           | tudo                     |
+| `Permissions-Policy`      | `camera=(), microphone=(), geolocation=()`  | tudo                     |
+| `X-Frame-Options`         | `DENY`                                      | tudo, menos `/__/auth/*` |
+| `Content-Security-Policy` | lista abaixo (com `frame-ancestors 'none'`) | tudo, menos `/__/auth/*` |
 
 - **`/__/auth/*` fica de fora do bloqueio de moldura e da CSP.** Em produção o `authDomain` é o próprio site (o proxy), e o
   SDK do Firebase carrega `/__/auth/iframe` num iframe escondido desta mesma origem: `DENY` quebraria o login. Essas
@@ -62,6 +62,11 @@ manifest-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; fra
   Firebase (fora da CSP do site em produção, outra origem em `localhost`); o que volta para a página é `postMessage` e
   chamadas a `*.googleapis.com`, já liberadas. **Ao lançar, conferir o login Google em produção com o console aberto.**
   Também ficam de fora os previews da Vercel com a barra de comentários (`vercel.live`): a CSP a bloqueia; só preview.
+- **Para revisar depois:** o reCAPTCHA do Firebase Auth, se um dia for ativado, carrega scripts e iframes de hosts
+  do Google que a CSP não libera; ativá-lo exige ampliar `script-src` e `frame-src` antes.
+- **Para revisar depois:** o `frame-src` conta com o `authDomain` igual ao host do próprio site (`'self'`, pelo proxy
+  `/__/auth`); outro `authDomain` em produção seria bloqueado. `npm run env:check -- --target=production` aponta o caso
+  (docs/setup/configuracao.md).
 
 ## Dependências (`npm audit --omit=dev`)
 
@@ -104,16 +109,16 @@ painel de nota (`e2e/a11y.spec.ts`). Todos sem violações.
 Passada real com o teclado no Playwright, que virou teste: `e2e/keyboard.spec.ts` (desktop). Cada controle é alcançado
 só com Tab, precisa mostrar o anel de foco e funciona com Enter ou Espaço.
 
-| Fluxo                                                        | Resultado                    |
-| ------------------------------------------------------------ | ---------------------------- |
-| "Pular para o conteúdo" é a primeira parada e pula o cabeçalho | ok                         |
-| Abrir um título a partir do início                           | ok                           |
-| Adicionar ("Quero ver")                                      | ok                           |
-| Nota: abrir, Esc devolve o foco, setas/End, Espaço escolhe   | ok                           |
-| Marcar episódio                                              | ok                           |
-| Entrar (e-mail e senha)                                      | **falhou → corrigido**       |
-| Excluir conta: abrir, Esc devolve o foco, digitar EXCLUIR, Enter | ok                       |
-| Indicador offline                                            | não focável (é `status`), anunciado pelo leitor de tela |
+| Fluxo                                                            | Resultado                                               |
+| ---------------------------------------------------------------- | ------------------------------------------------------- |
+| "Pular para o conteúdo" é a primeira parada e pula o cabeçalho   | ok                                                      |
+| Abrir um título a partir do início                               | ok                                                      |
+| Adicionar ("Quero ver")                                          | ok                                                      |
+| Nota: abrir, Esc devolve o foco, setas/End, Espaço escolhe       | ok                                                      |
+| Marcar episódio                                                  | ok                                                      |
+| Entrar (e-mail e senha)                                          | **falhou → corrigido**                                  |
+| Excluir conta: abrir, Esc devolve o foco, digitar EXCLUIR, Enter | ok                                                      |
+| Indicador offline                                                | não focável (é `status`), anunciado pelo leitor de tela |
 
 - **Achado:** os campos de formulário (`src/features/auth/form-ui.tsx`: entrar, criar conta, senha da reautenticação)
   não mostravam o anel âmbar de foco. A classe `focus:outline-none` zerava `--tw-outline-style`, e o
@@ -147,7 +152,7 @@ Tudo passa AA (e AAA, 7:1, sobre ink-950/900/800). `ink-950` sobre `amber` (bot�
 ## Pendências da Fase 3
 
 - **Reautenticação:** o formulário de senha de "Excluir minha conta" ganhou `<input type="email" autocomplete="username"
-  hidden>` com o e-mail da conta, no mesmo `<form>` da senha (`autocomplete="current-password"`), para gerenciadores de
+hidden>` com o e-mail da conta, no mesmo `<form>` da senha (`autocomplete="current-password"`), para gerenciadores de
   senha. Fora da árvore de acessibilidade e do Tab.
 - **Firewall da Vercel** (`/api/recommendations`, `/api/tv/*`, login): proposta no plano, aplicar só com aprovação do
   autor. Não feito aqui.
