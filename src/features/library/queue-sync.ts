@@ -8,8 +8,9 @@ export const LIBRARY_CHANNEL = 'telaviva-library';
 
 export type LockOutcome<T> = { ran: true; value: T } | { ran: false };
 
-// Without Web Locks (Safari before 15.4), a lock inside this tab only. Two tabs may then send the same action twice;
-// the server applies it once, since each carries its `commandId`.
+// Without Web Locks, a lock inside this tab only. Every browser that runs the queue has them (it needs
+// `crypto.randomUUID`, Safari 15.4+, the same versions), so this is a safety net (tests, unusual embedded browsers).
+// Two tabs may then send the same action twice; the server applies it once, since each carries its `commandId`.
 let tail: Promise<void> = Promise.resolve();
 let held = false;
 
@@ -61,9 +62,9 @@ function isMessage(data: unknown): data is LibraryMessage & { from: string } {
 }
 
 /**
- * Tells the other tabs (this one is not told). Without BroadcastChannel (Safari before 15.4) nothing is sent: the
- * other tabs catch up when they come back into view (the account library reloads on `visibilitychange`). The `storage`
- * event is not used as a fallback, so the uid is never written to localStorage.
+ * Tells the other tabs (this one is not told). Without BroadcastChannel (a safety net: the browsers that run the queue
+ * all have it) nothing is sent: the other tabs catch up when they come back into view (the account library reloads on
+ * `visibilitychange`). The `storage` event is not used as a fallback, so the uid is never written to localStorage.
  */
 export function postLibraryMessage(message: LibraryMessage): void {
   if (!hasChannel()) return;
