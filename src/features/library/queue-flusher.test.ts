@@ -3,12 +3,13 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import type { OfflineStore } from '../offline/store-types';
 import { applyCommand } from './commands';
 import { createQueueFlusher, type FlushOutcome } from './queue-flusher';
-import type { LibraryMessage } from './queue-sync';
+import { withQueueLock, type LibraryMessage } from './queue-sync';
 import { createServerRepository } from './server-repository';
 import {
   anotherConnection,
   fakeLibraryServer,
   freshStore,
+  hangRequests,
   installFakeLocks,
   listenAsAnotherTab,
   queuedCommand,
@@ -16,6 +17,7 @@ import {
   UID,
 } from './test-library-server';
 import { want } from './test-storage';
+import { REQUEST_TIMEOUT_MS } from '@/lib/request-timeout';
 import { EMPTY_LIBRARY } from './types';
 
 const T1 = '2026-11-21T09:00:00.000Z';
@@ -34,6 +36,7 @@ beforeEach(async () => {
 afterEach(() => {
   stops.forEach((stop) => stop());
   stops = [];
+  vi.useRealTimers();
   vi.unstubAllGlobals();
   vi.restoreAllMocks();
 });
@@ -243,6 +246,23 @@ describe('createQueueFlusher', () => {
     fake.answerNext(500);
     await flusher.flush();
     expect(retries).toEqual([2000, 4000, 2000]);
+  });
+
+  it('a send that never answers (signal but no data) ends the run after the timeout: lock released, retry later', async () => {
+    stops.push(installFakeLocks());
+    const [a] = await enqueue(queuedCommand(want(1), T1));
+    vi.useFakeTimers({ toFake: ['setTimeout', 'clearTimeout'], shouldAdvanceTime: true });
+    const fetch = hangRequests();
+    const { flusher } = setup();
+    let done = false;
+    void flusher.flush().then(() => (done = true));
+    await vi.waitUntil(() => fetch.mock.calls.length === 1);
+    await vi.advanceTimersByTimeAsync(REQUEST_TIMEOUT_MS);
+    await vi.waitUntil(() => done);
+    expect((await store.listQueue(UID))[0]).toMatchObject({ id: a!.id, attempts: 1 });
+    expect(retries).toEqual([2000]);
+    // The lock is free again: another holder gets it at once.
+    expect((await withQueueLock(async () => 'free', { ifAvailable: true })).ran).toBe(true);
   });
 
   it('caps the wait between retries at 5 minutes', async () => {

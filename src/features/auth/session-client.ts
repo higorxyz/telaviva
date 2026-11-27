@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import { requestDeadline } from '@/lib/request-timeout';
 
 /** The signed-in user as `/api/auth/me` and `POST /api/auth/session` answer it (src/server/auth/session.ts). */
 export type SessionUser = {
@@ -58,22 +59,33 @@ export type MeResult =
   | { kind: 'unauthenticated' }
   /** Sign-in is off on the server (404). */
   | { kind: 'off' }
-  | { kind: 'error' };
+  /**
+   * No usable answer: no connection, a 5xx, a body that is not a user. `timeout`: nothing came back within
+   * REQUEST_TIMEOUT_MS (a connection with signal but no data), so asking again right away would not help.
+   */
+  | { kind: 'error'; reason?: 'timeout' };
 
+/** `/api/auth/me`, given up on after REQUEST_TIMEOUT_MS (src/lib/request-timeout.ts), body included. */
 export async function fetchMe(): Promise<MeResult> {
-  let response: Response;
+  const deadline = requestDeadline();
+  const error = (): MeResult => (deadline.expired ? { kind: 'error', reason: 'timeout' } : { kind: 'error' });
   try {
-    response = await fetch('/api/auth/me', init);
-  } catch {
-    return { kind: 'error' };
-  }
-  if (response.status === 401) return { kind: 'unauthenticated' };
-  if (response.status === 404) return { kind: 'off' };
-  if (!response.ok) return { kind: 'error' };
-  try {
-    return { kind: 'user', user: await readUser(response) };
-  } catch {
-    return { kind: 'error' };
+    let response: Response;
+    try {
+      response = await fetch('/api/auth/me', { ...init, signal: deadline.signal });
+    } catch {
+      return error();
+    }
+    if (response.status === 401) return { kind: 'unauthenticated' };
+    if (response.status === 404) return { kind: 'off' };
+    if (!response.ok) return error();
+    try {
+      return { kind: 'user', user: await readUser(response) };
+    } catch {
+      return error();
+    }
+  } finally {
+    deadline.clear();
   }
 }
 
@@ -96,14 +108,18 @@ export async function createSession(idToken: string): Promise<SessionUser> {
 
 /**
  * Ends the session on the server (it clears both cookies). Never throws; true when the server answered that it did
- * (or, with a 404, that sign-in is off and there is no session to end), false when the request failed (offline) or was
- * refused, so the httpOnly cookie may still be there.
+ * (or, with a 404, that sign-in is off and there is no session to end), false when the request failed (offline, or no
+ * answer in time) or was refused, so the httpOnly cookie may still be there.
  */
 export async function deleteSession(): Promise<boolean> {
+  // Given up on after REQUEST_TIMEOUT_MS like `fetchMe`: a hung DELETE would hold "Sair" and the next start-up.
+  const deadline = requestDeadline();
   try {
-    const response = await fetch('/api/auth/session', { ...init, method: 'DELETE' });
+    const response = await fetch('/api/auth/session', { ...init, method: 'DELETE', signal: deadline.signal });
     return response.ok || response.status === 404;
   } catch {
     return false;
+  } finally {
+    deadline.clear();
   }
 }

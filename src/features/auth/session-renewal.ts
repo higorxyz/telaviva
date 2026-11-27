@@ -101,12 +101,13 @@ export function createSessionRenewal(state: AuthState, device: DeviceSession) {
   /**
    * `/api/auth/me`, asked again (twice at most, briefly apart) after a passing failure, while the page still waits
    * on sign-in: one dropped request must not show a signed-in person the visitor's list. When the browser knows it is
-   * offline, asking again cannot help: the start-up goes on to the identity kept on the device at once.
+   * offline, asking again cannot help: the start-up goes on to the identity kept on the device at once. Nor after a
+   * timeout: the connection has signal but no data, and two more waits would keep the page on hold for half a minute.
    */
   async function patientMe(started: number): Promise<MeResult> {
     let me = await fetchMe();
     for (const ms of ME_RETRY_MS) {
-      if (me.kind !== 'error' || started !== state.generation || browserOffline()) break;
+      if (me.kind !== 'error' || me.reason === 'timeout' || started !== state.generation || browserOffline()) break;
       await wait(ms);
       me = await fetchMe();
     }

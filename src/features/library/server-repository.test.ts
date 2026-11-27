@@ -12,7 +12,9 @@ import {
   type LibraryNotice,
 } from './repository';
 import { createServerRepository } from './server-repository';
+import { hangRequests } from './test-library-server';
 import { NOW, want } from './test-storage';
+import { REQUEST_TIMEOUT_MS } from '@/lib/request-timeout';
 import { EMPTY_LIBRARY } from './types';
 
 const url = (path: string) => `${window.location.origin}${path}`;
@@ -32,6 +34,7 @@ function setup() {
 
 afterEach(() => {
   vi.useRealTimers();
+  vi.unstubAllGlobals();
   vi.restoreAllMocks();
 });
 
@@ -248,5 +251,62 @@ describe('createServerRepository', () => {
       show('visible');
       expect(onChange).toHaveBeenCalledTimes(2);
     });
+  });
+});
+
+describe('createServerRepository: signal but no data', () => {
+  const fakeTimers = () => vi.useFakeTimers({ toFake: ['setTimeout', 'clearTimeout'] });
+
+  async function settle<T>(promise: Promise<T>): Promise<{ value?: T; error?: unknown }> {
+    const outcome: { value?: T; error?: unknown; done?: boolean } = {};
+    void promise.then(
+      (value) => Object.assign(outcome, { value, done: true }),
+      (error: unknown) => Object.assign(outcome, { error, done: true }),
+    );
+    await vi.advanceTimersByTimeAsync(REQUEST_TIMEOUT_MS - 1);
+    expect(outcome.done).toBeUndefined();
+    await vi.advanceTimersByTimeAsync(1);
+    expect(outcome.done).toBe(true);
+    return outcome;
+  }
+
+  it('a GET that never answers fails as a network error after the timeout', async () => {
+    fakeTimers();
+    hangRequests();
+    const { error } = await settle(setup().repository.load());
+    expect(error).toBeInstanceOf(LibraryRemoteError);
+    expect(isNetworkError(error)).toBe(true);
+  });
+
+  it('a POST that never answers fails as a network error after the timeout', async () => {
+    fakeTimers();
+    hangRequests();
+    const { error } = await settle(setup().repository.applyWithPreImage(want(1), { commandId: 'c1' }));
+    expect(isNetworkError(error)).toBe(true);
+  });
+
+  it('a body that stops halfway counts as no answer too', async () => {
+    fakeTimers();
+    vi.stubGlobal(
+      'fetch',
+      vi.fn((_input: RequestInfo | URL, init?: RequestInit) => {
+        const body = new ReadableStream({
+          start(controller) {
+            controller.enqueue(new TextEncoder().encode('{"items":['));
+            init?.signal?.addEventListener('abort', () => controller.error(init.signal!.reason), { once: true });
+          },
+        });
+        return Promise.resolve(new Response(body, { status: 200 }));
+      }),
+    );
+    const { error } = await settle(setup().repository.load());
+    expect(isNetworkError(error)).toBe(true);
+  });
+
+  it('an answer in time leaves no timer behind', async () => {
+    fakeTimers();
+    server.use(http.get(url('/api/library'), () => HttpResponse.json(saved)));
+    expect(await setup().repository.load()).toEqual(saved);
+    expect(vi.getTimerCount()).toBe(0);
   });
 });

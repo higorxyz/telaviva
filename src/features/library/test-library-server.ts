@@ -134,3 +134,22 @@ export function listenAsAnotherTab(onMessage: (message: LibraryMessage) => void)
   channel.onmessage = (event: MessageEvent<LibraryMessage>) => onMessage({ uid: event.data.uid, kind: event.data.kind });
   return () => channel.close();
 }
+
+/**
+ * A connection with signal but no data (metro, plane, captive Wi-Fi): every request hangs until its signal aborts,
+ * then rejects with the abort reason, as a browser's fetch does. Returns the fetch double; `vi.unstubAllGlobals()`
+ * puts MSW's fetch back.
+ */
+export function hangRequests() {
+  const fetch = vi.fn(
+    (_input: RequestInfo | URL, init?: RequestInit) =>
+      new Promise<Response>((_, reject) => {
+        const signal = init?.signal;
+        if (!signal) return;
+        if (signal.aborted) reject(signal.reason);
+        else signal.addEventListener('abort', () => reject(signal.reason), { once: true });
+      }),
+  );
+  vi.stubGlobal('fetch', fetch);
+  return fetch;
+}

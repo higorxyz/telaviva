@@ -10,7 +10,16 @@ import {
   type LibraryRepository,
 } from './repository';
 import { createServerRepository } from './server-repository';
-import { fakeLibraryServer, freshStore, postFromAnotherTab, queuedCommand, reportOnline, UID } from './test-library-server';
+import {
+  fakeLibraryServer,
+  freshStore,
+  hangRequests,
+  postFromAnotherTab,
+  queuedCommand,
+  reportOnline,
+  UID,
+} from './test-library-server';
+import { REQUEST_TIMEOUT_MS } from '@/lib/request-timeout';
 import { want } from './test-storage';
 import { EMPTY_LIBRARY, type LibraryState } from './types';
 
@@ -33,6 +42,7 @@ beforeEach(async () => {
 afterEach(() => {
   stops.forEach((stop) => stop());
   stops = [];
+  vi.useRealTimers();
   vi.unstubAllGlobals();
   vi.restoreAllMocks();
 });
@@ -235,3 +245,65 @@ describe('createOfflineAccountRepository', () => {
     await expect(repository.applyWithPreImage!(want(3))).rejects.toMatchObject({ network: true });
   });
 });
+
+describe('createOfflineAccountRepository: signal but no data (navigator.onLine stays true)', () => {
+  /** Only the 8 s are skipped: the store's own scheduling keeps running. */
+  const fakeTimers = () => vi.useFakeTimers({ toFake: ['setTimeout', 'clearTimeout'], shouldAdvanceTime: true });
+  const timeOut = () => vi.advanceTimersByTimeAsync(REQUEST_TIMEOUT_MS);
+
+  it('a load that never answers falls back to the saved copy (with the queue on top) after the timeout', async () => {
+    const fake = fakeLibraryServer(applyCommand(EMPTY_LIBRARY, want(1), T0));
+    const { repository } = setup();
+    await loadedOnline(repository);
+    fake.offline = true;
+    await repository.applyWithPreImage!(want(2));
+    fakeTimers();
+    const fetch = hangRequests();
+    let loaded: LibraryState | undefined;
+    void repository.load().then((state) => (loaded = state));
+    await vi.waitUntil(() => fetch.mock.calls.length === 1);
+    expect(loaded).toBeUndefined();
+    await timeOut();
+    await vi.waitUntil(() => loaded !== undefined);
+    expect(ids(loaded!)).toEqual([1, 2]);
+  });
+
+  it('an action whose POST never answers is queued after the timeout, with the id it was sent with', async () => {
+    fakeLibraryServer(applyCommand(EMPTY_LIBRARY, want(1), T0));
+    const { repository } = setup();
+    await loadedOnline(repository);
+    fakeTimers();
+    const fetch = hangRequests();
+    let applied: Awaited<ReturnType<NonNullable<typeof repository.applyWithPreImage>>> | undefined;
+    void repository.applyWithPreImage!(want(2)).then((result) => (applied = result));
+    await vi.waitUntil(() => fetch.mock.calls.length === 1);
+    const sent = JSON.parse(String(fetch.mock.calls[0]![1]!.body)) as { commandId: string };
+    await timeOut();
+    await vi.waitUntil(() => applied !== undefined);
+    expect(ids(applied!.state)).toEqual([1, 2]);
+    expect(applied!.queued?.id).toBe(sent.commandId);
+    // If the POST did reach the server, the resend carries the same id and the server applies it once.
+    expect((await store.listQueue(UID)).map((item) => item.id)).toEqual([sent.commandId]);
+  });
+
+  it('a send that never answers lets go of the queue lock after the timeout, so an undo goes through', async () => {
+    const fake = fakeLibraryServer(applyCommand(EMPTY_LIBRARY, want(1), T0));
+    const { repository, queue } = setup();
+    await loadedOnline(repository);
+    fake.offline = true;
+    const action = await repository.applyWithPreImage!(want(2));
+    fakeTimers();
+    const fetch = hangRequests();
+    stops.push(queue.start());
+    await vi.waitUntil(() => fetch.mock.calls.length === 1);
+    let undone: LibraryState | null | undefined;
+    void queue.unqueue(action.queued!.id).then((state) => (undone = state));
+    await new Promise((resolve) => setTimeout(resolve, 20));
+    expect(undone).toBeUndefined();
+    await timeOut();
+    await vi.waitUntil(() => undone !== undefined);
+    expect(ids(undone!)).toEqual([1]);
+    expect(await store.countQueue(UID)).toBe(0);
+  });
+});
+

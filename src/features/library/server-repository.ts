@@ -1,3 +1,4 @@
+import { requestDeadline, type RequestDeadline } from '@/lib/request-timeout';
 import type { LibraryCommand } from './commands';
 import { NOTICE } from './copy';
 import {
@@ -28,10 +29,12 @@ async function readError(response: Response): Promise<string | undefined> {
   return undefined;
 }
 
-async function readJson(response: Response): Promise<unknown> {
+/** The body; one cut off by the deadline is no answer (`network`), like a request that never got one. */
+async function readJson(response: Response, deadline: RequestDeadline): Promise<unknown> {
   try {
     return await response.json();
   } catch (cause) {
+    if (deadline.expired) throw new LibraryRemoteError('The library service did not answer in time', { cause, network: true });
     throw new LibraryRemoteError('The library response was not JSON', { cause });
   }
 }
@@ -97,26 +100,39 @@ export function createServerRepository(opts: Options): ServerLibraryRepository {
     else listeners.forEach((listener) => listener(notice));
   }
 
-  type Init = Omit<RequestInit, 'headers'> & { headers?: Record<string, string> };
+  type Init = Omit<RequestInit, 'headers' | 'signal'> & { headers?: Record<string, string> };
 
-  async function request(path: string, init: Init, retried = false): Promise<Response> {
+  /**
+   * One request and its JSON body, given up on after REQUEST_TIMEOUT_MS (src/lib/request-timeout.ts): a connection
+   * with signal but no data then fails as no answer (`network: true`), so the offline fallbacks start (the saved copy,
+   * the queue with the same `commandId`) and a send never holds the queue lock for long. Each attempt has its own
+   * deadline (the 401 renewal in between has its own requests).
+   */
+  async function request(path: string, init: Init, retried = false): Promise<unknown> {
+    const deadline = requestDeadline();
     let response: Response;
     try {
-      response = await fetch(path, {
-        credentials: 'same-origin',
-        cache: 'no-store',
-        ...init,
-        headers: { ...init.headers, 'X-Expected-User': opts.uid },
-      });
-    } catch (cause) {
-      throw new LibraryRemoteError('Could not reach the library service', { cause, network: true });
+      try {
+        response = await fetch(path, {
+          credentials: 'same-origin',
+          cache: 'no-store',
+          ...init,
+          headers: { ...init.headers, 'X-Expected-User': opts.uid },
+          signal: deadline.signal,
+        });
+      } catch (cause) {
+        throw new LibraryRemoteError('Could not reach the library service', { cause, network: true });
+      }
+      if (response.ok) return await readJson(response, deadline);
+    } finally {
+      deadline.clear();
     }
-    if (response.ok) return response;
     if (response.status === 401) {
       // The server applied nothing (it checks the session first), so sending the same request again is safe.
       if (!retried && (await renewed(opts.onUnauthenticated))) return request(path, init, true);
       throw new LibrarySessionError();
     }
+    // The error body is optional: past the deadline (cleared above) it is read without one, and a hang there is rare.
     const code = await readError(response);
     if (response.status === 409) {
       if (code === 'wrong_account') {
@@ -138,12 +154,12 @@ export function createServerRepository(opts: Options): ServerLibraryRepository {
 
   async function applyWithPreImage(command: LibraryCommand, envelope: CommandEnvelope = {}): Promise<AppliedCommand> {
     const { at, commandId } = envelope;
-    const response = await request('/api/library/commands', {
+    const json = await request('/api/library/commands', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ command, ...(at ? { at } : {}), ...(commandId ? { commandId } : {}) }),
     });
-    return toApplied(await readJson(response));
+    return toApplied(json);
   }
 
   return {
@@ -152,7 +168,7 @@ export function createServerRepository(opts: Options): ServerLibraryRepository {
     errorMessage: NOTICE.saveFailedAccount,
 
     async load() {
-      return toState(await readJson(await request('/api/library', {})));
+      return toState(await request('/api/library', {}));
     },
 
     async apply(command: LibraryCommand, envelope?: CommandEnvelope) {

@@ -2,10 +2,11 @@ import 'fake-indexeddb/auto';
 import { act, screen, waitFor } from '@testing-library/react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { applyCommand } from '@/features/library/commands';
-import { fakeLibraryServer, freshStore, queuedCommand } from '@/features/library/test-library-server';
+import { fakeLibraryServer, freshStore, hangRequests, queuedCommand } from '@/features/library/test-library-server';
 import { KEY, NOW, want } from '@/features/library/test-storage';
 import { EMPTY_LIBRARY } from '@/features/library/types';
 import type { OfflineStore } from '@/features/offline/store-types';
+import { REQUEST_TIMEOUT_MS } from '@/lib/request-timeout';
 import { resetFirebaseClient } from './firebase-client';
 import { LAST_IDENTITY } from './offline-identity';
 import {
@@ -42,6 +43,7 @@ beforeEach(async () => {
   store = await freshStore();
 });
 afterEach(() => {
+  vi.useRealTimers();
   clearCookies();
   window.localStorage.clear();
   window.sessionStorage.clear();
@@ -75,6 +77,25 @@ describe('AuthProvider: opening the app without a connection (Foco 5)', () => {
     meAnswers(503);
     renderAuth();
     await waitFor(() => expect(probe()).toMatch(/^signed-in\|u1/));
+    expect(screen.queryByText(EXPIRED)).toBeNull();
+  });
+
+  it('signal but no data: one timed-out /api/auth/me (not retried) signs in from the device, then the saved list', async () => {
+    await keptOnDevice(store, 'u1', one);
+    setHint();
+    // The start-up's own short waits (the store, lazy modules) still run; only the 8 s are skipped.
+    vi.useFakeTimers({ toFake: ['setTimeout', 'clearTimeout'], shouldAdvanceTime: true });
+    const fetch = hangRequests();
+    const calls = (path: string) => fetch.mock.calls.filter(([input]) => String(input).endsWith(path)).length;
+    renderAuth();
+    await waitFor(() => expect(calls('/api/auth/me')).toBe(1));
+    await act(() => vi.advanceTimersByTimeAsync(REQUEST_TIMEOUT_MS));
+    await waitFor(() => expect(probe()).toMatch(/^signed-in\|u1/));
+    expect(calls('/api/auth/me')).toBe(1);
+    // The library's GET hangs too: after its own timeout, the saved copy.
+    await waitFor(() => expect(calls('/api/library')).toBe(1));
+    await act(() => vi.advanceTimersByTimeAsync(REQUEST_TIMEOUT_MS));
+    await waitFor(() => expect(probe()).toBe('signed-in|u1|1'));
     expect(screen.queryByText(EXPIRED)).toBeNull();
   });
 
