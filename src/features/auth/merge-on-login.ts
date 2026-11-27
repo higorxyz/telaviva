@@ -1,3 +1,4 @@
+import { requestDeadline } from '@/lib/request-timeout';
 import { normalizeLibraryState, parseLibraryEntries } from '@/features/library/schema';
 import { GUEST_LIBRARY_KEY } from '@/features/library/storage-key';
 import type { LibraryState } from '@/features/library/types';
@@ -124,6 +125,8 @@ async function send(
   sleep: (ms: number) => Promise<void>,
 ): Promise<LibraryState | null | 'wrong_account'> {
   for (let attempt = 0; ; attempt++) {
+    // No answer in time (REQUEST_TIMEOUT_MS) is retried like a network error: the merge is idempotent.
+    const deadline = requestDeadline();
     let response: Response;
     try {
       response = await fetch('/api/library/merge', {
@@ -132,16 +135,22 @@ async function send(
         cache: 'no-store',
         headers: { 'Content-Type': 'application/json', 'X-Expected-User': uid },
         body: JSON.stringify({ library: chunk }),
+        signal: deadline.signal,
       });
     } catch {
+      deadline.clear();
       if (attempt >= BACKOFF_MS.length) return null;
       await sleep(BACKOFF_MS[attempt]);
       continue;
     }
-    if (await isWrongAccount(response)) return 'wrong_account';
-    if (!response.ok) return null;
-    const parsed = parseLibraryEntries(await response.json().catch(() => null));
-    return parsed ? normalizeLibraryState(parsed.state) : null;
+    try {
+      if (await isWrongAccount(response)) return 'wrong_account';
+      if (!response.ok) return null;
+      const parsed = parseLibraryEntries(await response.json().catch(() => null));
+      return parsed ? normalizeLibraryState(parsed.state) : null;
+    } finally {
+      deadline.clear();
+    }
   }
 }
 

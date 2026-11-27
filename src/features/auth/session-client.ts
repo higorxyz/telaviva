@@ -91,19 +91,31 @@ export async function fetchMe(): Promise<MeResult> {
 
 /** Exchanges a fresh ID token for the session cookies; resolves to the user the server now knows. */
 export async function createSession(idToken: string): Promise<SessionUser> {
-  let response: Response;
+  // Given up on after REQUEST_TIMEOUT_MS like `fetchMe`: no answer in time counts as no network (status null).
+  const deadline = requestDeadline();
   try {
-    response = await fetch('/api/auth/session', {
-      ...init,
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ idToken }),
-    });
-  } catch {
-    throw new SessionRequestError(null);
+    let response: Response;
+    try {
+      response = await fetch('/api/auth/session', {
+        ...init,
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ idToken }),
+        signal: deadline.signal,
+      });
+    } catch {
+      throw new SessionRequestError(null);
+    }
+    if (!response.ok) throw new SessionRequestError(response.status);
+    try {
+      return await readUser(response);
+    } catch (error) {
+      if (deadline.expired) throw new SessionRequestError(null);
+      throw error;
+    }
+  } finally {
+    deadline.clear();
   }
-  if (!response.ok) throw new SessionRequestError(response.status);
-  return readUser(response);
 }
 
 /**

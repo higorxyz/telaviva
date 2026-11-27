@@ -1,7 +1,11 @@
+import { requestDeadline } from '@/lib/request-timeout';
 import { GUEST_LIBRARY_KEY } from '@/features/library/storage-key';
 import { confirmedKey, preMergeKey } from './merge-on-login';
 
 const EXPORT_FALLBACK_NAME = 'telaviva-meus-dados.json';
+
+/** The export reads the whole account, so it gets more time than the other requests (REQUEST_TIMEOUT_MS). */
+export const EXPORT_TIMEOUT_MS = 30_000;
 
 const init: RequestInit = { credentials: 'same-origin', cache: 'no-store' };
 
@@ -35,11 +39,15 @@ export class ExportSessionError extends Error {
 export type DeleteResult = 'deleted' | 'reauth' | 'wrong_account' | 'offline' | 'error';
 
 export async function requestAccountDeletion(expectedUid: string): Promise<DeleteResult> {
+  // No answer in time is `error`, not `offline`: the request may have reached the server, and trying again is safe.
+  const deadline = requestDeadline();
   let response: Response;
   try {
-    response = await fetch('/api/account', { ...forUser(expectedUid), method: 'DELETE' });
+    response = await fetch('/api/account', { ...forUser(expectedUid), method: 'DELETE', signal: deadline.signal });
   } catch {
-    return 'offline';
+    return deadline.expired ? 'error' : 'offline';
+  } finally {
+    deadline.clear();
   }
   if (response.status === 204) return 'deleted';
   if (response.status === 409) return 'wrong_account';
@@ -57,11 +65,19 @@ function filenameOf(response: Response): string {
  * a 401).
  */
 export async function downloadAccountExport(expectedUid: string): Promise<void> {
-  const response = await fetch('/api/account/export', forUser(expectedUid));
-  if (response.status === 409) throw new WrongAccountError();
-  if (response.status === 401) throw new ExportSessionError();
-  if (!response.ok) throw new Error(`The export answered ${response.status}`);
-  const blob = await response.blob();
+  // The clock covers the body too: a stalled download must fail rather than leave the button busy forever.
+  const deadline = requestDeadline(EXPORT_TIMEOUT_MS);
+  let response: Response;
+  let blob: Blob;
+  try {
+    response = await fetch('/api/account/export', { ...forUser(expectedUid), signal: deadline.signal });
+    if (response.status === 409) throw new WrongAccountError();
+    if (response.status === 401) throw new ExportSessionError();
+    if (!response.ok) throw new Error(`The export answered ${response.status}`);
+    blob = await response.blob();
+  } finally {
+    deadline.clear();
+  }
   const href = URL.createObjectURL(blob);
   const link = document.createElement('a');
   link.href = href;
