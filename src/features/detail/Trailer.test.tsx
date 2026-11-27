@@ -29,7 +29,11 @@ describe('Trailer', () => {
     const user = userEvent.setup();
     render(<Trailer video={video} title="Clube da Luta" />);
     expect(document.querySelector('iframe')).toBeNull();
-    expect(cover().src).toBe(thumb('maxresdefault'));
+    // maxres from md up (the player is wider than 640 px there), sd on a phone.
+    const wide = document.querySelector('picture source')!;
+    expect(wide).toHaveAttribute('media', '(min-width: 768px)');
+    expect(wide).toHaveAttribute('srcset', thumb('maxresdefault'));
+    expect(cover().src).toBe(thumb('sddefault'));
 
     await user.click(screen.getByRole('button', { name: 'Assistir trailer de Clube da Luta' }));
 
@@ -43,6 +47,7 @@ describe('Trailer', () => {
   it('cai de maxres para sd e hq quando a capa falha, e para no hq', () => {
     render(<Trailer video={video} title="Clube da Luta" />);
     fireEvent.error(cover());
+    expect(document.querySelector('picture')).toBeNull();
     expect(cover().src).toBe(thumb('sddefault'));
     fireEvent.error(cover());
     expect(cover().src).toBe(thumb('hqdefault'));

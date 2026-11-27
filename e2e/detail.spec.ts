@@ -34,10 +34,13 @@ test('leaving a title page stops its trailer, and Back shows the cover again', a
   await expect(players).toHaveCount(0);
 });
 
-test('the trailer cover asks YouTube for the sharpest thumbnail first', async ({ page }) => {
+test('the trailer cover asks YouTube for the sharpest thumbnail the player needs', async ({ page, isMobile }) => {
   await page.goto('/filme/550-clube-da-luta');
   const cover = page.getByRole('button', { name: 'Assistir trailer de Clube da Luta' }).locator('img');
-  await expect(cover).toHaveAttribute('src', /\/maxresdefault\.jpg$/);
+  await cover.scrollIntoViewIfNeeded();
+  // maxres where the player is wider than 640 px (md up); sd on a phone, which is sharp enough there.
+  const expected = isMobile ? /\/sddefault\.jpg$/ : /\/maxresdefault\.jpg$/;
+  await expect.poll(() => cover.evaluate((img: HTMLImageElement) => img.currentSrc)).toMatch(expected);
 });
 
 test('unknown title id renders the 404 page', async ({ page }) => {
@@ -51,8 +54,10 @@ test('series page lists episodes and switching season keeps the scroll position'
   await expect(page.getByRole('heading', { name: /^E1 · / }).first()).toBeVisible();
 
   // Bring the picker into view first, so Playwright's own scroll-before-click does not move the page later.
+  // Inside the section's landmark: while the page streams, React may still hold a hidden copy of the streamed
+  // content (no roles exposed), and a page-wide getByLabel would then match two selects.
   const picker = isMobile
-    ? page.getByLabel('Temporada', { exact: true })
+    ? page.getByRole('region', { name: 'Temporadas e episódios' }).getByLabel('Temporada', { exact: true })
     : page.getByRole('navigation', { name: 'Temporadas' }).getByRole('link', { name: 'Temporada 2' });
   await picker.scrollIntoViewIfNeeded();
   await page.evaluate(() => new Promise((resolve) => requestAnimationFrame(resolve)));
