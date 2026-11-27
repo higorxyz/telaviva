@@ -1,5 +1,7 @@
 import { http, HttpResponse } from 'msw';
-import { beforeEach, describe, expect, it } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import { hangRequests } from '@/features/library/test-library-server';
+import { REQUEST_TIMEOUT_MS } from '@/lib/request-timeout';
 import { mergeLibraries } from '@/features/library/merge';
 import { item, KEY, memStorage, NOW } from '@/features/library/test-storage';
 import { EMPTY_LIBRARY, type LibraryState } from '@/features/library/types';
@@ -40,6 +42,11 @@ beforeEach(() => {
   account = { ...EMPTY_LIBRARY, items: [item(50) as LibraryState['items'][number]] };
   bodies = [];
   sizes = [];
+});
+
+afterEach(() => {
+  vi.useRealTimers();
+  vi.unstubAllGlobals();
 });
 
 describe('mergeOnLogin', () => {
@@ -88,6 +95,18 @@ describe('mergeOnLogin', () => {
     expect(result).toBe('kept');
     expect(calls).toBe(3);
     expect(waits).toHaveLength(2);
+    expect(data[KEY]).toBe(raw);
+  });
+
+  it('gives up on a request that never answers and retries it like a network error', async () => {
+    vi.useFakeTimers({ toFake: ['setTimeout', 'clearTimeout'] });
+    const fetch = hangRequests();
+    const { storage, data } = memStorage({ [KEY]: raw });
+    let result: unknown;
+    void mergeOnLogin('u1', { storage, sleep: noSleep, whenOnline: async () => true }).then((r) => (result = r));
+    await vi.advanceTimersByTimeAsync(REQUEST_TIMEOUT_MS * 3);
+    expect(result).toBe('kept');
+    expect(fetch).toHaveBeenCalledTimes(3);
     expect(data[KEY]).toBe(raw);
   });
 

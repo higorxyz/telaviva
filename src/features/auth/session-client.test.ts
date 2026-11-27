@@ -3,7 +3,7 @@ import { afterEach, describe, expect, it, vi } from 'vitest';
 import { hangRequests } from '@/features/library/test-library-server';
 import { REQUEST_TIMEOUT_MS } from '@/lib/request-timeout';
 import { server } from '@/test/server';
-import { deleteSession, fetchMe } from './session-client';
+import { createSession, deleteSession, fetchMe, SessionRequestError } from './session-client';
 
 const url = (path: string) => `${window.location.origin}${path}`;
 
@@ -48,5 +48,19 @@ describe('deleteSession', () => {
     void deleteSession().then((done) => (result = done));
     await vi.advanceTimersByTimeAsync(REQUEST_TIMEOUT_MS);
     expect(result).toBe(false);
+  });
+});
+
+describe('createSession', () => {
+  it('a POST that never answers fails like a network error (status null) after the timeout', async () => {
+    fakeTimers();
+    hangRequests();
+    let error: unknown;
+    void createSession('token').catch((e) => (error = e));
+    await vi.advanceTimersByTimeAsync(REQUEST_TIMEOUT_MS - 1);
+    expect(error).toBeUndefined();
+    await vi.advanceTimersByTimeAsync(1);
+    expect(error).toBeInstanceOf(SessionRequestError);
+    expect((error as SessionRequestError).status).toBeNull();
   });
 });
