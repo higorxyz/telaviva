@@ -8,6 +8,7 @@ import { EMPTY_LIBRARY } from '@/features/library/types';
 import type { OfflineStore } from '@/features/offline/store-types';
 import { REQUEST_TIMEOUT_MS } from '@/lib/request-timeout';
 import { resetFirebaseClient } from './firebase-client';
+import { OFFLINE_RECHECK_MS } from './start-up';
 import { LAST_IDENTITY } from './offline-identity';
 import {
   accounts,
@@ -78,6 +79,20 @@ describe('AuthProvider: opening the app without a connection (Foco 5)', () => {
     renderAuth();
     await waitFor(() => expect(probe()).toMatch(/^signed-in\|u1/));
     expect(screen.queryByText(EXPIRED)).toBeNull();
+  });
+
+  it('a 5xx (the connection never dropped, so no `online`): the timer asks again and a later 401 still expires', async () => {
+    await keptOnDevice(store, 'u1', one);
+    setHint();
+    vi.useFakeTimers({ toFake: ['setTimeout', 'clearTimeout'], shouldAdvanceTime: true });
+    meAnswers(503);
+    renderAuth();
+    await waitFor(() => expect(probe()).toMatch(/^signed-in\|u1/));
+    sessionGone();
+    expect(screen.queryByText(EXPIRED)).toBeNull();
+    await act(() => vi.advanceTimersByTimeAsync(OFFLINE_RECHECK_MS));
+    expect(await screen.findByText(EXPIRED)).toBeInTheDocument();
+    await waitFor(() => expect(probe()).toBe('guest|-|0'));
   });
 
   it('signal but no data: one timed-out /api/auth/me (not retried) signs in from the device, then the saved list', async () => {

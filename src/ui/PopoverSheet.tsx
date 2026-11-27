@@ -85,14 +85,18 @@ export function PopoverSheet({
     onOpenChange(false);
   };
 
+  const showElement = (el: HTMLDialogElement) => {
+    modal.current = !(window.matchMedia?.(WIDE).matches ?? true);
+    if (modal.current) el.showModal();
+    else el.show();
+    firstControl(el)?.focus();
+  };
+
   useLayoutEffect(() => {
     const el = dialog.current;
     if (!el) return;
     if (open && !el.open) {
-      modal.current = !(window.matchMedia?.(WIDE).matches ?? true);
-      if (modal.current) el.showModal();
-      else el.show();
-      firstControl(el)?.focus();
+      showElement(el);
     } else if (!open) {
       if (el.open) el.close();
       if (wasOpen.current && restoreFocus) triggerRef.current?.focus();
@@ -141,7 +145,12 @@ export function PopoverSheet({
         onClick: (e) => {
           const box = e.currentTarget.getBoundingClientRect();
           setAlignEnd(box.left + PANEL_WIDTH > window.innerWidth - 16);
-          if (open) close();
+          const el = dialog.current;
+          // The sheet's native Esc closed the element, but its close event (a queued task) has not told the owner
+          // yet: `open` is still true. This press means "open" (the person sees it closed), so open the element
+          // again; the late close event then finds it open and is ignored.
+          if (open && el && !el.open) showElement(el);
+          else if (open) close();
           else onOpenChange(true);
         },
         onKeyDown: (e) => {
