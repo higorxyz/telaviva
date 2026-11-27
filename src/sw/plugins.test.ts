@@ -166,6 +166,34 @@ describe('corsImageRequest', () => {
     expect(upgraded.url).toBe(original.url);
     expect(upgraded.mode).toBe('cors');
     expect(upgraded.credentials).toBe('omit');
+    // Not the HTTP cache: a no-cors copy stored there has no Access-Control-Allow-Origin (the CDN sends no Vary).
+    expect(upgraded.cache).toBe('reload');
+  });
+
+  it('when the CORS fetch failed, lets the page\'s own request through unchanged (shown, not cached)', async () => {
+    const original = new Request('https://image.tmdb.org/t/p/w342/poster.jpg', { mode: 'no-cors' });
+    const answer = new Response('img');
+    const fetch = vi.fn(async () => answer);
+    vi.stubGlobal('fetch', fetch);
+    const result = await corsImageRequest.handlerDidError!({
+      request: original,
+      event: {} as ExtendableEvent,
+      error: new TypeError('Failed to fetch'),
+      state: {},
+    } as HandlerDidErrorCallbackParam);
+    expect(fetch).toHaveBeenCalledWith(original);
+    expect(result).toBe(answer);
+  });
+
+  it('answers nothing when the plain request fails too (the offline fallback rules apply)', async () => {
+    vi.stubGlobal('fetch', vi.fn(async () => Promise.reject(new TypeError('offline'))));
+    const result = await corsImageRequest.handlerDidError!({
+      request: new Request('https://image.tmdb.org/t/p/w342/poster.jpg'),
+      event: {} as ExtendableEvent,
+      error: new TypeError('Failed to fetch'),
+      state: {},
+    } as HandlerDidErrorCallbackParam);
+    expect(result).toBeUndefined();
   });
 
   it('keeps a request that is already CORS', async () => {

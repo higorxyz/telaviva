@@ -78,8 +78,24 @@ export function precachedPageFallback(matchPrecache: FindDocument): SerwistPlugi
  * Fetches a TMDb image in CORS mode (its CDN answers `Access-Control-Allow-Origin: *`), so the cache stores a readable
  * response. A plain `<img>` asks in no-cors mode, and an opaque response cannot be checked and counts as several MB
  * against the storage quota.
+ *
+ * The CORS request skips the browser's HTTP cache (`reload`): the CDN only adds `Access-Control-Allow-Origin` when the
+ * request has an `Origin`, and answers without `Vary: Origin`, so a copy the page loaded before (in no-cors mode, with
+ * no such header) would be handed back to this request and fail it. Seen on iOS Safari, where the first images on the
+ * page stayed broken. It only runs on a miss in `tv-images`.
+ *
+ * If the CORS request fails anyway, the page's own request goes out unchanged: the image shows, and is not cached.
  */
 export const corsImageRequest: SerwistPlugin = {
   requestWillFetch: async ({ request }) =>
-    request.mode === 'cors' ? request : new Request(request.url, { mode: 'cors', credentials: 'omit' }),
+    request.mode === 'cors'
+      ? request
+      : new Request(request.url, { mode: 'cors', credentials: 'omit', cache: 'reload' }),
+  handlerDidError: async ({ request }) => {
+    try {
+      return await fetch(request);
+    } catch {
+      return undefined;
+    }
+  },
 };
