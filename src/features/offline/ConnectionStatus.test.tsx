@@ -20,7 +20,7 @@ function DockedCard() {
   return dock ? createPortal(<p>Cartão no dock</p>, dock) : null;
 }
 
-const tree = (queued?: number) => (
+const tree = (queued?: number, stalled?: boolean) => (
   <ToastProvider>
     {/* eslint-disable-next-line @next/next/no-html-link-for-pages -- stands in for next/link, which needs a router */}
     <a
@@ -33,13 +33,13 @@ const tree = (queued?: number) => (
       Séries
     </a>
     <DockedCard />
-    <ConnectionStatus queued={queued} />
+    <ConnectionStatus queued={queued} stalled={stalled} />
   </ToastProvider>
 );
 
-function setup(queued?: number) {
-  const view = render(tree(queued));
-  return { rerender: (next: number) => view.rerender(tree(next)) };
+function setup(queued?: number, stalled?: boolean) {
+  const view = render(tree(queued, stalled));
+  return { rerender: (next: number, nextStalled?: boolean) => view.rerender(tree(next, nextStalled)) };
 }
 
 /** The indicator's own live region (the toast stack has another one, for the toasts). */
@@ -80,6 +80,15 @@ describe('ConnectionStatus', () => {
     online.mockReturnValue(false);
     act(() => void window.dispatchEvent(new Event('offline')));
     expect(region()).toHaveTextContent(OFFLINE);
+  });
+
+  it('online, says the queued actions did not go through yet while the first one keeps failing', () => {
+    const { rerender } = setup(2, true);
+    expect(region()).toHaveTextContent('Não conseguimos enviar agora. Vamos tentar de novo sozinhos.');
+    expect(region()).toHaveTextContent('2 ações aguardando envio');
+    rerender(2, false);
+    expect(region()).not.toHaveTextContent('Não conseguimos enviar agora');
+    expect(region()).toHaveTextContent('2 ações aguardando envio');
   });
 
   it('counts the queued actions, singular and plural', () => {

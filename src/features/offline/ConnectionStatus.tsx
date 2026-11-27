@@ -1,6 +1,6 @@
 'use client';
 
-import { CloudCheck, CloudUpload, WifiOff, type LucideIcon } from 'lucide-react';
+import { CloudAlert, CloudCheck, CloudUpload, WifiOff, type LucideIcon } from 'lucide-react';
 import { useBrowserOffline, useIsOffline } from './useIsOffline';
 import { useEffect, useState, type ReactNode } from 'react';
 import { createPortal } from 'react-dom';
@@ -11,6 +11,7 @@ import {
   OFFLINE_TEXT,
   PENDING_NAVIGATION_TEXT,
   queuedText,
+  STALLED_TEXT,
   SYNCED_LIFETIME_MS,
   SYNCED_TEXT,
 } from './copy';
@@ -52,9 +53,9 @@ function Card({ icon: Icon, children }: { icon: LucideIcon; children: ReactNode 
   );
 }
 
-type MessageProps = { offline: boolean; pending: boolean; queued: number; synced: boolean };
+type MessageProps = { offline: boolean; pending: boolean; queued: number; stalled: boolean; synced: boolean };
 
-function Message({ offline, pending, queued, synced }: MessageProps) {
+function Message({ offline, pending, queued, stalled, synced }: MessageProps) {
   if (synced) {
     return (
       <Card icon={CloudCheck}>
@@ -63,6 +64,14 @@ function Message({ offline, pending, queued, synced }: MessageProps) {
     );
   }
   const count = queued > 0 ? <p className="text-ivory-muted">{queuedText(queued)}</p> : null;
+  if (!offline && stalled) {
+    return (
+      <Card icon={CloudAlert}>
+        <p className="text-pretty">{STALLED_TEXT}</p>
+        {count}
+      </Card>
+    );
+  }
   if (!offline) return <Card icon={CloudUpload}>{count}</Card>;
   return (
     <Card icon={WifiOff}>
@@ -93,14 +102,15 @@ function Message({ offline, pending, queued, synced }: MessageProps) {
  * The connection indicator, at the very bottom of the toast stack (`useToastStatusSlot`), under the e-mail
  * confirmation card: fixed, so it never moves the page nor covers a title. Offline it says so (or, once an in-app
  * navigation has been stuck for 1.5 s, that the page opens when the internet returns) and counts the actions waiting
- * to be sent; it confirms when the queue empties. `queued` comes from the account's offline queue (mounted by
+ * to be sent; online, it says when the first of them keeps failing (`stalled`, retried on its own); it confirms when
+ * the queue empties. `queued` comes from the account's offline queue (mounted by
  * `LibraryConnectionStatus`, which reads it).
  *
  * Its live region stays in the tree, empty while there is nothing to say, so each message is announced.
  * `useIsOffline` is false on the server and during hydration, so the first paint is always empty: nothing to
  * mismatch.
  */
-export function ConnectionStatus({ queued = 0 }: { queued?: number }) {
+export function ConnectionStatus({ queued = 0, stalled = false }: { queued?: number; stalled?: boolean }) {
   const offline = useIsOffline();
   const pending = usePendingNavigation();
   const browserOffline = useBrowserOffline();
@@ -115,7 +125,7 @@ export function ConnectionStatus({ queued = 0 }: { queued?: number }) {
       data-connection-status=""
       className="flex w-full flex-col items-center md:items-end"
     >
-      {visible ? <Message offline={offline} pending={pending} queued={queued} synced={synced} /> : null}
+      {visible ? <Message offline={offline} pending={pending} queued={queued} stalled={stalled} synced={synced} /> : null}
     </div>,
     slot,
   );

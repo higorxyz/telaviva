@@ -392,3 +392,16 @@ describe('createOfflineAccountRepository: an answer landing after "Sair" wiped t
     expect((await store.getSnapshot(UID))?.state).toEqual(fake.stored);
   });
 });
+
+describe('createOfflineAccountRepository: queue.stalled', () => {
+  it('is true only once the first queued action failed twice (QUEUE_STALLED_AFTER) with a connection', async () => {
+    const { queue } = setup();
+    expect(await queue.stalled!()).toBe(false);
+    const first = queuedCommand(want(1), T0);
+    await store.enqueue({ ...first, attempts: 1 });
+    await store.enqueue({ ...queuedCommand(want(2), T1), attempts: 5 });
+    expect(await queue.stalled!()).toBe(false);
+    await store.updateQueued({ ...first, attempts: 2 });
+    expect(await queue.stalled!()).toBe(true);
+  });
+});

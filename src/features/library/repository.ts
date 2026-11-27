@@ -91,8 +91,16 @@ export function isNetworkError(error: unknown): boolean {
  * stands, or null when it was already sent; `start` begins sending (on mount, `online`, the tab coming back) and
  * returns what stops it.
  */
+/** After this many failed tries in a row (with a connection), the action at the head of the queue counts as stuck. */
+export const QUEUE_STALLED_AFTER = 2;
+
 export interface LibraryQueue {
   count(): Promise<number>;
+  /**
+   * True while the action at the head of the queue has failed QUEUE_STALLED_AFTER times or more with a connection (a
+   * 5xx, no answer in time...): it keeps being retried, but the person should know it has not gone through yet.
+   */
+  stalled?(): Promise<boolean>;
   subscribe(onChange: () => void): () => void;
   unqueue(id: string): Promise<LibraryState | null>;
   start(): () => void;
