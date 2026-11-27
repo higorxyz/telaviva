@@ -54,8 +54,10 @@ test('series page lists episodes and switching season keeps the scroll position'
   await expect(page.getByRole('heading', { name: /^E1 · / }).first()).toBeVisible();
 
   // Bring the picker into view first, so Playwright's own scroll-before-click does not move the page later.
+  // Inside the section's landmark: while the page streams, React may still hold a hidden copy of the streamed
+  // content (no roles exposed), and a page-wide getByLabel would then match two selects.
   const picker = isMobile
-    ? page.getByLabel('Temporada', { exact: true })
+    ? page.getByRole('region', { name: 'Temporadas e episódios' }).getByLabel('Temporada', { exact: true })
     : page.getByRole('navigation', { name: 'Temporadas' }).getByRole('link', { name: 'Temporada 2' });
   await picker.scrollIntoViewIfNeeded();
   await page.evaluate(() => new Promise((resolve) => requestAnimationFrame(resolve)));
