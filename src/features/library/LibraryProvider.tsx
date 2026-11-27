@@ -18,6 +18,10 @@ export const LIBRARY_KEY = ['library'] as const;
  * works offline (the visitor's list is on the device; the account's falls back to its saved copy and queues actions).
  * With the default `online` mode, a write made after the browser said `offline` would only show its optimistic value
  * and wait, unsaved and unqueued, for the connection to return.
+ *
+ * Trade-off: where IndexedDB is missing (the no-store fallback, the plain server repository), an account action taken
+ * offline now fails at once, with the rollback and the error toast, instead of TanStack pausing it until the
+ * connection returns.
  */
 export const LIBRARY_NETWORK_MODE = 'always';
 
