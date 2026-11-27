@@ -1,188 +1,143 @@
+# TelaViva
 
+Filmes e séries em português, com onde assistir no Brasil, acompanhamento de séries episódio por episódio e uma lista
+que funciona sem internet. No ar em **[telaviva.vercel.app](https://telaviva.vercel.app)**.
 
-# TelaViva - React Movie Platform
+O projeto tem dois públicos: amigos que usam o site todo dia, quase sempre no celular, e quem chega aqui pelo
+portfólio. A v2 é uma reescrita completa da versão original (React 18 com CRA), que continua marcada na tag `v1`.
 
-Plataforma moderna para exibição de filmes, desenvolvida com React, Tailwind CSS e integração à API TMDb.
+<p>
+  <img src="docs/screenshots/celular-inicio.webp" alt="Página inicial no celular" width="200">
+  <img src="docs/screenshots/celular-serie.webp" alt="Página de uma série no celular" width="200">
+  <img src="docs/screenshots/celular-minha-lista.webp" alt="Minha lista no celular" width="200">
+  <img src="docs/screenshots/celular-sem-conexao.webp" alt="Página Sem conexão no celular" width="200">
+</p>
 
-## 📦 Funcionalidades
-- Exibição de filmes populares, em cartaz, melhores avaliados e próximos lançamentos
-- Filmes em tendência (diário e semanal)
-- Detalhes completos de cada filme (sinopse, elenco, trailer, avaliações)
-- Onde assistir por região (streaming, aluguel e compra)
-- Interface responsiva e acessível
-- Scroll infinito nas listagens
-- Marcar filmes como assistidos ou para ver depois
-- Busca em tempo real com sugestões
-- Recomendações personalizadas
-- Navegação por gêneros
-- Descoberta avançada com filtros (gênero, ano, nota, votos, duração e ordenação)
-- Home editorial modernizada com destaque dinâmico, trilhos curados e atalhos inteligentes
-- Curadorias automáticas com TMDB Discover (joias escondidas, filmes curtos, blockbusters e streaming em alta)
-- Metadados dinâmicos (SEO, Open Graph, Twitter Cards, JSON-LD)
-- Testes automatizados
+![Página inicial no desktop](docs/screenshots/desktop-inicio.webp)
 
-## 🚀 Tecnologias
-- React 18
-- React Router DOM 6
-- Tailwind CSS 3
-- React Query 5
-- React Helmet Async
-- React Icons
-- LDRS (loaders animados)
-- Jest + React Testing Library 14
-- MSW (Mock Service Worker)
-- whatwg-fetch
-- API TMDb
+<details>
+<summary>Mais capturas no desktop</summary>
 
-## 🛠️ Instalação e Execução
-1. Clone o repositório:
-   ```bash
-   git clone https://github.com/higorxyz/telaviva.git
-   cd telaviva
-   ```
-2. Instale as dependências:
-   ```bash
-   npm install
-   ```
-3. Configure a API TMDb:
-   - Crie uma conta em [TMDb](https://www.themoviedb.org/)
-   - Obtenha sua chave de API
-   - Crie um arquivo `.env.local` na raiz (ou copie de `.env.example`):
-     ```env
-     REACT_APP_TMDB_API_KEY=sua_chave_api_aqui
-     ```
-4. Inicie o projeto:
-   ```bash
-   npm start
-   ```
-   Acesse `http://localhost:3000`
-   - Se a porta 3000 estiver ocupada, o React Scripts sugerirá automaticamente outra porta (ex.: `http://localhost:3001`).
+![Página de uma série](docs/screenshots/desktop-serie.webp)
+![Minha lista](docs/screenshots/desktop-minha-lista.webp)
+![Página Sem conexão](docs/screenshots/desktop-sem-conexao.webp)
 
-## 🗂️ Estrutura do Projeto
-```
-src/
-├── App.jsx
-├── index.js
-├── index.css
-├── app/
-│   ├── layout/
-│   ├── providers/
-│   └── router/
-├── assets/
-│   └── images/
-├── components/
-│   ├── accessibility/
-│   ├── feedback/
-│   ├── layout/
-│   ├── logo/
-│   ├── navigation/
-│   └── seo/
-├── features/
-│   └── movies/
-│       ├── api/
-│       ├── components/
-│       ├── context/
-│       ├── pages/
-│       └── utils/
-├── hooks/
-├── lib/
-├── pages/
-├── test-utils/
-```
+</details>
 
-## 📝 Scripts Disponíveis
+## Recursos
+
+- **Catálogo de filmes e séries:** destaque editorial, trilhos sem títulos repetidos, listas (em cartaz, no ar hoje,
+  mais bem avaliados), gêneros, pessoas e Descobrir com filtros na URL.
+- **Detalhe completo:** trailer, elenco, onde assistir no Brasil (streaming, aluguel e compra), classificação e
+  recomendados.
+- **Acompanhamento de séries:** marcar episódio, temporada ou "até aqui"; próximo episódio, "em dia" e data do próximo
+  lançamento.
+- **Minha lista:** Assistindo, Quero ver e Assistidos, nota pessoal de 1 a 10, estatísticas e recomendações a partir do
+  que você avaliou.
+- **Busca unificada** de filmes, séries e pessoas, com paleta rápida (Ctrl+K) no desktop.
+- **Login opcional** com Google ou e-mail e senha. Quem não entra usa tudo como visitante, com a lista no navegador; no
+  primeiro login ela é mesclada na conta e passa a sincronizar entre aparelhos. Exportar dados e excluir a conta (LGPD).
+- **Offline:** o app instalado abre sem internet, a Minha lista e as páginas visitadas continuam disponíveis, e as ações
+  feitas offline sincronizam quando a conexão volta.
+- **PWA instalável**, prévia rica ao compartilhar links (imagem gerada por título) e identidade visual própria,
+  "Sala Escura", com suporte a `prefers-reduced-motion`.
+
+## Stack
+
+| Área            | Tecnologia                                                                            |
+| --------------- | ------------------------------------------------------------------------------------- |
+| App             | Next.js 16.4 (App Router, Cache Components, React Compiler), React 19.3, TypeScript 6 |
+| Estilo          | Tailwind CSS 4.3 (tokens só no `@theme`), lucide-react                                |
+| Dados no client | TanStack Query 5, Zod 4                                                               |
+| Contas          | Firebase Auth 13 no navegador, firebase-admin 13 no servidor (cookie de sessão)       |
+| Banco           | Postgres no Neon, Drizzle ORM 0.45 com migrações versionadas                          |
+| Offline         | Serwist 9.5 (service worker), IndexedDB com `idb` 8                                   |
+| Testes          | Vitest 5, Testing Library, MSW 3, PGlite, Playwright 1.65, axe-core                   |
+| Infra           | Vercel (região `gru1`), GitHub Actions, Dependabot; Node 24                           |
+
+Todas as dependências de runtime ficam em versões fixadas. O TMDb é chamado só pelo servidor, com o token Bearer; as
+imagens vêm direto do CDN do TMDb.
+
+## Arquitetura
+
+- **Por domínio.** O código fica em `src/features/<domínio>` (`catalog`, `detail`, `library`, `auth`, `offline`,
+  `search`, `tmdb`, `share`, `shell`...), com o servidor em `src/server` (sessão, banco, biblioteca), componentes de
+  interface em `src/ui` e o service worker em `src/sw`. As rotas em `src/app` são finas e em pt-BR (`/serie/[id]-[slug]`,
+  `/minha-lista`).
+- **Biblioteca com dois repositórios e um redutor.** Toda ação (status, nota, episódio, remover) é um comando aplicado
+  por um redutor puro (`src/features/library/commands.ts`). O visitante usa o repositório local (localStorage); quem tem
+  conta usa o repositório do servidor, que aplica o mesmo comando no Postgres. A interface é otimista e oferece desfazer.
+- **Offline sem desfazer nada mais novo.** Um repositório offline envolve o do servidor: sem rede, ele aplica o comando
+  sobre a última cópia guardada no IndexedDB (por conta) e o põe numa fila. Cada comando leva o horário em que foi feito
+  no aparelho. No servidor, uma linha só é sobrescrita por uma escrita mais nova, e **marcas de remoção** impedem que uma
+  escrita atrasada recrie algo removido depois em outro aparelho. Comandos repetidos são ignorados pelo id.
+- **Service worker com regras próprias.** Guarda os arquivos do build, as páginas visitadas, o catálogo público e as
+  imagens do TMDb. Nada pessoal: `/api/library`, `/api/account`, `/api/auth` e o login passam sempre direto. Cada deploy
+  troca o cache de forma limpa, e um botão de emergência (`NEXT_PUBLIC_SW_DISABLED=1`) remove o worker.
+- **Sessão por cookie.** O navegador entra com o Firebase, e o servidor troca o token por um cookie de sessão httpOnly
+  (firebase-admin). Assim as páginas renderizadas no servidor sabem quem é o usuário. O login do Google passa por um
+  proxy `/__/auth` no próprio domínio, o que funciona no Safari/iOS e no app instalado sem cookies de terceiros.
+- **Segurança.** CSP em lista de permissões e cabeçalhos (`nosniff`, `Referrer-Policy`, `Permissions-Policy`,
+  `X-Frame-Options`) em `src/lib/security-headers.ts`; rotas de escrita conferem a origem; entradas validadas com Zod.
+  Detalhes em [docs/audits/2026-11-fase4-seguranca-a11y.md](docs/audits/2026-11-fase4-seguranca-a11y.md).
+- **Login desligável.** Sem as variáveis do Firebase e do banco, o site funciona inteiro como visitante.
+
+## Como rodar
+
+Pré-requisitos: Node 24 e um token de leitura do TMDb (gratuito).
+
 ```bash
-npm start         # Inicia o servidor de desenvolvimento
-npm build         # Cria build de produção
-npm lint          # Executa ESLint com falha em warnings
-npm test:ci       # Executa testes em modo CI (sem watch)
-npm test:coverage:ci # Executa testes com cobertura e gate mínimo
-npm check         # Executa lint + testes + build
-npm audit         # Auditoria de segurança de dependências
-npm browserslist:update # Atualiza base do Browserslist (caniuse-lite)
-npm format        # Formata arquivos com Prettier
-npm test          # Executa testes
-npm test:coverage # Gera relatório de cobertura de testes
-npm eject         # Ejeta a configuração (irreversível)
+git clone https://github.com/higorxyz/telaviva.git
+cd telaviva
+npm install
+cp .env.example .env.local   # preencha ao menos TMDB_READ_TOKEN
+npm run env:check            # lista o que falta, só pelos nomes
+npm run dev                  # http://localhost:3000
 ```
 
-## 🔄 Qualidade Contínua
-- CI automatizado para lint, testes e build em Pull Requests e pushes
-- Dependabot configurado para atualizar dependências npm e GitHub Actions
-- Templates de Issue e Pull Request para padronizar escopo e validação
-- CODEOWNERS para suporte a review obrigatório por mantenedor
-- Guia de proteção de branch em `docs/maintenance/branch-protection.md`
-- Guia de PR em `docs/contributing/pull-request-workflow.md`
-- Guia de triagem de issues em `docs/contributing/issue-triage.md`
-- Fluxo recomendado local antes de abrir PR:
-   ```bash
-   npm run check
-   ```
+Só o `TMDB_READ_TOKEN` é obrigatório. As variáveis do Firebase e do Neon ligam o login; o
+[guia de configuração](docs/setup/configuracao.md) explica cada uma, inclusive produção na Vercel.
 
-## 🧪 Testes
-Os testes estão em:
-- `src/components/**/__tests__`
-- `src/features/movies/components/__tests__`
-- `src/features/movies/context/__tests__`
-- `src/features/movies/pages/__tests__`
+Para desenvolver o login sem as contas reais, use o emulador do Firebase Auth (`npm run emulators`, porta 9099) e o
+PGlite no lugar do Neon (`DATABASE_DRIVER=pglite`); o passo a passo está na
+[seção 5.1 do guia](docs/setup/configuracao.md#51-sem-as-contas-reais-emulador-e-pglite).
 
-## 🔧 Melhorias Implementadas
+| Comando                           | O que faz                                                                    |
+| --------------------------------- | ---------------------------------------------------------------------------- |
+| `npm run dev`                     | servidor de desenvolvimento (sem service worker)                             |
+| `npm run build` / `npm run start` | build de produção e servidor dele                                            |
+| `npm run env:check`               | confere as variáveis (`-- --target=local\|preview\|production`), sem valores |
+| `npm run lint`                    | ESLint, sem avisos                                                           |
+| `npm run typecheck`               | TypeScript do app e do service worker                                        |
+| `npm test`                        | testes de unidade e componentes (Vitest)                                     |
+| `npm run e2e`                     | build de produção + testes de ponta a ponta (Playwright)                     |
+| `npm run check`                   | lint, typecheck, testes e build em sequência                                 |
+| `npm run db:migrate`              | aplica as migrações (`-- --confirm` para o Neon)                             |
+| `npm run emulators`               | emulador do Firebase Auth                                                    |
 
-### Performance
-- Cache e revalidação automática com React Query nas listagens principais
-- Scroll infinito com IntersectionObserver e fallback manual de “Carregar mais”
-- Busca com debounce real e cancelamento de requisições obsoletas
-- Telemetria centralizada para monitorar erros e status das requisições
-- Query keys estáveis para descoberta avançada e tendências
+## Testes e CI
 
-### Código Limpo
-- Camada de adapters para normalizar dados e facilitar internacionalização
-- Contexto resiliente com deduplicação, persistência e tratamento de falhas do localStorage
-- Test harness com React Testing Library 14, MSW e polyfills consolidados
-- Scripts de lint/format e stack atualizada para manutenção contínua
+- **Unidade e componentes** (`npm test`): Vitest com Testing Library e MSW simulando o TMDb. As regras de domínio
+  (progresso de séries, nota, mesclagem visitante/conta, fila offline, marcas de remoção) rodam contra um Postgres real
+  em memória, o **PGlite**.
+- **Ponta a ponta** (`npm run e2e`): Playwright no desktop (1440×900) e no celular (Pixel 7), sobre o build de
+  produção. O comando sobe sozinho o emulador do Firebase Auth, um mock do TMDb e um PGlite em disco; nenhuma conta real
+  é usada. Inclui axe (WCAG A/AA), navegação por teclado, modo offline com o service worker, login com mesclagem e os
+  cabeçalhos de segurança.
+- **CI** (GitHub Actions, `.github/workflows/ci.yml`): em todo push e PR, o job `Lint, Typecheck, Test, Build and E2E`
+  roda lint, typecheck, testes e o E2E. O Dependabot atualiza npm e Actions toda semana.
 
-### UX/UI
-- Dropdown de busca acessível com destaque de resultados e navegação por teclado
-- Skeletons, placeholders e fallback para imagens, trailers e elenco
-- Controles de acessibilidade (ajuste de fonte, focus-visible) e tema consistente
-- Hero editorial com destaque do momento e fila lateral de tendências
-- Atalhos rápidos para filtros avançados da descoberta com foco em intenção de consumo
-- Metadados dinâmicos em todas as páginas com JSON-LD, Open Graph e Twitter Cards
-- Card de provedores de exibição no detalhe do filme com atalho para TMDB
-- Filtros avançados persistidos na URL para compartilhamento de descoberta
+Guias: [fluxo de PR](docs/contributing/pull-request-workflow.md), [triagem de issues](docs/contributing/issue-triage.md)
+e [proteção da `main`](docs/maintenance/branch-protection.md).
 
-## 🎨 Características de Design
-- **Cores principais:**
-  - Primary: `#101010` (preto escuro)
-  - Secondary: `#bd0003` (vermelho)
-- **Tipografia:** DM Sans (texto geral) + Bebas Neue (títulos de destaque)
-- **Responsividade:**
-  - Mobile: 2 colunas
-  - Tablet: 3 colunas
-  - Desktop: 4-5 colunas
+## Créditos
 
-## 🤝 Contribuindo
-1. Fork o projeto
-2. Crie uma branch para sua feature (`git checkout -b feature/AmazingFeature`)
-3. Commit suas mudanças (`git commit -m 'Add some AmazingFeature'`)
-4. Push para a branch (`git push origin feature/AmazingFeature`)
-5. Abra um Pull Request
+Powered by [TMDB API](https://www.themoviedb.org/) & [JustWatch](https://www.justwatch.com/br).
 
-## 📄 Licença
-Este projeto é licenciado sob a MIT License - veja o arquivo [LICENSE](LICENSE) para mais detalhes.
+Dados de filmes, séries e pessoas vêm do TMDb; os dados de onde assistir vêm da JustWatch, via TMDb.
+_This product uses the TMDB API but is not endorsed or certified by TMDB._
 
-## 👨‍💻 Autor
-**Higor Batista**
-- GitHub: [@higorxyz](https://github.com/higorxyz)
-- LinkedIn: [Higor Batista](https://www.linkedin.com/in/higorbatista)
+## Licença
 
-## 🙏 Agradecimentos
-- [The Movie Database (TMDb)](https://www.themoviedb.org/) pelos dados de filmes
-- [React](https://reactjs.org/) pela biblioteca incrível
-- [Tailwind CSS](https://tailwindcss.com/) pelo framework CSS
-- Comunidade open source
-
-
-**Desenvolvido por Higor Batista**
-
-
+[MIT](LICENSE) © Higor Batista · [GitHub](https://github.com/higorxyz) ·
+[LinkedIn](https://www.linkedin.com/in/higorbatista)
