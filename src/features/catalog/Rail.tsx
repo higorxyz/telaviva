@@ -46,9 +46,12 @@ export function Rail({
   }, []);
 
   useEffect(() => {
-    measure();
     const el = listRef.current;
-    if (!el || typeof ResizeObserver === 'undefined') return;
+    if (!el) return;
+    // Not measured here: reading scrollWidth in an effect forces a layout of the whole page, once per rail, in the
+    // middle of hydration (~240 ms of the home page's main thread on a throttled phone). The observer's first
+    // callback measures anyway, after the browser's own layout, at no extra cost.
+    if (typeof ResizeObserver === 'undefined') return measure();
     const observer = new ResizeObserver(measure);
     observer.observe(el);
     return () => observer.disconnect();
