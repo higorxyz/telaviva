@@ -7,6 +7,13 @@ import type { Video } from '@/features/tmdb/types';
 /** Sharpest first; maxres (1280×720) is missing for some videos, sd (640×480) for a few old ones. */
 export const THUMBNAILS = ['maxresdefault', 'sddefault', 'hqdefault'] as const;
 
+/**
+ * Where the first try uses maxres: from md, where the player is wider than 640 px. Below, the player is at most
+ * ~350 px wide and sd is sharp enough at 1.75×; its 4:3 letterbox bars fall exactly in what `object-cover` crops from
+ * a 16:9 box. That keeps ~50 KB off the phone's first load of every title page.
+ */
+export const WIDE_THUMBNAIL_MEDIA = '(min-width: 768px)';
+
 /** YouTube answers a missing size with a 120×90 grey placeholder (sometimes with status 200), not just an error. */
 const PLACEHOLDER_WIDTH = 120;
 
@@ -30,11 +37,12 @@ function Cover({ videoKey }: { videoKey: string }) {
     // Loaded (or failed) before hydration attached the handlers: judge it now.
     if (img?.complete && img.naturalWidth <= PLACEHOLDER_WIDTH) next();
   };
-  return (
+  const url = (size: (typeof THUMBNAILS)[number]) => `https://i.ytimg.com/vi/${videoKey}/${size}.jpg`;
+  const img = (
     <img
       ref={check}
-      key={index}
-      src={`https://i.ytimg.com/vi/${videoKey}/${THUMBNAILS[index]}.jpg`}
+      // On the first try a narrow screen shows sd; a failure (or YouTube's placeholder) moves on like a missing maxres.
+      src={url(index === 0 ? 'sddefault' : THUMBNAILS[index])}
       alt=""
       loading="lazy"
       decoding="async"
@@ -44,6 +52,13 @@ function Cover({ videoKey }: { videoKey: string }) {
       }}
       className="absolute inset-0 size-full object-cover"
     />
+  );
+  if (index > 0) return <span key={index}>{img}</span>;
+  return (
+    <picture key={index}>
+      <source media={WIDE_THUMBNAIL_MEDIA} srcSet={url('maxresdefault')} />
+      {img}
+    </picture>
   );
 }
 

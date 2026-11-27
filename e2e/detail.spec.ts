@@ -34,10 +34,13 @@ test('leaving a title page stops its trailer, and Back shows the cover again', a
   await expect(players).toHaveCount(0);
 });
 
-test('the trailer cover asks YouTube for the sharpest thumbnail first', async ({ page }) => {
+test('the trailer cover asks YouTube for the sharpest thumbnail the player needs', async ({ page, isMobile }) => {
   await page.goto('/filme/550-clube-da-luta');
   const cover = page.getByRole('button', { name: 'Assistir trailer de Clube da Luta' }).locator('img');
-  await expect(cover).toHaveAttribute('src', /\/maxresdefault\.jpg$/);
+  await cover.scrollIntoViewIfNeeded();
+  // maxres where the player is wider than 640 px (md up); sd on a phone, which is sharp enough there.
+  const expected = isMobile ? /\/sddefault\.jpg$/ : /\/maxresdefault\.jpg$/;
+  await expect.poll(() => cover.evaluate((img: HTMLImageElement) => img.currentSrc)).toMatch(expected);
 });
 
 test('unknown title id renders the 404 page', async ({ page }) => {
