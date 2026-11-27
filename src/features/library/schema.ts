@@ -1,4 +1,6 @@
-import { z } from 'zod';
+// zod/mini, not zod: this file runs in the browser on every page (the library), and the functional API lets the
+// bundler drop what it does not use. Same validation, same core.
+import { z } from 'zod/mini';
 import { PG_INT_MAX, SNAPSHOT_LIMITS } from './limits';
 import { trimSnapshot } from './snapshot';
 import type { LibraryState } from './types';
@@ -6,15 +8,15 @@ import type { LibraryState } from './types';
 export const isoDate = z.iso.datetime({ offset: true });
 export const mediaType = z.enum(['movie', 'tv']);
 /** Every number is stored in a Postgres `integer`. */
-export const id = z.number().int().positive().max(PG_INT_MAX);
-export const seasonNumber = z.number().int().min(0).max(PG_INT_MAX);
-export const episodeNumber = z.number().int().positive().max(PG_INT_MAX);
+export const id = z.int().check(z.positive(), z.maximum(PG_INT_MAX));
+export const seasonNumber = z.int().check(z.minimum(0), z.maximum(PG_INT_MAX));
+export const episodeNumber = z.int().check(z.positive(), z.maximum(PG_INT_MAX));
 
 export const snapshotSchema = z.object({
-  title: z.string().min(1).max(SNAPSHOT_LIMITS.title),
-  posterPath: z.string().max(SNAPSHOT_LIMITS.posterPath).nullable(),
-  releaseDate: z.string().max(SNAPSHOT_LIMITS.releaseDate).nullable(),
-  genreIds: z.array(id).max(SNAPSHOT_LIMITS.genreIds),
+  title: z.string().check(z.minLength(1), z.maxLength(SNAPSHOT_LIMITS.title)),
+  posterPath: z.nullable(z.string().check(z.maxLength(SNAPSHOT_LIMITS.posterPath))),
+  releaseDate: z.nullable(z.string().check(z.maxLength(SNAPSHOT_LIMITS.releaseDate))),
+  genreIds: z.array(id).check(z.maxLength(SNAPSHOT_LIMITS.genreIds)),
 });
 
 export const itemSchema = z
@@ -24,13 +26,15 @@ export const itemSchema = z
     status: z.enum(['want', 'watching', 'watched']),
     addedAt: isoDate,
     updatedAt: isoDate,
-    watchedAt: isoDate.nullable(),
+    watchedAt: z.nullable(isoDate),
     snapshot: snapshotSchema,
   })
-  .refine((item) => !(item.mediaType === 'movie' && item.status === 'watching'), {
-    message: 'watching is only for series',
-    path: ['status'],
-  });
+  .check(
+    z.refine((item) => !(item.mediaType === 'movie' && item.status === 'watching'), {
+      message: 'watching is only for series',
+      path: ['status'],
+    }),
+  );
 
 export const episodeSchema = z.object({
   tvId: id,
@@ -42,7 +46,7 @@ export const episodeSchema = z.object({
 export const ratingSchema = z.object({
   mediaType,
   tmdbId: id,
-  score: z.number().int().min(1).max(10),
+  score: z.int().check(z.minimum(1), z.maximum(10)),
   ratedAt: isoDate,
   updatedAt: isoDate,
 });
@@ -72,7 +76,7 @@ const rootSchema = z.object({
   ratings: z.array(z.unknown()),
 });
 
-function validRows<T>(rows: unknown[], schema: z.ZodType<T>): T[] {
+function validRows<T>(rows: unknown[], schema: z.ZodMiniType<T>): T[] {
   return rows.flatMap((row) => {
     const result = schema.safeParse(row);
     return result.success ? [result.data] : [];
@@ -81,8 +85,8 @@ function validRows<T>(rows: unknown[], schema: z.ZodType<T>): T[] {
 
 const looseSnapshot = z.object({
   title: z.string(),
-  posterPath: z.string().nullable(),
-  releaseDate: z.string().nullable(),
+  posterPath: z.nullable(z.string()),
+  releaseDate: z.nullable(z.string()),
   genreIds: z.array(z.number()),
 });
 
