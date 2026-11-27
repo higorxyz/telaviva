@@ -15,6 +15,8 @@ export function SignOutConfirm({ onSignOut }: { onSignOut(): Promise<void> | voi
   const queue = useOptionalLibraryRepository()?.queue;
   /** How many actions were waiting when the dialog opened; null while closed. */
   const [unsent, setUnsent] = useState<number | null>(null);
+  /** Counts the openings: see the effect below. */
+  const [opening, setOpening] = useState(0);
   const checking = useRef(false);
   const dialog = useRef<HTMLDialogElement>(null);
   const trigger = useRef<HTMLButtonElement>(null);
@@ -22,6 +24,9 @@ export function SignOutConfirm({ onSignOut }: { onSignOut(): Promise<void> | voi
   const textId = useId();
   const open = unsent !== null;
 
+  // Esc closes the element at once, but its `close` event (which clears `unsent`) is a queued task: on a busy main
+  // thread the next press of "Sair" can come first, while `unsent` is still set. Each opening counts (`opening`), so
+  // that press still shows the dialog, and the late `close` finds it open again and is ignored.
   useEffect(() => {
     const el = dialog.current;
     if (!el) return;
@@ -30,7 +35,7 @@ export function SignOutConfirm({ onSignOut }: { onSignOut(): Promise<void> | voi
       cancel.current?.focus();
     }
     if (!open && el.open) el.close();
-  }, [open]);
+  }, [open, opening]);
 
   // Leaving /conta (browser Back included) hides it in a React <Activity> instead of unmounting it. A modal <dialog>
   // left open there would keep the rest of the app inert: close it right away, and come back with it closed.
@@ -43,12 +48,14 @@ export function SignOutConfirm({ onSignOut }: { onSignOut(): Promise<void> | voi
   }, []);
 
   async function start() {
-    if (checking.current || open) return;
+    if (checking.current || dialog.current?.open) return;
     checking.current = true;
     try {
       const waiting = queue ? await queue.count().catch(() => 0) : 0;
-      if (waiting > 0) setUnsent(waiting);
-      else void onSignOut();
+      if (waiting > 0) {
+        setUnsent(waiting);
+        setOpening((n) => n + 1);
+      } else void onSignOut();
     } finally {
       checking.current = false;
     }
@@ -74,6 +81,7 @@ export function SignOutConfirm({ onSignOut }: { onSignOut(): Promise<void> | voi
         ref={dialog}
         aria-labelledby={textId}
         onClose={() => {
+          if (dialog.current?.open) return; // An earlier closing's late event: it was opened again meanwhile.
           setUnsent(null);
           trigger.current?.focus();
         }}

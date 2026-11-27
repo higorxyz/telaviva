@@ -1,5 +1,5 @@
 import 'fake-indexeddb/auto';
-import { screen, waitFor } from '@testing-library/react';
+import { act, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { Activity, useState } from 'react';
 import { afterEach, beforeAll, beforeEach, describe, expect, it, vi } from 'vitest';
@@ -10,7 +10,7 @@ import { EMPTY_LIBRARY } from '@/features/library/types';
 import type { OfflineStore } from '@/features/offline/store-types';
 import { resetFirebaseClient } from './firebase-client';
 import { SignOutConfirm } from './SignOutConfirm';
-import { polyfillDialog, pressEscape } from './test-account';
+import { polyfillDialog, pressEscape, pressEscapeWithLateClose } from './test-account';
 import { accounts, clearCookies, installDefaultApi, probe, renderAuth, signedInOnServer } from './test-auth';
 import { authConfig, log, resetFakeFirebase } from './test-firebase';
 import { goOffline, resetConnection } from './test-offline-auth';
@@ -105,6 +105,22 @@ describe('SignOutConfirm', () => {
     expect(dialog()).not.toHaveAttribute('open');
     expect(sair()).toHaveFocus();
     expect(await store.countQueue('u1')).toBe(2);
+  });
+
+  it('asks again when "Sair" is pressed before the close event of an Esc arrives (busy main thread)', async () => {
+    const user = await signedInWith(2);
+    await user.click(sair());
+    await screen.findByRole('dialog', { name: TWO });
+    let deliverClose!: () => void;
+    act(() => {
+      deliverClose = pressEscapeWithLateClose(dialog());
+    });
+    await user.click(sair());
+    await waitFor(() => expect(dialog()).toHaveAttribute('open'));
+    act(() => deliverClose());
+    expect(dialog()).toHaveAttribute('open');
+    expect(screen.getByRole('button', { name: 'Cancelar' })).toHaveFocus();
+    expect(probe()).toBe('signed-in|u1|1');
   });
 
   it('"Sair mesmo assim" signs out and deletes the saved list and the queue', async () => {

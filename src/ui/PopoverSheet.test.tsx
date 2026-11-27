@@ -62,7 +62,10 @@ describe('PopoverSheet', () => {
       removeEventListener: () => {},
     }));
   });
-  afterEach(() => vi.unstubAllGlobals());
+  afterEach(() => {
+    vi.unstubAllGlobals();
+    vi.restoreAllMocks();
+  });
 
   it('opens with focus inside, announces itself on the trigger and returns focus on a pick', async () => {
     const user = userEvent.setup();
@@ -91,6 +94,25 @@ describe('PopoverSheet', () => {
     await user.click(within(panel()).getByRole('button', { name: 'Fechar Painel' }));
     expect(panel()).not.toHaveAttribute('open');
     expect(trigger()).toHaveFocus();
+  });
+
+  it('stays open when the close event of an earlier closing comes after it opened again', async () => {
+    const user = userEvent.setup();
+    render(<Harness />);
+    await user.click(trigger());
+    // The element closes at once; its close event is a queued task that the next press can overtake.
+    const late: Array<() => void> = [];
+    vi.spyOn(HTMLDialogElement.prototype, 'close').mockImplementation(function close(this: HTMLDialogElement) {
+      this.removeAttribute('open');
+      late.push(() => this.dispatchEvent(new Event('close')));
+    });
+    await user.keyboard('{Escape}');
+    expect(panel()).not.toHaveAttribute('open');
+    await user.click(trigger());
+    expect(panel()).toHaveAttribute('open');
+    act(() => late.forEach((deliver) => deliver()));
+    expect(panel()).toHaveAttribute('open');
+    expect(within(panel()).getByRole('button', { name: 'Primeiro' })).toHaveFocus();
   });
 
   it('closes on an outside click without pulling focus back', async () => {

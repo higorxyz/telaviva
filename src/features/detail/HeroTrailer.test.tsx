@@ -36,6 +36,24 @@ describe('HeroTrailer', () => {
     expect(document.querySelector('dialog')).not.toHaveAttribute('open');
   });
 
+  it('abre de novo se o botão vier antes do evento close do Esc (thread principal ocupada)', async () => {
+    const user = userEvent.setup();
+    render(<HeroTrailer video={video} title="Clube da Luta" />);
+    await user.click(screen.getByRole('button', { name: /Assistir trailer/ }));
+    const dialog = document.querySelector('dialog')!;
+    // Esc closes the element at once; its close event is a queued task that the next press can overtake.
+    act(() => {
+      dialog.dispatchEvent(new Event('cancel', { cancelable: true }));
+      dialog.removeAttribute('open');
+    });
+    await user.click(screen.getByRole('button', { name: /Assistir trailer/ }));
+    act(() => {
+      dialog.dispatchEvent(new Event('close'));
+    });
+    expect(dialog).toHaveAttribute('open');
+    expect(youtubeFrames()).toHaveLength(1);
+  });
+
   it('fecha o diálogo e para o vídeo quando a rota fica oculta numa Activity', async () => {
     const user = userEvent.setup();
     const tree = (mode: 'visible' | 'hidden'): ReactNode => (

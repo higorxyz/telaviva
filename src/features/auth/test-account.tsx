@@ -36,7 +36,17 @@ export function pressEscape(dialog: HTMLDialogElement): boolean {
   return event.defaultPrevented;
 }
 
-type Answer = { status: number; body?: unknown } | (() => Promise<Response>);
+/**
+ * Esc on a busy main thread: the browser closes the dialog (and gives the focus back) at once, but its `close` event
+ * is a queued task that a key press can overtake. Returns the delivery of that late `close`.
+ */
+export function pressEscapeWithLateClose(dialog: HTMLDialogElement): () => void {
+  dialog.dispatchEvent(new Event('cancel', { cancelable: true }));
+  dialog.removeAttribute('open');
+  return () => dialog.dispatchEvent(new Event('close'));
+}
+
+type Answer ={ status: number; body?: unknown } | (() => Promise<Response>);
 
 /** The `X-Expected-User` of each `DELETE /api/account`, in order. */
 export const expectedUsers: (string | null)[] = [];

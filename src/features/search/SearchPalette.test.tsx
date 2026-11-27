@@ -1,5 +1,5 @@
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { render, screen, within } from '@testing-library/react';
+import { act, render, screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { http, HttpResponse } from 'msw';
 import { beforeAll, beforeEach, describe, expect, it, onTestFinished, vi } from 'vitest';
@@ -127,5 +127,22 @@ describe('SearchPalette', () => {
     expect(combo()).toHaveFocus();
     document.querySelector('dialog')!.close();
     expect(trigger).toHaveFocus();
+  });
+
+  it('opens again when Ctrl+K comes before the close event of an Esc (busy main thread)', async () => {
+    const user = setup();
+    await user.keyboard('{Control>}k{/Control}');
+    const dialog = document.querySelector('dialog')!;
+    // Esc closes the element at once; its close event is a queued task that the next key press can overtake.
+    act(() => {
+      dialog.dispatchEvent(new Event('cancel', { cancelable: true }));
+      dialog.removeAttribute('open');
+    });
+    await user.keyboard('{Control>}k{/Control}');
+    act(() => {
+      dialog.dispatchEvent(new Event('close'));
+    });
+    expect(dialog).toHaveAttribute('open');
+    expect(combo()).toHaveFocus();
   });
 });

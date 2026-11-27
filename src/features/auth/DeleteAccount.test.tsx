@@ -11,6 +11,7 @@ import {
   openAndType,
   polyfillDialog,
   pressEscape,
+  pressEscapeWithLateClose,
   renderSignedIn,
   STALE,
 } from './test-account';
@@ -83,6 +84,22 @@ describe('DeleteAccount: the confirmation dialog', () => {
     await user.click(screen.getByRole('button', { name: 'Cancelar' }));
     expect(screen.queryByRole('dialog')).toBeNull();
     expect(screen.getByRole('button', { name: 'Excluir minha conta' })).toHaveFocus();
+  });
+
+  it('opens again when pressed before the close event of an Esc arrives (busy main thread)', async () => {
+    await renderSignedIn();
+    const user = await openAndType('EXC');
+    const trigger = screen.getByRole('button', { name: 'Excluir minha conta' });
+    let deliverClose!: () => void;
+    act(() => {
+      deliverClose = pressEscapeWithLateClose(dialog());
+    });
+    trigger.focus();
+    await user.click(trigger);
+    act(() => deliverClose());
+    expect(dialog()).toHaveAttribute('open');
+    expect(screen.getByLabelText('Digite EXCLUIR')).toHaveFocus();
+    expect(screen.getByLabelText('Digite EXCLUIR')).toHaveValue('');
   });
 
   it('starts over each time it opens', async () => {

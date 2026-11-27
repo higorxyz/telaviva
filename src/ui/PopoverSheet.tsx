@@ -152,8 +152,10 @@ export function PopoverSheet({
         ref={dialog}
         id={id}
         aria-labelledby={titleId}
-        onClose={() => {
-          if (open) close();
+        onClose={(e) => {
+          // The close event is a queued task: on a busy main thread it can come after the panel opened again (Esc,
+          // then Enter on the trigger). Then it belongs to the earlier closing and must not close the new opening.
+          if (open && !e.currentTarget.open) close();
         }}
         onClick={(e) => {
           if (e.target === e.currentTarget) close();

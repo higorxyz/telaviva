@@ -18,6 +18,8 @@ export function SearchPalette({
   initialOpener?: HTMLElement | null;
 } = {}) {
   const [open, setOpen] = useState(defaultOpen);
+  /** Counts the openings: see the effect that shows the dialog. */
+  const [opening, setOpening] = useState(0);
   const dialog = useRef<HTMLDialogElement>(null);
   const opener = useRef<HTMLElement | null>(initialOpener);
 
@@ -27,6 +29,7 @@ export function SearchPalette({
       const from = e instanceof CustomEvent ? (e.detail as HTMLElement | null) : null;
       opener.current = from ?? (document.activeElement instanceof HTMLElement ? document.activeElement : null);
       setOpen(true);
+      setOpening((n) => n + 1);
     };
     const onKey = (e: KeyboardEvent) => {
       if (isOpenShortcut(e)) {
@@ -48,6 +51,9 @@ export function SearchPalette({
     };
   }, []);
 
+  // Esc closes the element at once, but its `close` event (which sets `open` back to false) is a queued task: on a
+  // busy main thread the next shortcut can come first, while `open` is still true. Each opening counts (`opening`),
+  // so that shortcut still shows the dialog, and the late `close` finds it open again and is ignored.
   useEffect(() => {
     const el = dialog.current;
     if (!el) return;
@@ -56,13 +62,14 @@ export function SearchPalette({
       el.querySelector<HTMLInputElement>('input[role="combobox"]')?.focus();
     }
     if (!open && el.open) el.close();
-  }, [open]);
+  }, [open, opening]);
 
   return (
     <dialog
       ref={dialog}
       aria-label="Buscar"
       onClose={() => {
+        if (dialog.current?.open) return; // An earlier closing's late event: it was opened again meanwhile.
         setOpen(false);
         opener.current?.focus();
       }}

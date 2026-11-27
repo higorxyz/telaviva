@@ -33,6 +33,9 @@ export function DeleteAccount({ onLeaving }: { onLeaving?: () => void }) {
   const titleId = useId();
   const textId = useId();
 
+  // Esc closes the element at once, but its `close` event (which sets `open` back to false) is a queued task: on a
+  // busy main thread the next press of the button can come first, while `open` is still true. Each opening counts
+  // (`opening`), so that press still shows the dialog, and the late `close` finds it open again and is ignored.
   useEffect(() => {
     const el = dialog.current;
     if (!el) return;
@@ -41,7 +44,7 @@ export function DeleteAccount({ onLeaving }: { onLeaving?: () => void }) {
       el.querySelector('input')?.focus();
     }
     if (!open && el.open) el.close();
-  }, [open]);
+  }, [open, opening]);
 
   // Leaving /conta (browser Back included) hides it in a React <Activity> instead of unmounting it. A modal <dialog>
   // left open there would keep the rest of the app inert: close it right away, and come back with it closed.
@@ -90,6 +93,7 @@ export function DeleteAccount({ onLeaving }: { onLeaving?: () => void }) {
           if (busy) event.preventDefault();
         }}
         onClose={() => {
+          if (dialog.current?.open) return; // An earlier closing's late event: it was opened again meanwhile.
           setOpen(false);
           trigger.current?.focus();
         }}

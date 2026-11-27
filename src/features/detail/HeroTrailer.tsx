@@ -10,14 +10,19 @@ import { Trailer } from './Trailer';
 /** "Assistir trailer" button that opens the trailer in a native modal dialog (top layer, focus trapped). */
 export function HeroTrailer({ video, title, className }: { video: Video; title: string; className?: string }) {
   const [open, setOpen] = useState(false);
+  /** Counts the openings: see the effect below. */
+  const [opening, setOpening] = useState(0);
   const dialog = useRef<HTMLDialogElement>(null);
 
+  // Esc closes the element at once, but its `close` event (which sets `open` back to false) is a queued task: on a
+  // busy main thread the next press of the button can come first, while `open` is still true. Each opening counts
+  // (`opening`), so that press still shows the dialog, and the late `close` finds it open again and is ignored.
   useEffect(() => {
     const el = dialog.current;
     if (!el) return;
     if (open && !el.open) el.showModal();
     if (!open && el.open) el.close();
-  }, [open]);
+  }, [open, opening]);
 
   // Leaving the route (browser Back included) hides it in a React <Activity> rather than unmounting it: close the
   // dialog right away so the player stops, the page scroll unlocks, and the route comes back with it closed.
@@ -33,7 +38,10 @@ export function HeroTrailer({ video, title, className }: { video: Video; title: 
     <>
       <button
         type="button"
-        onClick={() => setOpen(true)}
+        onClick={() => {
+          setOpen(true);
+          setOpening((n) => n + 1);
+        }}
         aria-haspopup="dialog"
         className={cn(buttonClasses({ variant: 'primary', size: 'lg' }), className)}
       >
@@ -42,7 +50,9 @@ export function HeroTrailer({ video, title, className }: { video: Video; title: 
       <dialog
         ref={dialog}
         aria-label={`Trailer de ${title}`}
-        onClose={() => setOpen(false)}
+        onClose={() => {
+          if (!dialog.current?.open) setOpen(false); // Open again: an earlier closing's late event.
+        }}
         onClick={(e) => {
           if (e.target === e.currentTarget) setOpen(false);
         }}
