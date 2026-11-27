@@ -45,6 +45,10 @@ next-env.d.ts
 .playwright-mcp/
 .superpowers/
 
+# agent instructions and plans: kept on the author's machine, not in the repository
+/AGENTS.md
+/docs/superpowers/
+
 # e2e / emulators
 /.e2e/
 firebase-debug.log
